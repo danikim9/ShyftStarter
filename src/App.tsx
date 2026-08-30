@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Smartphone, LayoutDashboard } from 'lucide-react'
+import { Smartphone, LayoutDashboard, LineChart } from 'lucide-react'
 import { AppStateProvider } from './lib/store'
 import { BottomNav, type TabId } from './components/BottomNav'
 import { SheetHost } from './components/sheets/SheetHost'
@@ -10,9 +10,12 @@ import { Schedule } from './screens/Schedule'
 import { Quests } from './screens/Quests'
 import { Stats } from './screens/Stats'
 import { Coach } from './screens/Coach'
+import { Progress } from './screens/Progress'
+import { Team } from './screens/Team'
 import { ManagerDashboard } from './manager/ManagerDashboard'
+import { ExecutiveDashboard } from './exec/ExecutiveDashboard'
 
-type Persona = 'employee' | 'manager'
+type Persona = 'employee' | 'manager' | 'executive'
 
 function PersonaSwitcher({ persona, onChange }: { persona: Persona; onChange: (p: Persona) => void }) {
   return (
@@ -21,6 +24,7 @@ function PersonaSwitcher({ persona, onChange }: { persona: Persona; onChange: (p
         [
           { id: 'employee' as const, label: 'Employee App', icon: Smartphone },
           { id: 'manager' as const, label: 'Manager Dashboard', icon: LayoutDashboard },
+          { id: 'executive' as const, label: 'Executive Dashboard', icon: LineChart },
         ]
       ).map(({ id, label, icon: Icon }) => (
         <button
@@ -61,6 +65,10 @@ function Screen({ tab, onNavigate }: { tab: TabId; onNavigate: (t: TabId) => voi
       return <Stats />
     case 'coach':
       return <Coach />
+    case 'progress':
+      return <Progress />
+    case 'team':
+      return <Team />
   }
 }
 
@@ -92,13 +100,23 @@ function ManagerAppShell() {
   )
 }
 
+function ExecutiveAppShell() {
+  return (
+    <div className="h-screen w-full bg-[radial-gradient(circle_at_top,_#1b2140_0%,_#0b0e1a_60%)] relative overflow-hidden">
+      <ExecutiveDashboard />
+    </div>
+  )
+}
+
 export default function App() {
   const [persona, setPersona] = useState<Persona>('employee')
 
   return (
     <AppStateProvider>
       <PersonaSwitcher persona={persona} onChange={setPersona} />
-      {persona === 'employee' ? <EmployeeAppShell /> : <ManagerAppShell />}
+      {persona === 'employee' && <EmployeeAppShell />}
+      {persona === 'manager' && <ManagerAppShell />}
+      {persona === 'executive' && <ExecutiveAppShell />}
     </AppStateProvider>
   )
 }
