@@ -9,7 +9,7 @@
 // Claude API call later requires no changes to the screens that consume it.
 // ---------------------------------------------------------------------------
 
-import type { CoachingCard, Employee, EmployeeSkillScore, Quest, RolePlayResult, SkillId } from '../types'
+import type { CoachingCard, Employee, EmployeeSkillScore, ProgressPoint, ProgressRange, Quest, RolePlayResult, SkillId } from '../types'
 import { SKILLS } from '../data/skills'
 import { LEARNING_MODULES } from '../data/learningContent'
 
@@ -192,4 +192,33 @@ export function scoreRolePlayResponse(text: string): RolePlayResult {
   const lowestAxis = (Object.keys(axes) as (keyof typeof axes)[]).sort((a, b) => axes[a] - axes[b])[0]
 
   return { overall, axes, tip: AXIS_TIP[lowestAxis] }
+}
+
+// ---------------------------------------------------------------------------
+// P1 — Progress screen: one-line AI summary of the longitudinal trend.
+// ---------------------------------------------------------------------------
+
+const TEAM_AVG_WEEKLY_DELTA = 9 // mock benchmark — team-average capability growth over the same range
+
+export function generateProgressInsight(range: ProgressRange, trend: ProgressPoint[]): string {
+  const delta = trend[trend.length - 1].capabilityScore - trend[0].capabilityScore
+  const rangeLabel = range === 'weekly' ? '8주간' : '6개월간'
+  const benchmark = range === 'weekly' ? TEAM_AVG_WEEKLY_DELTA : Math.round(TEAM_AVG_WEEKLY_DELTA * 3.2)
+
+  if (delta >= benchmark) {
+    return `최근 ${rangeLabel} 역량 종합 점수가 ${delta}점 올랐어요 — 팀 평균 성장 속도(+${benchmark}점)보다 빨라요. 지금 하고 있는 방식을 계속 유지해보세요.`
+  }
+  return `최근 ${rangeLabel} 역량 종합 점수가 ${delta}점 올랐어요. 팀 평균(+${benchmark}점)에 조금 못 미치니, 이번 주는 약점 스킬 위주로 마이크로러닝을 하나 더 해보는 걸 추천해요.`
+}
+
+// ---------------------------------------------------------------------------
+// P1~P2 — Team Challenge: encouragement message keyed off completion ratio.
+// ---------------------------------------------------------------------------
+
+export function generateChallengeInsight(progress: number, target: number): string {
+  const pct = progress / target
+  if (pct >= 1) return '목표 달성! 팀 전체에게 보상이 지급됐어요 🎉'
+  if (pct >= 0.75) return `거의 다 왔어요 — ${target - progress}건만 더 하면 팀 전체 보너스예요!`
+  if (pct >= 0.4) return '순조롭게 진행 중이에요. 오늘 응대에서 한 건만 더 시도해볼까요?'
+  return '아직 초반이에요 — 오늘부터 팀원들과 함께 속도를 올려볼까요?'
 }

@@ -1,4 +1,6 @@
-# ShyftStarter — Prototype (Employee App P0+P1 · Manager Dashboard)
+# ShyftStarter — Prototype (Employee App P0+P1 · Manager Dashboard · Executive Dashboard)
+
+> 최신 업데이트: **Executive Dashboard**(P2) 추가 — Organization Performance, Store/Region Comparison, Capability Map, KPI Correlation("The Smoking Gun"), Training/Coaching ROI, Brand Alignment.
 
 Bellatrix의 ShyftStarter Frontline Human Performance Intelligence 플랫폼을 목업 데이터 +
 규칙 기반 mock AI로 구현한 클릭 가능한 프로토타입입니다. `Shyftstarter_CTO.pdf` (제품 스펙),
@@ -12,7 +14,7 @@ npm run dev       # 개발 서버 (http://localhost:5173)
 npm run build      # 프로덕션 빌드 → dist/
 ```
 
-화면 상단의 **Employee App / Manager Dashboard** 전환 버튼으로 두 페르소나를 모두 체험할 수 있습니다.
+화면 상단의 **Employee App / Manager Dashboard / Executive Dashboard** 전환 버튼으로 세 페르소나를 모두 체험할 수 있습니다 (CTO 문서 07p의 3대 페르소나: Employee · Manager · Executive/Admin).
 
 ## Employee App (CTO 문서 Screen 01–10 기준, 폰 프레임)
 
@@ -33,6 +35,23 @@ Killer Script · Micro Checklist는 Home/Quest에서 바텀시트로 열립니�
 - **마이크로러닝**: Home 퀵액션 "3분 학습" 또는 Coach 화면에서 진입. AI가 오늘의 스킬 갭 기준으로 모듈 하나를 추천(Why·Duration·Expected Outcome) → 시작하면 3개 실전 팁 카드 → 완료 시 XP.
 - **AI Role-play**: Coach 화면 "START ROLE-PLAY". AI 고객 페르소나가 상황(가격 부담, 무관심 고객 등)을 던지면 텍스트로 답변 → 공감·응답구조·가치전달·이의처리·클로징 5축으로 mock 채점 + 개선 팁. 텍스트 기반만 구현, 음성 없음.
 
+### P1 — Progress (성장 추이)
+
+CTO 문서 08p IA 기준 신규 탭. Stats가 "지금의 스냅샷"이라면 Progress는 "시간에 따른 성장 곡선"입니다.
+
+- **연속 활동 스트릭 · 최장 기록 · 누적 퀘스트/학습 완료** 4개 스탯 타일
+- **Capability Trend**: 주간(8주)/월간(6개월) 토글 + 전체 역량 종합 점수 추이 라인 차트 + AI 한줄 요약(팀 평균 성장 속도 대비 비교, `generateProgressInsight()`)
+- **Skill Trajectory**: 스킬 8종을 변화량(Δ) 순으로 칩 형태로 나열 → 탭하면 해당 스킬의 주간/월간 성장 곡선을 큰 그래프로 확인
+- **Milestones**: 레벨업·스트릭·퀘스트/학습 누적·최대 성장 스킬 등 배지 그리드
+
+### P1~P2 — Team (팀 챌린지 · Recognition · 리더보드)
+
+CTO 문서 08p IA 기준 신규 탭.
+
+- **Team Challenge**: 매장 전체가 함께 채우는 공유 목표 진행바(예: 크로스셀 32건) + AI 응원 메시지(`generateChallengeInsight()`)
+- **Recognition**: 매니저/동료/AI가 보낸 인정 메시지 피드
+- **Leaderboard**: 역량 종합 점수 기준 팀 순위. CTO 문서의 **"Leaderboard (기업별 On/Off)"** 스펙을 반영해 화면 내 토글로 켜고 끌 수 있고, 꺼두면 안내 문구만 표시됩니다. **매니저 대시보드의 Will(참여도)·needsAttention·AI 코칭 요약 등 민감한 코칭 신호는 절대 리더보드에 노출하지 않습니다** — 동료가 서로의 참여도/개입 필요 여부를 볼 수 있으면 "감시" 프레임이 되어버리기 때문에, `src/data/teamFeedData.ts`는 매니저용 `team.ts`에서 공개 가능한 필드(이름·역할·역량 점수)만 선택적으로 가져옵니다.
+
 ## Manager Dashboard (CTO 문서 Screen 19–21 기준, 와이드 웹/태블릿 레이아웃)
 
 | 화면 | 내용 |
@@ -44,6 +63,27 @@ Killer Script · Micro Checklist는 Home/Quest에서 바텀시트로 열립니�
 | **1:1 코칭 가이드 모달** | 일반화된 5단계 대화 프레임워크(인정으로 열기→데이터 공유→원인 탐색→합의→응원으로 닫기)를 직원별 데이터로 채워서 제공 |
 
 **Will(참여도) 점수는 설문이 아니라 행동 데이터**(퀘스트 완료율·넛지 반응률·체크리스트 참여)로 계산된다는 원칙을 지켰습니다 — 음성 캡처와 마찬가지로 "감시가 아닌 성장" 철학을 매니저 화면에도 그대로 적용했습니다.
+
+## Executive Dashboard (CTO 문서 Screen 07p Persona 3 기준, P2 · 와이드 레이아웃)
+
+조직 단위의 역량-성과 상관 분석 화면이에요. **Executive/Admin 역할은 개별 직원 데이터에 접근하지 않고
+매장/조직 단위 집계만 봅니다** — CTO 문서 24p의 Role-Based Access Control 원칙(Regional/Enterprise
+Admin은 Region/Company-wide 데이터만)을 그대로 반영했습니다.
+
+| 화면 | 내용 |
+|---|---|
+| **조직 현황** | Organization Performance KPI 8종(매장 수·직원 수·조직 평균 역량/참여도/체크리스트·트레이닝 이수율·ATV·CVR), 지역별(서울/경기/부산) 매장 비교 테이블, 조직 전체 Capability Map(레이더 — 플랫폼 도입 전 대비 현재) |
+| **ROI 분석** | **"The Smoking Gun"** — 체크리스트 이수율 × ATV 산점도 + 회귀선, Training ROI(트레이닝 이수율 상위/하위 매장 그룹 비교), Coaching ROI(코칭 세션 빈도 ↔ 역량 점수 상관계수), Brand Alignment(개념 지표) |
+
+**"The Smoking Gun" 차트는 Bellatrix_CFO_v.5.pdf 7p를 그대로 재현**했습니다 — 체크리스트 이수율 상위
+20% 매장의 평균 ATV가 나머지보다 유의미하게 높다는 것을 실제 계산으로 보여줍니다. 10개 매장 목업
+데이터(`src/data/execData.ts`)는 상관계수·상승폭이 프로젝트 비전 문서가 인용한 **r≈0.74, +15.4%**에
+근접하도록 설계했고, 화면에 표시되는 r값·회귀선·상승률은 하드코딩이 아니라 `src/lib/execAnalytics.ts`의
+Pearson 상관계수·선형회귀 함수로 **매 렌더링마다 실제로 계산**됩니다 — 나중에 실제 POS·행동 데이터로
+바꿔도 계산 로직은 그대로 재사용됩니다.
+
+강남점(`st_gangnam`) 집계는 Manager Dashboard `team.ts`의 실제 6명 직원 평균과 일치하도록 맞춰서
+Employee → Manager → Executive 세 화면의 숫자가 서로 어긋나지 않습니다.
 
 ## 코칭 콘텐츠 라이브러리 (`src/data/coachingContent.ts`)
 
@@ -65,9 +105,12 @@ Dani가 공유한 필드 코칭 매뉴얼/스토어 컬처 자료를 참고해, 
 
 - 실제 백엔드 연동 (Supabase/Postgres 등) — 위 데이터 모델을 스키마로
 - 실제 Claude API 연동 (`src/lib/aiEngine.ts`, `src/lib/managerAiEngine.ts` 교체)
-- Progress(주간/월간 성장 그래프), Team Leaderboard, Executive Dashboard (P2)
-- 인증/로그인
+- 인증/로그인, Role 기반 접근 제어를 실제로 강제하는 백엔드 (지금은 프론트에서 화면만 분리)
 - Will 점수 계산식(4분면 임계값 65점 등)을 실제 데이터로 검증
+- 리더보드 On/Off는 지금은 화면 내 로컬 토글(데모용)입니다 — 실제로는 기업/매장 단위 관리자 설정으로 옮겨가야 합니다
+- Executive Dashboard의 KPI Correlation은 지금 10개 매장 목업 — 실제 POS/behavior-event 데이터가
+  연결되면 `src/lib/execAnalytics.ts`의 계산 로직은 그대로 두고 `data/execData.ts`만 실데이터로 교체
+- Brand Alignment는 아직 개념 지표 — 고객사 브랜드 가이드라인 온보딩 후 정의 확정 필요
 
 ## 기술 스택
 

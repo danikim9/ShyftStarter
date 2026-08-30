@@ -256,3 +256,95 @@ export interface RolePlayResult {
   axes: RolePlayAxisScores
   tip: string
 }
+
+// ---------------------------------------------------------------------------
+// P1 — Progress (Longitudinal Growth · Skill Trajectory)
+// ---------------------------------------------------------------------------
+
+export type ProgressRange = 'weekly' | 'monthly'
+
+export interface ProgressPoint {
+  label: string
+  capabilityScore: number
+}
+
+export interface Milestone {
+  id: string
+  emoji: string
+  title: string
+  detail: string
+  achievedDate: string
+}
+
+export interface ProgressSummary {
+  currentStreakDays: number
+  longestStreakDays: number
+  totalShiftsLogged: number
+  totalQuestsCompleted: number
+  totalLearningCompleted: number
+}
+
+// ---------------------------------------------------------------------------
+// P1~P2 — Team (Recognition · Team Challenge · Leaderboard, 기업별 On/Off)
+// ---------------------------------------------------------------------------
+
+export interface LeaderboardEntry {
+  employeeId: string
+  name: string
+  avatarColor: string
+  role: string
+  store: string
+  score: number
+  isMe: boolean
+}
+
+export type RecognitionSource = 'manager' | 'peer' | 'ai'
+
+export interface RecognitionEvent {
+  id: string
+  employeeId: string
+  employeeName: string
+  message: string
+  date: string
+  fromRole: RecognitionSource
+}
+
+export interface TeamChallenge {
+  id: string
+  title: string
+  description: string
+  progress: number
+  target: number
+  unit: string
+  endsIn: string
+  rewardNote: string
+}
+
+// ---------------------------------------------------------------------------
+// P2 — Executive Dashboard: Organization Performance · Store/Region Comparison
+// · Capability Map · KPI Correlation ("Behavior-to-Outcome") · Training/Coaching
+// ROI · Brand Alignment. CTO 문서 07p(Persona 3) 기준.
+//
+// 설계 원칙(CTO 문서 24p RBAC와 일관): Executive/Admin 역할은 매장·조직 단위
+// 집계만 본다 — 개별 직원 이름·점수는 노출하지 않는다 (그건 Manager 권한).
+// ---------------------------------------------------------------------------
+
+export interface StorePerformance {
+  id: string
+  name: string
+  region: string
+  employeeCount: number
+  capabilityScore: number // store avg, 0-100
+  engagementScore: number // store avg Will score, 0-100
+  checklistCompletionRate: number // 0-100 — the behavior signal
+  trainingCompletionRate: number // 0-100 — microlearning + role-play completion
+  atv: number // average transaction value, KRW — the outcome signal
+  cvr: number // conversion rate, %
+  coachingSessionsPerEmployee: number
+}
+
+export interface OrgSkillPoint {
+  skillId: SkillId
+  baseline: number // avg score before platform rollout
+  current: number
+}
