@@ -4,6 +4,8 @@ import { KillerScriptView } from './KillerScriptView'
 import { ChecklistView, ChecklistFooter } from './ChecklistView'
 import { QuestDetailView } from './QuestDetailView'
 import { ShiftDetailView } from './ShiftDetailView'
+import { LearnView } from './LearnView'
+import { RolePlayView } from './RolePlayView'
 import type { TabId } from '../BottomNav'
 
 const TITLES: Record<string, string> = {
@@ -11,6 +13,8 @@ const TITLES: Record<string, string> = {
   checklist: 'MICRO CHECKLIST',
   questDetail: '퀘스트',
   shiftDetail: '시프트 상세',
+  learn: '마이크로 러닝',
+  rolePlay: 'AI ROLE-PLAY',
 }
 
 export function SheetHost({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
@@ -37,6 +41,10 @@ export function SheetHost({ onNavigate }: { onNavigate: (tab: TabId) => void }) 
         }}
       />
     )
+  } else if (sheet.kind === 'learn') {
+    content = <LearnView />
+  } else if (sheet.kind === 'rolePlay') {
+    content = <RolePlayView />
   }
 
   return (

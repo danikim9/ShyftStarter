@@ -9,8 +9,9 @@
 // Claude API call later requires no changes to the screens that consume it.
 // ---------------------------------------------------------------------------
 
-import type { CoachingCard, Employee, EmployeeSkillScore, Quest, SkillId } from '../types'
+import type { CoachingCard, Employee, EmployeeSkillScore, Quest, RolePlayResult, SkillId } from '../types'
 import { SKILLS } from '../data/skills'
+import { LEARNING_MODULES } from '../data/learningContent'
 
 // Layer B input — how much each skill matters to revenue outcomes today.
 // (In production this comes from Business Priority + KPI correlation data.)
@@ -137,4 +138,58 @@ export function getNextBestAction(employee: Employee, quests: Quest[]): NextBest
   }
 
   return { type: 'LEARN', label: '3분 마이크로 러닝으로 오늘의 약점 보완하기' }
+}
+
+/** Layer C+D — P1 Microlearning: recommend one module based on the current skill gap. */
+export function recommendLearningModule(employee: Employee) {
+  const skillId = pickFocusSkill(employee.skills)
+  return LEARNING_MODULES[skillId]
+}
+
+// ---------------------------------------------------------------------------
+// P1 — AI Role-play scoring (text-based, rule-based mock).
+// A real implementation would send the transcript to an LLM grader; this
+// keyword/length heuristic returns the same RolePlayResult shape so the
+// Role-play screen never has to change when it's swapped in.
+// ---------------------------------------------------------------------------
+
+const AXIS_KEYWORDS = {
+  empathy: ['이해', '느끼', '불편', '죄송', '감사', '그러셨', '공감'],
+  structure: ['?', '요?', '까요'],
+  valueComm: ['가치', '도움', '편해', '좋아', '추천', '만족'],
+  objection: ['그런데', '대신', '다만', '혹시', '대안', '비슷하게'],
+  closing: ['오늘', '지금', '바로', '결정', '준비', '어느 쪽'],
+} as const
+
+function axisScore(text: string, keywords: readonly string[], seed: number) {
+  const hit = keywords.some((k) => text.includes(k))
+  const lengthBonus = Math.min(text.trim().length / 6, 20)
+  const variance = (seed % 7) - 3
+  return Math.max(35, Math.min(97, Math.round(52 + (hit ? 26 : 0) + lengthBonus + variance)))
+}
+
+const AXIS_TIP: Record<keyof RolePlayResult['axes'], string> = {
+  empathy: '고객의 감정을 먼저 짚어주는 한 문장을 추가해보세요. (예: "그러셨겠어요")',
+  structure: '열린 질문으로 마무리해서 고객이 계속 말할 수 있게 해보세요.',
+  valueComm: '스펙보다 "이게 왜 도움이 되는지"를 한 문장 더 붙여보세요.',
+  objection: '반박하지 말고, 먼저 인정한 뒤 대안을 제시해보세요.',
+  closing: '다음 행동을 구체적으로 제안해보세요. (예: "지금 바로 준비해드릴게요")',
+}
+
+export function scoreRolePlayResponse(text: string): RolePlayResult {
+  const trimmed = text.trim()
+  const seed = trimmed.length + trimmed.split('').reduce((a, c) => a + c.charCodeAt(0), 0)
+
+  const axes = {
+    empathy: axisScore(trimmed, AXIS_KEYWORDS.empathy, seed),
+    structure: axisScore(trimmed, AXIS_KEYWORDS.structure, seed + 1),
+    valueComm: axisScore(trimmed, AXIS_KEYWORDS.valueComm, seed + 2),
+    objection: axisScore(trimmed, AXIS_KEYWORDS.objection, seed + 3),
+    closing: axisScore(trimmed, AXIS_KEYWORDS.closing, seed + 4),
+  }
+
+  const overall = Math.round((axes.empathy + axes.structure + axes.valueComm + axes.objection + axes.closing) / 5)
+  const lowestAxis = (Object.keys(axes) as (keyof typeof axes)[]).sort((a, b) => axes[a] - axes[b])[0]
+
+  return { overall, axes, tip: AXIS_TIP[lowestAxis] }
 }

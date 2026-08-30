@@ -1,8 +1,8 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
-import type { Quest, SkillId } from '../types'
+import type { MoodValue, Quest, SkillId } from '../types'
 import { employee, quests as initialQuests, checklistGroup as initialChecklist } from '../data/mockData'
 
-export type SheetKind = 'killerScript' | 'checklist' | 'questDetail' | 'shiftDetail' | null
+export type SheetKind = 'killerScript' | 'checklist' | 'questDetail' | 'shiftDetail' | 'learn' | 'rolePlay' | null
 
 export interface SheetState {
   kind: SheetKind
@@ -22,6 +22,10 @@ interface AppStateShape {
   closeSheet: () => void
   toast: string | null
   showToast: (msg: string) => void
+  todayMood: MoodValue | null
+  moodCheckedIn: boolean
+  submitMood: (v: MoodValue) => void
+  skipMoodCheckIn: () => void
 }
 
 const AppStateContext = createContext<AppStateShape | null>(null)
@@ -31,6 +35,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [checklist, setChecklist] = useState(initialChecklist)
   const [sheet, setSheet] = useState<SheetState>({ kind: null })
   const [toast, setToast] = useState<string | null>(null)
+  const [todayMood, setTodayMood] = useState<MoodValue | null>(null)
+  const [moodCheckedIn, setMoodCheckedIn] = useState(false)
 
   const markQuestProgress = (questId: string) => {
     setQuests((prev) =>
@@ -58,6 +64,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setTimeout(() => setToast(null), 2600)
   }
 
+  const submitMood = (v: MoodValue) => {
+    setTodayMood(v)
+    setMoodCheckedIn(true)
+    showToast('오늘 컨디션 체크인 완료')
+  }
+
   const value = useMemo<AppStateShape>(
     () => ({
       employee,
@@ -70,8 +82,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       closeSheet: () => setSheet({ kind: null }),
       toast,
       showToast,
+      todayMood,
+      moodCheckedIn,
+      submitMood,
+      skipMoodCheckIn: () => setMoodCheckedIn(true),
     }),
-    [quests, checklist, sheet, toast]
+    [quests, checklist, sheet, toast, todayMood, moodCheckedIn]
   )
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>
