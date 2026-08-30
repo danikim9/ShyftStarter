@@ -1,15 +1,15 @@
 import type {
   ChecklistGroup,
   Employee,
-  EmployeeSkillScore,
   KillerScript,
   Mission,
   Quest,
   Shift,
   SkillId,
-  SkillScorePoint,
 } from '../types'
 import { ALL_SKILL_ORDER } from './skills'
+import { KILLER_SCRIPT_VARIANTS } from './coachingContent'
+import { buildSkillScore } from '../lib/skillBuilder'
 
 // ---------------------------------------------------------------------------
 // Demo persona: 지은 (Jieun Kim), Sales Associate — Gangnam flagship store
@@ -17,33 +17,7 @@ import { ALL_SKILL_ORDER } from './skills'
 // so the AI engine has selected "Closing" as today's Performance Mission.
 // ---------------------------------------------------------------------------
 
-function history(points: number[], startDate: string): SkillScorePoint[] {
-  const base = new Date(startDate)
-  return points.map((score, i) => {
-    const d = new Date(base)
-    d.setDate(d.getDate() + i * 2)
-    return {
-      shiftIndex: i + 1,
-      date: d.toISOString().slice(0, 10),
-      score,
-    }
-  })
-}
-
-function buildSkill(skillId: SkillId, points: number[], confidence: number, evidenceCount: number): EmployeeSkillScore {
-  const h = history(points, '2026-08-16')
-  const score = h[h.length - 1].score
-  const previousScore = h.length > 1 ? h[h.length - 2].score : score
-  return {
-    skillId,
-    score,
-    confidence,
-    previousScore,
-    trendDelta: Math.round((score - h[0].score) * 10) / 10,
-    evidenceCount,
-    history: h,
-  }
-}
+const buildSkill = buildSkillScore
 
 export const CURRENT_EMPLOYEE_ID = 'emp_jieun'
 
@@ -171,12 +145,13 @@ export const quests: Quest[] = [
 ]
 
 // ---------------------------------------------------------------------------
-// Killer Scripts
+// Killer Scripts — each skill has 1+ variants; the app cycles through them
+// via "SHOW ANOTHER". Primary variant is authored per-skill below; extra
+// variants come from the generic coaching content library.
 // ---------------------------------------------------------------------------
 
-export const killerScripts: Record<string, KillerScript> = {
+const PRIMARY_KILLER_SCRIPTS: Record<SkillId, Omit<KillerScript, 'id'>> = {
   closing: {
-    id: 'ks_closing',
     skillId: 'closing',
     situationLabel: '핵심 질문: "지금 뭐라고 말하지?"',
     beforeLabel: 'BEFORE (일반적인 질문)',
@@ -185,7 +160,6 @@ export const killerScripts: Record<string, KillerScript> = {
     followUpLine: '“그럼 그 중에서 가장 중요하게 보시는 부분은 어떤 걸까요?”',
   },
   crossSell: {
-    id: 'ks_crosssell',
     skillId: 'crossSell',
     situationLabel: '핵심 질문: "지금 뭐라고 말하지?"',
     beforeLabel: 'BEFORE (일반적인 질문)',
@@ -194,7 +168,6 @@ export const killerScripts: Record<string, KillerScript> = {
     followUpLine: '“혹시 같이 준비하시면 좋은 것도 안내해드릴까요?”',
   },
   discovery: {
-    id: 'ks_discovery',
     skillId: 'discovery',
     situationLabel: '핵심 질문: "지금 뭐라고 말하지?"',
     beforeLabel: 'BEFORE (일반적인 질문)',
@@ -202,7 +175,69 @@ export const killerScripts: Record<string, KillerScript> = {
     afterLine: '“오늘 어떤 계기로 둘러보러 오셨어요?”',
     followUpLine: '“그 부분에서 가장 신경 쓰이시는 건 뭐예요?”',
   },
+  empathy: {
+    skillId: 'empathy',
+    situationLabel: '핵심 질문: "지금 뭐라고 말하지?"',
+    beforeLabel: 'BEFORE (일반적인 질문)',
+    beforeLine: '“네, 알겠습니다.”',
+    afterLine: '“그 부분 때문에 번거로우셨겠어요. 저라도 그랬을 것 같아요.”',
+    followUpLine: '“혹시 이전에도 비슷한 걸 써보신 적 있으세요?”',
+  },
+  productKnowledge: {
+    skillId: 'productKnowledge',
+    situationLabel: '핵심 질문: "지금 뭐라고 말하지?"',
+    beforeLabel: 'BEFORE (일반적인 질문)',
+    beforeLine: '“이 제품은 A, B, C 기능이 있어요.”',
+    afterLine: '“이 기능 덕분에 지금 불편해하시던 부분이 훨씬 편해지실 거예요.”',
+    followUpLine: '“방금 말씀드린 것 중 가장 궁금하신 부분이 있을까요?”',
+  },
+  communication: {
+    skillId: 'communication',
+    situationLabel: '핵심 질문: "지금 뭐라고 말하지?"',
+    beforeLabel: 'BEFORE (일반적인 질문)',
+    beforeLine: '(대기 고객을 그냥 지나침)',
+    afterLine: '“잠시만요, 금방 도와드릴게요!”',
+    followUpLine: '“기다려주셔서 감사해요 — 지금부터 편하게 봐드릴게요.”',
+  },
+  storytelling: {
+    skillId: 'storytelling',
+    situationLabel: '핵심 질문: "지금 뭐라고 말하지?"',
+    beforeLabel: 'BEFORE (일반적인 질문)',
+    beforeLine: '“이건 이런 기능이 있어요.”',
+    afterLine: '“이걸 쓰시면 하루 중 이 순간이 이렇게 달라지실 거예요.”',
+    followUpLine: '“실제로 써보시면 그 차이가 더 확실히 느껴지실 거예요.”',
+  },
+  coachability: {
+    skillId: 'coachability',
+    situationLabel: '핵심 질문: "지금 뭐라고 말하지?"',
+    beforeLabel: 'BEFORE (일반적인 질문)',
+    beforeLine: '(피드백을 다음 응대에 반영하지 않음)',
+    afterLine: '“방금 받은 피드백, 바로 다음 고객분께 적용해볼게요.”',
+    followUpLine: '“이번엔 어떤 점이 달라졌는지 스스로 체크해볼게요.”',
+  },
 }
+
+export function getKillerScripts(skillId: SkillId): KillerScript[] {
+  const primary = PRIMARY_KILLER_SCRIPTS[skillId]
+  const extras = KILLER_SCRIPT_VARIANTS[skillId] ?? []
+  return [
+    { id: `ks_${skillId}_0`, ...primary },
+    ...extras.map((v, i) => ({
+      id: `ks_${skillId}_${i + 1}`,
+      skillId,
+      situationLabel: primary.situationLabel,
+      beforeLabel: primary.beforeLabel,
+      beforeLine: `“${v.before}”`,
+      afterLine: `“${v.after}”`,
+      followUpLine: `“${v.followUp}”`,
+    })),
+  ]
+}
+
+// Back-compat single-script lookup (first/primary variant only)
+export const killerScripts: Record<SkillId, KillerScript> = Object.fromEntries(
+  ALL_SKILL_ORDER.map((id) => [id, getKillerScripts(id)[0]])
+) as Record<SkillId, KillerScript>
 
 // ---------------------------------------------------------------------------
 // Micro Checklist — pre/post interaction quick reference

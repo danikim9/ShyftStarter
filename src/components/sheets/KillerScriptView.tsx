@@ -1,18 +1,28 @@
+import { useMemo, useState } from 'react'
 import type { SkillId } from '../../types'
-import { killerScripts } from '../../data/mockData'
+import { getKillerScripts } from '../../data/mockData'
 import { SKILLS } from '../../data/skills'
 import { PrimaryButton, SecondaryButton, Badge } from '../ui'
 import { useAppState } from '../../lib/store'
 
 export function KillerScriptView({ skillId }: { skillId: SkillId }) {
-  const script = killerScripts[skillId] ?? killerScripts.closing
+  const variants = useMemo(() => getKillerScripts(skillId), [skillId])
+  const [idx, setIdx] = useState(0)
+  const script = variants[idx]
   const { showToast } = useAppState()
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Badge tone="brand">{SKILLS[skillId].nameKo}</Badge>
-        <span className="text-xs text-white/40">{script.situationLabel}</span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Badge tone="brand">{SKILLS[skillId].nameKo}</Badge>
+          <span className="text-xs text-white/40">{script.situationLabel}</span>
+        </div>
+        {variants.length > 1 && (
+          <span className="text-[11px] text-white/30 tabular-nums">
+            {idx + 1} / {variants.length}
+          </span>
+        )}
       </div>
 
       <div className="rounded-2xl bg-rose-950/20 border border-rose-500/20 p-4">
@@ -32,7 +42,7 @@ export function KillerScriptView({ skillId }: { skillId: SkillId }) {
 
       <div className="grid grid-cols-2 gap-2 pt-1">
         <SecondaryButton onClick={() => showToast('연습 모드는 P1에서 제공돼요')}>PRACTICE</SecondaryButton>
-        <SecondaryButton onClick={() => showToast('다른 버전을 준비 중이에요')}>SHOW ANOTHER</SecondaryButton>
+        <SecondaryButton onClick={() => setIdx((i) => (i + 1) % variants.length)}>SHOW ANOTHER</SecondaryButton>
       </div>
       <PrimaryButton onClick={() => showToast('이 스크립트를 사용했어요 — 다음 응대에 적용해보세요')}>USE THIS</PrimaryButton>
     </div>

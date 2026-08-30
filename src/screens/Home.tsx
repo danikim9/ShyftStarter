@@ -1,4 +1,4 @@
-import { Flame, ChevronRight, ScrollText, ListChecks } from 'lucide-react'
+import { Flame, ChevronRight, ScrollText, ListChecks, GraduationCap } from 'lucide-react'
 import { useAppState } from '../lib/store'
 import { todayShift, todayMission } from '../data/mockData'
 import { SKILLS, WHEEL_SKILL_ORDER } from '../data/skills'
@@ -14,7 +14,7 @@ function fmtDate(d: string) {
 }
 
 export function Home({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
-  const { employee, quests, openSheet } = useAppState()
+  const { employee, quests, openSheet, todayMood } = useAppState()
   const nudge = generateAiNudge(employee.skills)
   const nba = getNextBestAction(employee, quests)
   const focusMeta = SKILLS[todayMission.focusSkillId]
@@ -25,9 +25,16 @@ export function Home({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
 
   return (
     <div className="px-4 pt-5 pb-8 space-y-5">
-      <div>
-        <div className="text-white/40 text-xs mb-0.5">{fmtDate(todayShift.date)} · {todayShift.start}–{todayShift.end} · {todayShift.store}</div>
-        <h1 className="text-xl font-bold text-white">Good morning, {employee.name}님</h1>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-white/40 text-xs mb-0.5">{fmtDate(todayShift.date)} · {todayShift.start}–{todayShift.end} · {todayShift.store}</div>
+          <h1 className="text-xl font-bold text-white">Good morning, {employee.name}님</h1>
+        </div>
+        {todayMood && (
+          <div className="shrink-0 flex items-center gap-1 rounded-full bg-white/6 px-2.5 py-1.5 mt-0.5" title="오늘 컨디션 체크인">
+            <span className="text-sm leading-none">{'❤️'.repeat(todayMood)}</span>
+          </div>
+        )}
       </div>
 
       {/* Today's Mission */}
@@ -74,12 +81,15 @@ export function Home({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
       </div>
 
       {/* Quick actions */}
-      <div className="grid grid-cols-2 gap-2.5">
-        <SecondaryButton onClick={() => openSheet({ kind: 'killerScript', skillId: todayMission.focusSkillId })} className="flex items-center justify-center gap-1.5">
-          <ScrollText size={15} /> 킬러 스크립트
+      <div className="grid grid-cols-3 gap-2">
+        <SecondaryButton onClick={() => openSheet({ kind: 'killerScript', skillId: todayMission.focusSkillId })} className="flex flex-col items-center justify-center gap-1 py-2.5 text-[11px]">
+          <ScrollText size={16} /> 킬러 스크립트
         </SecondaryButton>
-        <SecondaryButton onClick={() => openSheet({ kind: 'checklist' })} className="flex items-center justify-center gap-1.5">
-          <ListChecks size={15} /> 체크리스트
+        <SecondaryButton onClick={() => openSheet({ kind: 'checklist' })} className="flex flex-col items-center justify-center gap-1 py-2.5 text-[11px]">
+          <ListChecks size={16} /> 체크리스트
+        </SecondaryButton>
+        <SecondaryButton onClick={() => openSheet({ kind: 'learn' })} className="flex flex-col items-center justify-center gap-1 py-2.5 text-[11px]">
+          <GraduationCap size={16} /> 3분 학습
         </SecondaryButton>
       </div>
 

@@ -147,3 +147,112 @@ export interface AiNudge {
   skillId: SkillId
   message: string
 }
+
+// ---------------------------------------------------------------------------
+// Manager Dashboard — Will × Capability & team coaching
+// ---------------------------------------------------------------------------
+
+export type WillCapabilityQuadrant = 'star' | 'grower' | 'disengaged' | 'atRisk'
+
+export const QUADRANT_META: Record<
+  WillCapabilityQuadrant,
+  { label: string; short: string; color: string; action: string }
+> = {
+  star: { label: '스타 플레이어', short: 'High Will · High Capability', color: '#22c55e', action: '인정 + 리더십 기회 부여' },
+  grower: { label: '성장형 인재', short: 'High Will · Growing Capability', color: '#5b5ff2', action: '집중 코칭 + 연습 기회 확대' },
+  disengaged: { label: '몰입 저하', short: 'Low Will · High Capability', color: '#f5a524', action: '1:1 면담으로 동기 원인 파악' },
+  atRisk: { label: '즉각 개입 필요', short: 'Low Will · Low Capability', color: '#ef4444', action: '명확한 기대치 설정 + 밀착 관리' },
+}
+
+export interface ManagerActionSummary {
+  whatMatters: string
+  why: string
+  whatToDo: string
+}
+
+export interface TeamMember {
+  id: string
+  name: string
+  role: string
+  store: string
+  tenure: string
+  avatarColor: string
+  skills: EmployeeSkillScore[]
+  capabilityScore: number // 0-100, aggregate
+  willScore: number // 0-100, derived from engagement behavior (not survey)
+  willBasis: string // short explanation of what the will score is derived from
+  needsAttention: boolean
+  signal: string
+  kpi: { cvr: number; aov: number }
+  activity: { questCompletionRate: number; coachingHistoryCount: number; learningCompletedCount: number }
+  moodHistory: MoodValue[] // last 5 shifts, one-tap check-in
+  aiSummary: ManagerActionSummary
+}
+
+export interface CoachingGuideStep {
+  step: string
+  prompt: string
+}
+
+export interface ManagerQuestDraft {
+  name: string
+  behavior: string
+  assignTo: string
+  startDate: string
+  endDate: string
+  difficulty: 1 | 2 | 3
+  rewardXp: number
+  kpiConnection: string
+  aiPersonalization: boolean
+}
+
+// ---------------------------------------------------------------------------
+// Shift-start mood / condition check-in — one-tap, <1s, no free text.
+// Used as one input (alongside behavior signals) into the Will(참여도) score.
+// ---------------------------------------------------------------------------
+
+export type MoodValue = 1 | 2 | 3 | 4 | 5
+
+export interface MoodEntry {
+  shiftId: string
+  date: string
+  value: MoodValue
+}
+
+// ---------------------------------------------------------------------------
+// P1 — Microlearning
+// ---------------------------------------------------------------------------
+
+export interface LearningModule {
+  id: string
+  skillId: SkillId
+  title: string
+  why: string
+  durationMin: number
+  outcome: string
+  tips: string[]
+}
+
+// ---------------------------------------------------------------------------
+// P1 — AI Role-play (text-based only, no voice)
+// ---------------------------------------------------------------------------
+
+export interface RolePlayScenario {
+  skillId: SkillId
+  title: string
+  customerLine: string
+}
+
+export interface RolePlayAxisScores {
+  empathy: number
+  structure: number
+  valueComm: number
+  objection: number
+  closing: number
+}
+
+export interface RolePlayResult {
+  overall: number
+  axes: RolePlayAxisScores
+  tip: string
+}
