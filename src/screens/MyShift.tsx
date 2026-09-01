@@ -1,4 +1,4 @@
-import { ChevronRight, MessageSquarePlus, ChevronDown, ChevronUp, CalendarPlus } from 'lucide-react'
+import { ChevronRight, MessageSquarePlus, ChevronDown, ChevronUp, CalendarPlus, Users } from 'lucide-react'
 import { useState } from 'react'
 import { useAppState } from '../lib/store'
 import { shifts, todayShift } from '../data/mockData'
@@ -118,9 +118,17 @@ export function MyShift() {
       <div>
         <div className="flex items-center justify-between mb-2">
           <SectionLabel>예정된 근무</SectionLabel>
-          <button onClick={handleExport} className="text-xs text-brand-300 font-medium flex items-center gap-0.5">
-            <CalendarPlus size={13} /> 내보내기
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => openSheet({ kind: 'teamSchedule' })}
+              className="text-xs text-brand-300 font-medium flex items-center gap-0.5"
+            >
+              <Users size={13} /> 팀원 일정
+            </button>
+            <button onClick={handleExport} className="text-xs text-brand-300 font-medium flex items-center gap-0.5">
+              <CalendarPlus size={13} /> 내보내기
+            </button>
+          </div>
         </div>
         <Card>
           {upcoming.map((s) => (

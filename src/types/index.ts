@@ -425,3 +425,25 @@ export interface Announcement {
 export type FeedItem =
   | { type: 'announcement'; data: Announcement }
   | { type: 'handover'; data: HandoverNote }
+
+// ---------------------------------------------------------------------------
+// PRO — 근무 교대(Shift Swap) 요청. 직원이 자신의 예정 근무를 팀원의 예정
+// 근무와 맞바꾸자고 요청하면, 매니저가 승인/거절한다. roster.ts의 팀 전체
+// 근무표(memberId → date → RosterEntry) 위에서 동작 — 승인되면 두 날짜의
+// 근무 배정이 두 사람 사이에서 실제로 교환된다.
+// ---------------------------------------------------------------------------
+
+export type SwapRequestStatus = 'pending' | 'approved' | 'rejected'
+
+export interface SwapRequest {
+  id: string
+  requesterId: string
+  requesterName: string
+  requesterShiftDate: string
+  targetMemberId: string
+  targetMemberName: string
+  targetShiftDate: string
+  note?: string
+  status: SwapRequestStatus
+  createdAt: string
+}
