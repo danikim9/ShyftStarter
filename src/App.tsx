@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Smartphone, LayoutDashboard, LineChart } from 'lucide-react'
+import { Smartphone, LayoutDashboard, LineChart, LogOut } from 'lucide-react'
 import { AppStateProvider } from './lib/store'
+import { LoginScreen, type AuthProvider } from './auth/LoginScreen'
 import { BottomNav, type TabId } from './components/BottomNav'
 import { SheetHost } from './components/sheets/SheetHost'
 import { Toast } from './components/Toast'
@@ -42,6 +43,18 @@ function PersonaSwitcher({ persona, onChange }: { persona: Persona; onChange: (p
         </button>
       ))}
     </div>
+  )
+}
+
+function LogoutButton({ onLogout }: { onLogout: () => void }) {
+  return (
+    <button
+      onClick={onLogout}
+      title="로그아웃 (데모 재시작)"
+      className="fixed top-3 right-3 z-[60] w-8 h-8 rounded-full bg-ink-800/90 border border-white/10 shadow-lg backdrop-blur-sm flex items-center justify-center text-white/50 hover:text-white/80 transition"
+    >
+      <LogOut size={13} />
+    </button>
   )
 }
 
@@ -118,11 +131,17 @@ function ExecutiveAppShell() {
 }
 
 export default function App() {
+  const [authProvider, setAuthProvider] = useState<AuthProvider | null>(null)
   const [persona, setPersona] = useState<Persona>('employee')
+
+  if (!authProvider) {
+    return <LoginScreen onLogin={setAuthProvider} />
+  }
 
   return (
     <AppStateProvider>
       <PersonaSwitcher persona={persona} onChange={setPersona} />
+      <LogoutButton onLogout={() => setAuthProvider(null)} />
       {persona === 'employee' && <EmployeeAppShell />}
       {persona === 'manager' && <ManagerAppShell />}
       {persona === 'executive' && <ExecutiveAppShell />}
