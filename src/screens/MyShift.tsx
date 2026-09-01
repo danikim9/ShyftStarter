@@ -1,9 +1,10 @@
-import { ChevronRight, MessageSquarePlus, ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronRight, MessageSquarePlus, ChevronDown, ChevronUp, CalendarPlus } from 'lucide-react'
 import { useState } from 'react'
 import { useAppState } from '../lib/store'
 import { shifts, todayShift } from '../data/mockData'
 import { Card, SectionLabel, Badge, PrimaryButton, SecondaryButton } from '../components/ui'
 import { MOOD_EMOJI } from '../components/MoodCheckIn'
+import { downloadICS } from '../lib/calendarExport'
 import type { Shift } from '../types'
 
 const dow = ['일', '월', '화', '수', '목', '금', '토']
@@ -36,12 +37,17 @@ function ShiftRow({ shift }: { shift: Shift }) {
 }
 
 export function MyShift() {
-  const { employee, todayMood, openSheet, handovers } = useAppState()
+  const { employee, todayMood, openSheet, handovers, showToast } = useAppState()
   const [showAll, setShowAll] = useState(false)
 
   const upcoming = shifts.filter((s) => s.status !== 'completed')
   const past = shifts.filter((s) => s.status === 'completed').slice().reverse()
   const recentHandovers = handovers.slice(0, showAll ? undefined : 2)
+
+  const handleExport = () => {
+    const ok = downloadICS('shyftstarter-근무일정.ics', upcoming)
+    showToast(ok ? '캘린더 파일을 내려받았어요' : '내보내기에 실패했어요')
+  }
 
   return (
     <div className="px-4 pt-5 pb-8 space-y-6">
@@ -109,7 +115,12 @@ export function MyShift() {
       </div>
 
       <div>
-        <SectionLabel>예정된 근무</SectionLabel>
+        <div className="flex items-center justify-between mb-2">
+          <SectionLabel>예정된 근무</SectionLabel>
+          <button onClick={handleExport} className="text-xs text-brand-300 font-medium flex items-center gap-0.5">
+            <CalendarPlus size={13} /> 내보내기
+          </button>
+        </div>
         <Card>
           {upcoming.map((s) => (
             <ShiftRow key={s.id} shift={s} />
