@@ -57,7 +57,9 @@ export const shifts: Shift[] = [
   { id: 'sh_3', employeeId: CURRENT_EMPLOYEE_ID, date: '2026-08-26', start: '10:00', end: '18:00', store: 'Gangnam', role: 'Sales Associate', managerName: 'Kim M.', status: 'completed' },
   { id: 'sh_4', employeeId: CURRENT_EMPLOYEE_ID, date: '2026-08-28', start: '14:00', end: '22:00', store: 'Gangnam', role: 'Sales Associate', managerName: 'Kim M.', status: 'completed' },
   { id: 'sh_today', employeeId: CURRENT_EMPLOYEE_ID, date: '2026-08-30', start: '14:00', end: '22:00', store: 'Gangnam', role: 'Sales Associate', managerName: 'Kim M.', status: 'in_progress', missionId: 'mi_today' },
+  { id: 'sh_off1', employeeId: CURRENT_EMPLOYEE_ID, date: '2026-08-31', start: '', end: '', store: 'Gangnam', role: 'Sales Associate', managerName: 'Kim M.', status: 'off' },
   { id: 'sh_next1', employeeId: CURRENT_EMPLOYEE_ID, date: '2026-09-01', start: '10:00', end: '18:00', store: 'Gangnam', role: 'Sales Associate', managerName: 'Kim M.', status: 'upcoming' },
+  { id: 'sh_off2', employeeId: CURRENT_EMPLOYEE_ID, date: '2026-09-02', start: '', end: '', store: 'Gangnam', role: 'Sales Associate', managerName: 'Kim M.', status: 'off' },
   { id: 'sh_next2', employeeId: CURRENT_EMPLOYEE_ID, date: '2026-09-03', start: '14:00', end: '22:00', store: 'Gangnam', role: 'Sales Associate', managerName: 'Kim M.', status: 'upcoming' },
 ]
 

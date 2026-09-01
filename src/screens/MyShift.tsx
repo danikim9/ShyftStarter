@@ -23,14 +23,15 @@ function fmtTime(iso: string) {
 
 function ShiftRow({ shift }: { shift: Shift }) {
   const isToday = shift.status === 'in_progress'
+  const isOff = shift.status === 'off'
   return (
-    <div className="w-full flex items-center justify-between py-3 border-b border-white/6 last:border-0">
+    <div className={`w-full flex items-center justify-between py-3 border-b border-white/6 last:border-0 ${isOff ? 'opacity-60' : ''}`}>
       <div>
         <div className="text-sm font-medium text-white/90">{fmtShort(shift.date)}</div>
-        <div className="text-xs text-white/40">{shift.start}–{shift.end} · {shift.store}</div>
+        <div className="text-xs text-white/40">{isOff ? '쉬는 날' : `${shift.start}–${shift.end} · ${shift.store}`}</div>
       </div>
-      <Badge tone={isToday ? 'brand' : shift.status === 'completed' ? 'default' : 'amber'}>
-        {shift.status === 'completed' ? '완료' : isToday ? '진행 중' : '예정'}
+      <Badge tone={isOff ? 'default' : isToday ? 'brand' : shift.status === 'completed' ? 'default' : 'amber'}>
+        {isOff ? '휴무' : shift.status === 'completed' ? '완료' : isToday ? '진행 중' : '예정'}
       </Badge>
     </div>
   )
@@ -45,7 +46,7 @@ export function MyShift() {
   const recentHandovers = handovers.slice(0, showAll ? undefined : 2)
 
   const handleExport = () => {
-    const ok = downloadICS('shyftstarter-근무일정.ics', upcoming)
+    const ok = downloadICS('shyftstarter-근무일정.ics', upcoming.filter((s) => s.status !== 'off'))
     showToast(ok ? '캘린더 파일을 내려받았어요' : '내보내기에 실패했어요')
   }
 
@@ -78,10 +79,6 @@ export function MyShift() {
         <div className="text-white/70 text-sm mt-1">{todayShift.store} · {todayShift.role}</div>
       </button>
 
-      <SecondaryButton onClick={() => openSheet({ kind: 'handoverCompose' })} className="flex items-center justify-center gap-1.5">
-        <MessageSquarePlus size={15} /> 인수인계 남기기
-      </SecondaryButton>
-
       {/* Handover feed preview */}
       <div>
         <SectionLabel>최근 인수인계</SectionLabel>
@@ -113,6 +110,10 @@ export function MyShift() {
           )}
         </Card>
       </div>
+
+      <SecondaryButton onClick={() => openSheet({ kind: 'handoverCompose' })} className="flex items-center justify-center gap-1.5">
+        <MessageSquarePlus size={15} /> 인수인계 남기기
+      </SecondaryButton>
 
       <div>
         <div className="flex items-center justify-between mb-2">

@@ -58,7 +58,7 @@ export interface Employee {
   skills: EmployeeSkillScore[]
 }
 
-export type ShiftStatus = 'completed' | 'in_progress' | 'upcoming'
+export type ShiftStatus = 'completed' | 'in_progress' | 'upcoming' | 'off'
 
 export interface Shift {
   id: string
