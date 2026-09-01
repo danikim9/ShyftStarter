@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
 
-export type ManagerView = 'actions' | 'team' | 'matrix'
+export type ManagerView = 'actions' | 'roster' | 'team' | 'matrix'
 
 interface ManagerStateShape {
   view: ManagerView
