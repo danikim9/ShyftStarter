@@ -8,6 +8,7 @@ import { BalanceWheel } from '../components/BalanceWheel'
 import { QuadrantBadge } from './components/QuadrantBadge'
 import { useManagerState } from '../lib/managerStore'
 import { useAppState } from '../lib/store'
+import { MOOD_EMOJI } from '../components/MoodCheckIn'
 
 export function EmployeeDetailPanel() {
   const { detailMemberId, closeDetail, openQuestModal, openCoachingGuide } = useManagerState()
@@ -115,9 +116,8 @@ export function EmployeeDetailPanel() {
                   </div>
                   <div className="flex items-center gap-1.5">
                     {member.moodHistory.map((v, i) => (
-                      <span key={i} className="text-base leading-none" title={`Shift ${i + 1}: ${v}/5`}>
-                        {'❤️'.repeat(v)}
-                        <span className="opacity-20">{'🤍'.repeat(5 - v)}</span>
+                      <span key={i} className="text-xl leading-none" title={`Shift ${i + 1}: ${v}/5`}>
+                        {MOOD_EMOJI[v]}
                       </span>
                     ))}
                   </div>

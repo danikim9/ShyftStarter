@@ -12,6 +12,9 @@ import { Stats } from './screens/Stats'
 import { Coach } from './screens/Coach'
 import { Progress } from './screens/Progress'
 import { Team } from './screens/Team'
+import { MyShift } from './screens/MyShift'
+import { TeamFeed } from './screens/TeamFeed'
+import { MyActions } from './screens/MyActions'
 import { ManagerDashboard } from './manager/ManagerDashboard'
 import { ExecutiveDashboard } from './exec/ExecutiveDashboard'
 
@@ -69,11 +72,17 @@ function Screen({ tab, onNavigate }: { tab: TabId; onNavigate: (t: TabId) => voi
       return <Progress />
     case 'team':
       return <Team />
+    case 'myShift':
+      return <MyShift />
+    case 'teamFeed':
+      return <TeamFeed />
+    case 'myActions':
+      return <MyActions />
   }
 }
 
 function EmployeeAppShell() {
-  const [tab, setTab] = useState<TabId>('home')
+  const [tab, setTab] = useState<TabId>('myShift')
 
   return (
     <div className="min-h-screen w-full bg-[radial-gradient(circle_at_top,_#1b2140_0%,_#0b0e1a_60%)] flex items-center justify-center py-0 sm:py-8 px-0 sm:px-4">

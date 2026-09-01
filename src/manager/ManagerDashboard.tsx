@@ -1,5 +1,6 @@
-import { Users, Grid3x3 } from 'lucide-react'
+import { Users, Grid3x3, Megaphone } from 'lucide-react'
 import { ManagerStateProvider, useManagerState, type ManagerView } from '../lib/managerStore'
+import { TeamActionsComposer } from './TeamActionsComposer'
 import { TeamOverview } from './TeamOverview'
 import { MatrixView } from './MatrixView'
 import { EmployeeDetailPanel } from './EmployeeDetailPanel'
@@ -7,8 +8,9 @@ import { QuestCreateModal } from './QuestCreateModal'
 import { CoachingGuideModal } from './CoachingGuideModal'
 
 const NAV: { id: ManagerView; label: string; icon: typeof Users }[] = [
+  { id: 'actions', label: '팀 액션 · 공지', icon: Megaphone },
   { id: 'team', label: '팀 현황', icon: Users },
-  { id: 'matrix', label: 'Will × Capability', icon: Grid3x3 },
+  { id: 'matrix', label: 'Will × Capability (고급)', icon: Grid3x3 },
 ]
 
 function Sidebar() {
@@ -53,7 +55,9 @@ function ManagerContent() {
   const { view } = useManagerState()
   return (
     <div className="flex-1 overflow-y-auto app-scroll px-8 py-8">
-      {view === 'team' ? <TeamOverview /> : <MatrixView />}
+      {view === 'actions' && <TeamActionsComposer />}
+      {view === 'team' && <TeamOverview />}
+      {view === 'matrix' && <MatrixView />}
     </div>
   )
 }

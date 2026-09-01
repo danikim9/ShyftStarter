@@ -348,3 +348,80 @@ export interface OrgSkillPoint {
   baseline: number // avg score before platform rollout
   current: number
 }
+
+// ---------------------------------------------------------------------------
+// v2 — Shift Companion MVP: Schedule → Shift → Action → Growth
+//
+// "Action" replaces Quest/Checklist as the single going-forward concept for
+// self-serve + manager-pushed to-dos (strategy doc §5-3). The old Quest /
+// ChecklistItem types above are kept as-is for the hidden Business+ screens
+// (Coach/Stats/old Team) — nothing there was deleted, just unwired from nav.
+// ---------------------------------------------------------------------------
+
+export type ActionKind = 'checklist' | 'quest'
+export type ActionSource = 'self' | 'manager' | 'ai'
+
+export interface Action {
+  id: string
+  kind: ActionKind
+  title: string
+  createdBy: ActionSource
+  createdByName?: string // set when createdBy === 'manager', e.g. "Kim M."
+  target: number
+  progress: number
+  dueLabel?: string // lightweight, human text ("오늘 마감") — no full scheduling engine in MVP
+  completedAt?: string // ISO timestamp — set the moment progress reaches target
+  assignedToAll?: boolean // manager-pushed team-wide action
+}
+
+/** §5-2 — silent event log. Not surfaced in MVP UI, but recorded from day one
+ * so a real Employee Performance Graph can be built later without having to
+ * reconstruct history. */
+export interface ActionEvent {
+  actionId: string
+  employeeId: string
+  shiftId?: string
+  kind: ActionKind
+  completedAt: string
+}
+
+export interface HandoverNote {
+  id: string
+  shiftId: string
+  storeId: string
+  fromEmployeeId: string
+  fromEmployeeName: string
+  message: string
+  createdAt: string
+}
+
+export interface Reaction {
+  emoji: string
+  employeeIds: string[]
+}
+
+export interface Comment {
+  id: string
+  employeeId: string
+  employeeName: string
+  message: string
+  createdAt: string
+}
+
+export interface Announcement {
+  id: string
+  storeId: string
+  authorName: string
+  authorRole: 'manager' | 'system'
+  message: string
+  pinned: boolean
+  createdAt: string
+  reactions: Reaction[]
+  comments: Comment[]
+}
+
+/** A feed item is either an Announcement or a HandoverNote, merged and sorted
+ * by time for the Team tab. */
+export type FeedItem =
+  | { type: 'announcement'; data: Announcement }
+  | { type: 'handover'; data: HandoverNote }

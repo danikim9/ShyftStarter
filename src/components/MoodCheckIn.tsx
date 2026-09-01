@@ -2,12 +2,20 @@ import { useState } from 'react'
 import type { MoodValue } from '../types'
 import { useAppState } from '../lib/store'
 
-const HEART_LABELS: Record<MoodValue, string> = {
+const MOOD_LABELS: Record<MoodValue, string> = {
   1: '많이 힘들어요',
   2: '조금 힘들어요',
   3: '보통이에요',
   4: '괜찮아요',
   5: '아주 좋아요',
+}
+
+export const MOOD_EMOJI: Record<MoodValue, string> = {
+  1: '😣',
+  2: '😕',
+  3: '😐',
+  4: '🙂',
+  5: '😄',
 }
 
 export function MoodCheckIn() {
@@ -30,7 +38,7 @@ export function MoodCheckIn() {
       >
         <div className="text-3xl mb-2">👋</div>
         <h3 className="text-white font-bold text-base mb-1">오늘 컨디션 어때요?</h3>
-        <p className="text-white/40 text-xs mb-5">하트 하나만 눌러주세요 · 1초면 끝나요</p>
+        <p className="text-white/40 text-xs mb-5">표정 하나만 눌러주세요 · 1초면 끝나요</p>
 
         <div className="flex items-center justify-center gap-2 mb-3">
           {([1, 2, 3, 4, 5] as MoodValue[]).map((v) => (
@@ -39,14 +47,16 @@ export function MoodCheckIn() {
               onClick={() => submitMood(v)}
               onMouseEnter={() => setHover(v)}
               onMouseLeave={() => setHover(null)}
-              className="text-3xl leading-none transition-transform active:scale-90 hover:scale-110"
-              aria-label={HEART_LABELS[v]}
+              className={`text-3xl leading-none transition-transform active:scale-90 hover:scale-125 ${
+                hover && hover !== v ? 'opacity-35' : 'opacity-100'
+              }`}
+              aria-label={MOOD_LABELS[v]}
             >
-              {(hover ?? 0) >= v ? '❤️' : '🤍'}
+              {MOOD_EMOJI[v]}
             </button>
           ))}
         </div>
-        <div className="h-4 text-xs text-white/35 mb-4">{hover ? HEART_LABELS[hover] : ' '}</div>
+        <div className="h-4 text-xs text-white/35 mb-4">{hover ? MOOD_LABELS[hover] : ' '}</div>
 
         <button onClick={skipMoodCheckIn} className="text-xs text-white/30 hover:text-white/50 transition">
           다음에 할게요
