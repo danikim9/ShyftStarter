@@ -1,10 +1,13 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
+import { STORE_ID } from '../data/mvpData'
 
 export type ManagerView = 'actions' | 'roster' | 'team' | 'matrix'
 
 interface ManagerStateShape {
   view: ManagerView
   setView: (v: ManagerView) => void
+  selectedStoreId: string
+  setSelectedStoreId: (id: string) => void
   detailMemberId: string | null
   openDetail: (id: string) => void
   closeDetail: () => void
@@ -20,6 +23,7 @@ const ManagerStateContext = createContext<ManagerStateShape | null>(null)
 
 export function ManagerStateProvider({ children }: { children: ReactNode }) {
   const [view, setView] = useState<ManagerView>('actions')
+  const [selectedStoreId, setSelectedStoreId] = useState<string>(STORE_ID)
   const [detailMemberId, setDetailMemberId] = useState<string | null>(null)
   const [questModalMemberId, setQuestModalMemberId] = useState<string | null>(null)
   const [coachingGuideMemberId, setCoachingGuideMemberId] = useState<string | null>(null)
@@ -28,6 +32,8 @@ export function ManagerStateProvider({ children }: { children: ReactNode }) {
     () => ({
       view,
       setView,
+      selectedStoreId,
+      setSelectedStoreId,
       detailMemberId,
       openDetail: setDetailMemberId,
       closeDetail: () => setDetailMemberId(null),
@@ -38,7 +44,7 @@ export function ManagerStateProvider({ children }: { children: ReactNode }) {
       openCoachingGuide: setCoachingGuideMemberId,
       closeCoachingGuide: () => setCoachingGuideMemberId(null),
     }),
-    [view, detailMemberId, questModalMemberId, coachingGuideMemberId]
+    [view, selectedStoreId, detailMemberId, questModalMemberId, coachingGuideMemberId]
   )
 
   return <ManagerStateContext.Provider value={value}>{children}</ManagerStateContext.Provider>
