@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Pin, MessageCircle, Plus } from 'lucide-react'
+import { Pin, MessageCircle, Plus, Users } from 'lucide-react'
 import { useAppState } from '../lib/store'
 import type { FeedItem } from '../types'
-import { Card, Badge } from '../components/ui'
+import { Card, Badge, PrimaryButton } from '../components/ui'
 
 const QUICK_REACTIONS = ['👍', '🙌', '❤️']
 
@@ -114,8 +114,30 @@ function HandoverCard({ item }: { item: Extract<FeedItem, { type: 'handover' }> 
   )
 }
 
+function JoinTeamPrompt() {
+  const { openSheet } = useAppState()
+  return (
+    <Card className="text-center py-8 space-y-3">
+      <div className="w-11 h-11 rounded-full bg-white/6 flex items-center justify-center mx-auto text-white/50">
+        <Users size={18} />
+      </div>
+      <div>
+        <p className="text-sm font-semibold text-white/85 mb-1">아직 참여한 팀이 없어요</p>
+        <p className="text-xs text-white/40 leading-relaxed">
+          매니저에게 받은 참여 코드나 링크가 있다면
+          <br />
+          입력하고 매장 공지·인수인계를 받아보세요
+        </p>
+      </div>
+      <PrimaryButton onClick={() => openSheet({ kind: 'joinTeam' })} className="max-w-[200px] mx-auto">
+        코드로 참여하기
+      </PrimaryButton>
+    </Card>
+  )
+}
+
 export function TeamFeed() {
-  const { announcements, handovers, openSheet } = useAppState()
+  const { announcements, handovers, openSheet, hasJoinedTeam } = useAppState()
 
   const feed: FeedItem[] = [
     ...announcements.map((a) => ({ type: 'announcement' as const, data: a })),
@@ -143,15 +165,19 @@ export function TeamFeed() {
         </button>
       </div>
 
-      <div className="space-y-3">
-        {feed.map((item) =>
-          item.type === 'announcement' ? (
-            <AnnouncementCard key={item.data.id} item={item} />
-          ) : (
-            <HandoverCard key={item.data.id} item={item} />
-          )
-        )}
-      </div>
+      {hasJoinedTeam ? (
+        <div className="space-y-3">
+          {feed.map((item) =>
+            item.type === 'announcement' ? (
+              <AnnouncementCard key={item.data.id} item={item} />
+            ) : (
+              <HandoverCard key={item.data.id} item={item} />
+            )
+          )}
+        </div>
+      ) : (
+        <JoinTeamPrompt />
+      )}
     </div>
   )
 }

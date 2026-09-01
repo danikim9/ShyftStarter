@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Smartphone, LayoutDashboard, LineChart, LogOut } from 'lucide-react'
 import { AppStateProvider } from './lib/store'
-import { LoginScreen, type AuthProvider } from './auth/LoginScreen'
+import { LoginScreen } from './auth/LoginScreen'
+import { JoinTeamScreen } from './auth/JoinTeamScreen'
 import { BottomNav, type TabId } from './components/BottomNav'
 import { SheetHost } from './components/sheets/SheetHost'
 import { Toast } from './components/Toast'
@@ -130,21 +131,25 @@ function ExecutiveAppShell() {
   )
 }
 
-export default function App() {
-  const [authProvider, setAuthProvider] = useState<AuthProvider | null>(null)
-  const [persona, setPersona] = useState<Persona>('employee')
+type Stage = 'login' | 'join' | 'app'
 
-  if (!authProvider) {
-    return <LoginScreen onLogin={setAuthProvider} />
-  }
+export default function App() {
+  const [stage, setStage] = useState<Stage>('login')
+  const [persona, setPersona] = useState<Persona>('employee')
 
   return (
     <AppStateProvider>
-      <PersonaSwitcher persona={persona} onChange={setPersona} />
-      <LogoutButton onLogout={() => setAuthProvider(null)} />
-      {persona === 'employee' && <EmployeeAppShell />}
-      {persona === 'manager' && <ManagerAppShell />}
-      {persona === 'executive' && <ExecutiveAppShell />}
+      {stage === 'login' && <LoginScreen onLogin={() => setStage('join')} />}
+      {stage === 'join' && <JoinTeamScreen onDone={() => setStage('app')} />}
+      {stage === 'app' && (
+        <>
+          <PersonaSwitcher persona={persona} onChange={setPersona} />
+          <LogoutButton onLogout={() => setStage('login')} />
+          {persona === 'employee' && <EmployeeAppShell />}
+          {persona === 'manager' && <ManagerAppShell />}
+          {persona === 'executive' && <ExecutiveAppShell />}
+        </>
+      )}
     </AppStateProvider>
   )
 }
