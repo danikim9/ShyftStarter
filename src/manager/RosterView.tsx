@@ -1,16 +1,8 @@
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight, Users, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Users, X, ArrowLeftRight, Check, Crown } from 'lucide-react'
 import { Card, PrimaryButton, SecondaryButton } from '../components/ui'
-import { ROSTER_WEEKS, ROSTER_MEMBERS, INITIAL_ROSTER, TODAY, fmtRosterDate, type RosterEntry } from '../data/roster'
+import { ROSTER_WEEKS, ROSTER_MEMBERS, TODAY, fmtRosterDate, type RosterEntry } from '../data/roster'
 import { useAppState } from '../lib/store'
-
-type RosterState = Record<string, Record<string, RosterEntry>>
-
-function cloneRoster(r: RosterState): RosterState {
-  const out: RosterState = {}
-  for (const memberId of Object.keys(r)) out[memberId] = { ...r[memberId] }
-  return out
-}
 
 function ShiftPill({ entry }: { entry: RosterEntry }) {
   if (entry === 'off') {
@@ -126,20 +118,70 @@ function EditShiftModal({
   )
 }
 
+function SwapRequestsCard() {
+  const { swapRequests, approveSwap, rejectSwap } = useAppState()
+  const pending = swapRequests.filter((r) => r.status === 'pending')
+  if (pending.length === 0) return null
+
+  return (
+    <Card className="space-y-3 border-brand-400/20 bg-brand-500/[0.04]">
+      <div className="flex items-center gap-2">
+        <ArrowLeftRight size={14} className="text-brand-300" />
+        <h3 className="text-sm font-semibold text-white">근무 교대 요청</h3>
+        <span className="inline-flex items-center gap-1 rounded-full bg-amber-signal/15 text-amber-300 text-[10px] font-bold px-2 py-0.5">
+          <Crown size={10} /> PRO
+        </span>
+        <span className="text-[11px] text-white/35 ml-auto">{pending.length}건 대기 중</span>
+      </div>
+      <div className="space-y-2">
+        {pending.map((r) => {
+          const req = fmtRosterDate(r.requesterShiftDate)
+          const tgt = fmtRosterDate(r.targetShiftDate)
+          return (
+            <div key={r.id} className="flex items-center justify-between gap-3 rounded-xl bg-white/5 border border-white/8 px-3.5 py-3">
+              <div className="min-w-0">
+                <div className="text-sm text-white/85">
+                  <span className="font-semibold">{r.requesterName}</span>
+                  <span className="text-white/40"> · {req.md}({req.dow}) 근무</span>
+                  <ArrowLeftRight size={11} className="inline mx-1.5 text-white/30" />
+                  <span className="font-semibold">{r.targetMemberName}</span>
+                  <span className="text-white/40"> · {tgt.md}({tgt.dow}) 근무</span>
+                </div>
+                {r.note && <p className="text-xs text-white/40 mt-1 leading-relaxed">"{r.note}"</p>}
+              </div>
+              <div className="shrink-0 flex items-center gap-1.5">
+                <button
+                  onClick={() => rejectSwap(r.id)}
+                  className="w-8 h-8 rounded-lg bg-white/6 hover:bg-white/12 text-white/50 flex items-center justify-center transition"
+                  title="거절"
+                >
+                  <X size={14} />
+                </button>
+                <button
+                  onClick={() => approveSwap(r.id)}
+                  className="h-8 px-3 rounded-lg bg-brand-500 hover:bg-brand-400 text-white text-xs font-semibold flex items-center gap-1 transition"
+                >
+                  <Check size={13} /> 승인
+                </button>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </Card>
+  )
+}
+
 export function RosterView() {
-  const { showToast } = useAppState()
+  const { roster, updateRosterEntry, showToast } = useAppState()
   const [weekIndex, setWeekIndex] = useState(0)
-  const [roster, setRoster] = useState<RosterState>(() => cloneRoster(INITIAL_ROSTER))
   const [editing, setEditing] = useState<EditTarget | null>(null)
 
   const week = ROSTER_WEEKS[weekIndex]
 
   const handleSave = (entry: RosterEntry) => {
     if (!editing) return
-    setRoster((prev) => ({
-      ...prev,
-      [editing.memberId]: { ...prev[editing.memberId], [editing.date]: entry },
-    }))
+    updateRosterEntry(editing.memberId, editing.date, entry)
     const { md, dow } = fmtRosterDate(editing.date)
     showToast(
       entry === 'off'
@@ -175,6 +217,8 @@ export function RosterView() {
           </button>
         </div>
       </div>
+
+      <SwapRequestsCard />
 
       <Card className="p-0 overflow-hidden">
         <div className="overflow-x-auto app-scroll">
