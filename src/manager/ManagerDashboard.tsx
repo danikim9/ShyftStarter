@@ -1,6 +1,7 @@
-import { Users, Grid3x3, Megaphone } from 'lucide-react'
+import { Users, Grid3x3, Megaphone, CalendarDays } from 'lucide-react'
 import { ManagerStateProvider, useManagerState, type ManagerView } from '../lib/managerStore'
 import { TeamActionsComposer } from './TeamActionsComposer'
+import { RosterView } from './RosterView'
 import { TeamOverview } from './TeamOverview'
 import { MatrixView } from './MatrixView'
 import { EmployeeDetailPanel } from './EmployeeDetailPanel'
@@ -9,6 +10,7 @@ import { CoachingGuideModal } from './CoachingGuideModal'
 
 const NAV: { id: ManagerView; label: string; icon: typeof Users }[] = [
   { id: 'actions', label: '팀 액션 · 공지', icon: Megaphone },
+  { id: 'roster', label: '근무 일정 관리', icon: CalendarDays },
   { id: 'team', label: '팀 현황', icon: Users },
   { id: 'matrix', label: 'Will × Capability (고급)', icon: Grid3x3 },
 ]
@@ -56,6 +58,7 @@ function ManagerContent() {
   return (
     <div className="flex-1 overflow-y-auto app-scroll px-8 py-8">
       {view === 'actions' && <TeamActionsComposer />}
+      {view === 'roster' && <RosterView />}
       {view === 'team' && <TeamOverview />}
       {view === 'matrix' && <MatrixView />}
     </div>
