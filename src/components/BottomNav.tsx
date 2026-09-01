@@ -1,8 +1,20 @@
-import { Home, CalendarDays, Target, Radar as RadarIcon, Sparkles, TrendingUp, Trophy } from 'lucide-react'
+import { Home, CalendarDays, Target, Radar as RadarIcon, Sparkles, TrendingUp, Trophy, CalendarClock, Megaphone, ListChecks } from 'lucide-react'
 
-export type TabId = 'home' | 'schedule' | 'quests' | 'stats' | 'coach' | 'progress' | 'team'
+// v2 — Shift Companion MVP: only 3 tabs are wired into the bottom nav
+// (myShift / teamFeed / myActions). The older P0~P2 tab ids are kept in this
+// union — and their screens left compiling — purely so the hidden Business+
+// screens (Stats/Coach/Progress/old Team leaderboard, reachable via a future
+// tier gate) still type-check. See claude/shyftstarter-v2-strategy-b2c-pivot.md.
+export type TabId = 'home' | 'schedule' | 'quests' | 'stats' | 'coach' | 'progress' | 'team' | 'myShift' | 'teamFeed' | 'myActions'
 
 const TABS: { id: TabId; label: string; icon: typeof Home }[] = [
+  { id: 'myShift', label: 'My Shift', icon: CalendarClock },
+  { id: 'teamFeed', label: 'Team', icon: Megaphone },
+  { id: 'myActions', label: 'My Actions', icon: ListChecks },
+]
+
+// Kept for reference by hidden Business+ screens — not rendered in MVP nav.
+export const LEGACY_TABS: { id: TabId; label: string; icon: typeof Home }[] = [
   { id: 'home', label: 'Home', icon: Home },
   { id: 'schedule', label: 'Schedule', icon: CalendarDays },
   { id: 'quests', label: 'Quests', icon: Target },
@@ -24,8 +36,8 @@ export function BottomNav({ active, onChange }: { active: TabId; onChange: (id: 
               onClick={() => onChange(id)}
               className="flex-1 flex flex-col items-center gap-1 py-1.5 rounded-xl transition min-w-0"
             >
-              <Icon size={18} strokeWidth={isActive ? 2.4 : 1.8} className={isActive ? 'text-brand-300' : 'text-white/40'} />
-              <span className={`text-[9px] font-medium leading-none ${isActive ? 'text-brand-300' : 'text-white/40'}`}>{label}</span>
+              <Icon size={20} strokeWidth={isActive ? 2.4 : 1.8} className={isActive ? 'text-brand-300' : 'text-white/40'} />
+              <span className={`text-[10px] font-medium leading-none ${isActive ? 'text-brand-300' : 'text-white/40'}`}>{label}</span>
             </button>
           )
         })}

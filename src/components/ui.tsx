@@ -62,15 +62,18 @@ export function SecondaryButton({
   children,
   onClick,
   className = '',
+  disabled = false,
 }: {
   children: ReactNode
   onClick?: () => void
   className?: string
+  disabled?: boolean
 }) {
   return (
     <button
       onClick={onClick}
-      className={`w-full rounded-xl bg-white/8 hover:bg-white/12 text-white font-medium py-3 text-sm active:scale-[0.98] transition ${className}`}
+      disabled={disabled}
+      className={`w-full rounded-xl bg-white/8 hover:bg-white/12 text-white font-medium py-3 text-sm active:scale-[0.98] transition disabled:opacity-40 disabled:active:scale-100 ${className}`}
     >
       {children}
     </button>

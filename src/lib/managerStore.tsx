@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
 
-export type ManagerView = 'team' | 'matrix'
+export type ManagerView = 'actions' | 'team' | 'matrix'
 
 interface ManagerStateShape {
   view: ManagerView
@@ -19,7 +19,7 @@ interface ManagerStateShape {
 const ManagerStateContext = createContext<ManagerStateShape | null>(null)
 
 export function ManagerStateProvider({ children }: { children: ReactNode }) {
-  const [view, setView] = useState<ManagerView>('team')
+  const [view, setView] = useState<ManagerView>('actions')
   const [detailMemberId, setDetailMemberId] = useState<string | null>(null)
   const [questModalMemberId, setQuestModalMemberId] = useState<string | null>(null)
   const [coachingGuideMemberId, setCoachingGuideMemberId] = useState<string | null>(null)

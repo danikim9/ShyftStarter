@@ -5,6 +5,7 @@ import { SKILLS, WHEEL_SKILL_ORDER } from '../data/skills'
 import { generateAiNudge, getNextBestAction } from '../lib/aiEngine'
 import { Card, SectionLabel, Badge, ProgressBar, PrimaryButton, SecondaryButton } from '../components/ui'
 import { StatBar } from '../components/StatBar'
+import { MOOD_EMOJI } from '../components/MoodCheckIn'
 import type { TabId } from '../components/BottomNav'
 
 const dow = ['일', '월', '화', '수', '목', '금', '토']
@@ -32,7 +33,7 @@ export function Home({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
         </div>
         {todayMood && (
           <div className="shrink-0 flex items-center gap-1 rounded-full bg-white/6 px-2.5 py-1.5 mt-0.5" title="오늘 컨디션 체크인">
-            <span className="text-sm leading-none">{'❤️'.repeat(todayMood)}</span>
+            <span className="text-base leading-none">{MOOD_EMOJI[todayMood]}</span>
           </div>
         )}
       </div>

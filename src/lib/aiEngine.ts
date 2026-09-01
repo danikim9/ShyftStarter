@@ -215,6 +215,43 @@ export function generateProgressInsight(range: ProgressRange, trend: ProgressPoi
 // P1~P2 — Team Challenge: encouragement message keyed off completion ratio.
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// v2 — Shift Companion MVP: "invisible AI" layer for My Actions.
+// Not a chat product — one text box, three checklist items back. Real
+// implementation swaps this rule-based keyword match for an LLM call; the
+// shape (string[] of short action titles) stays the same either way.
+// ---------------------------------------------------------------------------
+
+const QUICK_ACTION_BANK: { keywords: string[]; items: string[] }[] = [
+  {
+    keywords: ['마감', '클로징', 'closing', '퇴근'],
+    items: ['카운터·매대 정리하기', '냉장고 온도 체크하기', '내일 근무자에게 인수인계 남기기'],
+  },
+  {
+    keywords: ['오픈', '오프닝', 'opening', '출근'],
+    items: ['조명·간판 켜기', '카운터 현금 시재 확인하기', '어제 인수인계 확인하기'],
+  },
+  {
+    keywords: ['재고', '입고', '진열'],
+    items: ['부족 상품 목록 메모하기', '입고 상품 진열대에 채우기', '유통기한 임박 상품 앞으로 배치하기'],
+  },
+  {
+    keywords: ['고객', '응대', '컴플레인', '클레임'],
+    items: ['대기 고객 먼저 안내하기', '컴플레인 내용 메모해서 매니저에 전달하기', '감사 인사로 마무리하기'],
+  },
+]
+
+const DEFAULT_QUICK_ACTIONS = ['오늘 할 일 하나 정하기', '팀 공지 확인하기', '인수인계 남기기']
+
+/** Turns a free-text prompt ("오늘 마감할 때 해야 할 일 만들어줘") into 3 short
+ * checklist item titles. Deterministic keyword match today; same return shape
+ * a real LLM call would give, so screens don't change when it's swapped in. */
+export function generateQuickActions(prompt: string): string[] {
+  const text = prompt.trim()
+  const hit = QUICK_ACTION_BANK.find((b) => b.keywords.some((k) => text.includes(k)))
+  return hit ? hit.items : DEFAULT_QUICK_ACTIONS
+}
+
 export function generateChallengeInsight(progress: number, target: number): string {
   const pct = progress / target
   if (pct >= 1) return '목표 달성! 팀 전체에게 보상이 지급됐어요 🎉'

@@ -6,6 +6,8 @@ import { QuestDetailView } from './QuestDetailView'
 import { ShiftDetailView } from './ShiftDetailView'
 import { LearnView } from './LearnView'
 import { RolePlayView } from './RolePlayView'
+import { HandoverComposer } from './HandoverComposer'
+import { ActionComposer } from './ActionComposer'
 import type { TabId } from '../BottomNav'
 
 const TITLES: Record<string, string> = {
@@ -15,6 +17,8 @@ const TITLES: Record<string, string> = {
   shiftDetail: '시프트 상세',
   learn: '마이크로 러닝',
   rolePlay: 'AI ROLE-PLAY',
+  handoverCompose: '인수인계 남기기',
+  actionCompose: '할 일 추가',
 }
 
 export function SheetHost({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
@@ -37,7 +41,7 @@ export function SheetHost({ onNavigate }: { onNavigate: (tab: TabId) => void }) 
         shiftId={sheet.shiftId}
         onViewQuests={() => {
           closeSheet()
-          onNavigate('quests')
+          onNavigate('myActions')
         }}
       />
     )
@@ -45,6 +49,10 @@ export function SheetHost({ onNavigate }: { onNavigate: (tab: TabId) => void }) 
     content = <LearnView />
   } else if (sheet.kind === 'rolePlay') {
     content = <RolePlayView />
+  } else if (sheet.kind === 'handoverCompose') {
+    content = <HandoverComposer />
+  } else if (sheet.kind === 'actionCompose') {
+    content = <ActionComposer />
   }
 
   return (
