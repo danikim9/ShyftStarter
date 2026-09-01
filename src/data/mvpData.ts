@@ -7,7 +7,9 @@ import type { Action, Announcement, HandoverNote } from '../types'
 import { CURRENT_EMPLOYEE_ID } from './mockData'
 
 export const STORE_ID = 'st_gangnam'
-export const STORE_CODE = 'GN-4821' // mock invite code for the "팀 참여" flow
+export const STORE_NAME = '강남점'
+export const STORE_CODE = 'GN-4821' // invite code for the "팀 참여" flow — see joinTeam() in lib/store.tsx
+export const STORE_JOIN_LINK = `https://shyftstarter.app/join/${STORE_CODE}`
 
 export const INITIAL_ACTIONS: Action[] = [
   {

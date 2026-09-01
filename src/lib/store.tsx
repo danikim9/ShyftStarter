@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
 import type { Action, ActionEvent, Announcement, Comment, HandoverNote, MoodValue, Quest, Reaction, SkillId } from '../types'
 import { employee, quests as initialQuests, checklistGroup as initialChecklist, todayShift, CURRENT_EMPLOYEE_ID } from '../data/mockData'
-import { INITIAL_ACTIONS, INITIAL_ANNOUNCEMENTS, INITIAL_HANDOVERS, STORE_ID } from '../data/mvpData'
+import { INITIAL_ACTIONS, INITIAL_ANNOUNCEMENTS, INITIAL_HANDOVERS, STORE_ID, STORE_NAME, STORE_CODE } from '../data/mvpData'
 
 export type SheetKind =
   | 'killerScript'
@@ -12,6 +12,7 @@ export type SheetKind =
   | 'rolePlay'
   | 'handoverCompose'
   | 'actionCompose'
+  | 'joinTeam'
   | null
 
 export interface SheetState {
@@ -48,6 +49,9 @@ interface AppStateShape {
   addAnnouncement: (message: string, pinned?: boolean) => void
   toggleReaction: (announcementId: string, emoji: string) => void
   addComment: (announcementId: string, message: string) => void
+  // v2 — team join (invite code / link, QR gated to Business tier — see manager side)
+  hasJoinedTeam: boolean
+  joinTeam: (code: string) => boolean
 }
 
 const AppStateContext = createContext<AppStateShape | null>(null)
@@ -65,6 +69,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [actionEvents, setActionEvents] = useState<ActionEvent[]>([])
   const [handovers, setHandovers] = useState<HandoverNote[]>(INITIAL_HANDOVERS)
   const [announcements, setAnnouncements] = useState<Announcement[]>(INITIAL_ANNOUNCEMENTS)
+  const [hasJoinedTeam, setHasJoinedTeam] = useState(false)
 
   const markQuestProgress = (questId: string) => {
     setQuests((prev) =>
@@ -209,6 +214,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     )
   }
 
+  const joinTeam = (code: string): boolean => {
+    const ok = code.trim().toUpperCase() === STORE_CODE
+    if (ok) {
+      setHasJoinedTeam(true)
+      showToast(`${STORE_NAME} 팀에 참여했어요`)
+    }
+    return ok
+  }
+
   const value = useMemo<AppStateShape>(
     () => ({
       employee,
@@ -236,8 +250,23 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       addAnnouncement,
       toggleReaction,
       addComment,
+      hasJoinedTeam,
+      joinTeam,
     }),
-    [quests, checklist, sheet, toast, todayMood, moodCheckedIn, actions, actionEvents, handovers, announcements, weeklyCompletionCount]
+    [
+      quests,
+      checklist,
+      sheet,
+      toast,
+      todayMood,
+      moodCheckedIn,
+      actions,
+      actionEvents,
+      handovers,
+      announcements,
+      weeklyCompletionCount,
+      hasJoinedTeam,
+    ]
   )
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>

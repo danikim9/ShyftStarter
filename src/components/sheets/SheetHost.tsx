@@ -8,6 +8,7 @@ import { LearnView } from './LearnView'
 import { RolePlayView } from './RolePlayView'
 import { HandoverComposer } from './HandoverComposer'
 import { ActionComposer } from './ActionComposer'
+import { JoinTeamForm } from '../../auth/JoinTeamForm'
 import type { TabId } from '../BottomNav'
 
 const TITLES: Record<string, string> = {
@@ -19,6 +20,7 @@ const TITLES: Record<string, string> = {
   rolePlay: 'AI ROLE-PLAY',
   handoverCompose: '인수인계 남기기',
   actionCompose: '할 일 추가',
+  joinTeam: '팀 참여',
 }
 
 export function SheetHost({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
@@ -53,6 +55,8 @@ export function SheetHost({ onNavigate }: { onNavigate: (tab: TabId) => void }) 
     content = <HandoverComposer />
   } else if (sheet.kind === 'actionCompose') {
     content = <ActionComposer />
+  } else if (sheet.kind === 'joinTeam') {
+    content = <JoinTeamForm onSuccess={closeSheet} />
   }
 
   return (

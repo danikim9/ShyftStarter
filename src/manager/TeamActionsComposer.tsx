@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Megaphone, ListPlus, Pin, MessageCircle } from 'lucide-react'
 import { useAppState } from '../lib/store'
 import { Card, SectionLabel, Badge, PrimaryButton } from '../components/ui'
+import { TeamInvite } from './TeamInvite'
 
 function fmtTime(iso: string) {
   const dt = new Date(iso)
@@ -26,6 +27,8 @@ export function TeamActionsComposer() {
           반영돼요(같은 프로토타입 안에서 실시간으로 확인해보세요 — 페르소나 전환 후 확인).
         </p>
       </div>
+
+      <TeamInvite />
 
       <div className="grid sm:grid-cols-2 gap-4">
         {/* Announcement composer */}
