@@ -86,7 +86,7 @@ function Screen({ tab, onNavigate }: { tab: TabId; onNavigate: (t: TabId) => voi
     case 'team':
       return <Team />
     case 'myShift':
-      return <MyShift />
+      return <MyShift onNavigate={onNavigate} />
     case 'teamFeed':
       return <TeamFeed />
     case 'myActions':

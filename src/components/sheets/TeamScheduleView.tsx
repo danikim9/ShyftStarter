@@ -10,6 +10,23 @@ function isUpcoming(date: string) {
   return date >= TODAY
 }
 
+// 21차 — 반복 근무 등록. ROSTER_WEEKS가 "이번 주"/"다음 주" 딱 2주만 갖고
+// 있으므로, "반복"은 무한 규칙이 아니라 지금 편집 중인 날짜와 같은 요일이
+// 다른 한 주에도 있으면 그 날짜를 찾아주는 것으로 단순화했다.
+function mirrorWeekDate(date: string): string | null {
+  const all = ROSTER_WEEKS.flatMap((w) => w.dates)
+  const d = new Date(date)
+  const plus = new Date(d)
+  plus.setDate(d.getDate() + 7)
+  const minus = new Date(d)
+  minus.setDate(d.getDate() - 7)
+  const plusStr = plus.toISOString().slice(0, 10)
+  const minusStr = minus.toISOString().slice(0, 10)
+  if (all.includes(plusStr)) return plusStr
+  if (all.includes(minusStr)) return minusStr
+  return null
+}
+
 function ShiftText({ entry }: { entry: RosterEntry }) {
   if (entry === 'off') return <span className="text-white/30">휴무</span>
   return (
@@ -154,6 +171,7 @@ export function TeamScheduleView({ onGoToTeam }: { onGoToTeam: () => void }) {
   const myAvatarColor = ROSTER_MEMBERS.find((m) => m.id === CURRENT_EMPLOYEE_ID)?.avatarColor ?? '#5b5ff2'
   const canSwap = membership !== 'none' && myEntry !== 'off' && isUpcoming(selectedDate)
   const myRequests = swapRequests.filter((r) => r.requesterId === CURRENT_EMPLOYEE_ID)
+  const mirrorDate = editingDate ? mirrorWeekDate(editingDate) : null
   // 받은 교대 요청 — 상대 팀원이 승인 주체가 되는 16차 흐름의 "수신" 쪽.
   // 단일 페르소나 제약상 시드 데이터(박준서 → 지은)로 데모한다.
   const incomingRequests = swapRequests.filter((r) => r.targetMemberId === CURRENT_EMPLOYEE_ID && r.status === 'pending')
@@ -363,6 +381,12 @@ export function TeamScheduleView({ onGoToTeam }: { onGoToTeam: () => void }) {
         current={editingDate ? roster[CURRENT_EMPLOYEE_ID]?.[editingDate] ?? 'off' : null}
         onClose={() => setEditingDate(null)}
         onSave={handleSaveOwn}
+        repeatTargetDate={mirrorDate}
+        onApplyToDate={(date, entry) => {
+          updateRosterEntry(CURRENT_EMPLOYEE_ID, date, entry)
+          const { md, dow } = fmtRosterDate(date)
+          showToast(`${md}(${dow})에도 같은 근무로 반복 적용했어요`)
+        }}
       />
     </div>
   )

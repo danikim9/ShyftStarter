@@ -3,7 +3,7 @@
 // Announcement. Strategy doc: claude/shyftstarter-v2-strategy-b2c-pivot.md
 // ---------------------------------------------------------------------------
 
-import type { Action, Announcement, HandoverNote, Reminder } from '../types'
+import type { Action, Announcement, ExtraPayEntry, HandoverNote, Reminder, WageSettings } from '../types'
 import { CURRENT_EMPLOYEE_ID } from './mockData'
 
 export const STORE_ID = 'st_gangnam'
@@ -117,6 +117,16 @@ export const INITIAL_HANDOVERS: HandoverNote[] = [
     createdAt: '2026-08-27T21:50:00.000Z',
   },
 ]
+
+// 21차 — 예상 급여 계산기. 실제 최저임금·실급여 수치를 임의로 단정하지 않기
+// 위해 시급은 0(미설정)으로 시작 — 사용자가 처음 열었을 때 직접 입력하게
+// 유도한다. overtimeMultiplier는 공휴수당/연장수당의 단순화된 가산 배율.
+export const INITIAL_WAGE_SETTINGS: WageSettings = { hourlyWage: 0, overtimeMultiplier: 1.5 }
+export const INITIAL_EXTRA_PAY: ExtraPayEntry[] = []
+
+// 21차 — My Actions "습관 그래프"용 지난 3주 완료 개수 목업(3주 전 → 지난 주).
+// 이번 주는 실시간 weeklyCompletionCount를 그대로 이어 붙여 총 4개 막대를 만든다.
+export const ACTION_TREND_HISTORY = [2, 4, 3]
 
 export const INITIAL_ANNOUNCEMENTS: Announcement[] = [
   {

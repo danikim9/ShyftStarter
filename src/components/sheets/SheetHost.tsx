@@ -12,6 +12,7 @@ import { AnnouncementComposer } from './AnnouncementComposer'
 import { JoinTeamForm } from '../../auth/JoinTeamForm'
 import { TeamScheduleView } from './TeamScheduleView'
 import { ReminderComposer } from './ReminderComposer'
+import { WageCalculatorView } from './WageCalculatorView'
 import type { TabId } from '../BottomNav'
 
 const TITLES: Record<string, string> = {
@@ -27,6 +28,7 @@ const TITLES: Record<string, string> = {
   joinTeam: '팀 참여',
   teamSchedule: '근무 일정',
   reminderCompose: '리마인더 추가',
+  wageCalculator: '예상 급여',
 }
 
 export function SheetHost({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
@@ -76,6 +78,8 @@ export function SheetHost({ onNavigate }: { onNavigate: (tab: TabId) => void }) 
     )
   } else if (sheet.kind === 'reminderCompose') {
     content = <ReminderComposer />
+  } else if (sheet.kind === 'wageCalculator') {
+    content = <WageCalculatorView />
   }
 
   return (

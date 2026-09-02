@@ -1,7 +1,41 @@
 import { Plus, Check, Flame, Sparkles, User, Bell, X, BellRing } from 'lucide-react'
 import { useAppState } from '../lib/store'
-import { Card, Badge, ProgressBar, Toggle } from '../components/ui'
+import { Card, Badge, ProgressBar, Toggle, SectionLabel } from '../components/ui'
 import type { Action, Reminder } from '../types'
+
+// 21차 — 솔로 UX 리뷰 피드백 #4(완료 히스토리/주간 트렌드). "이번 주 N회"만
+// 있으면 지난 주 대비 흐름이 안 보인다는 지적을 반영한 작은 막대 그래프.
+// XP/레벨 숨김 원칙은 그대로 유지 — "성장 그래프"가 아니라 스트릭이 왜
+// 끊겼는지 돌아볼 수 있는 정도의 "습관 그래프" 톤으로 최소한만 보여준다.
+function WeeklyTrendMini({ values }: { values: number[] }) {
+  const labels = ['3주 전', '2주 전', '지난 주', '이번 주']
+  const max = Math.max(1, ...values)
+  return (
+    <Card className="space-y-2.5">
+      <div className="flex items-center gap-1.5 text-[11px] font-semibold text-white/30 uppercase tracking-wide">
+        최근 4주 완료 추이
+      </div>
+      <div className="flex items-end justify-between gap-2 h-14">
+        {values.map((v, i) => (
+          <div key={i} className="flex-1 h-full flex flex-col items-center justify-end gap-1.5">
+            <div
+              className={`w-full rounded-t-md transition-all ${i === values.length - 1 ? 'bg-brand-400' : 'bg-white/12'}`}
+              style={{ height: `${Math.max(8, (v / max) * 100)}%` }}
+            />
+            <span className="text-[9px] text-white/30 tabular-nums">{v}</span>
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center justify-between">
+        {labels.map((l) => (
+          <span key={l} className="flex-1 text-center text-[9px] text-white/25">
+            {l}
+          </span>
+        ))}
+      </div>
+    </Card>
+  )
+}
 
 const OFFSET_OPTIONS = [15, 30, 60] as const
 
@@ -82,6 +116,7 @@ export function MyActions() {
     actions,
     weeklyCompletionCount,
     currentStreakDays,
+    weeklyActionTrend,
     openSheet,
     reminders,
     setShiftReminderOffset,
@@ -123,6 +158,30 @@ export function MyActions() {
           <Plus size={18} />
         </button>
       </div>
+
+      <WeeklyTrendMini values={weeklyActionTrend} />
+
+      {/* 21차 — 솔로 UX 리뷰 피드백: 스트릭/카운트/리마인더/AI배너/액션리스트가
+          거의 같은 카드 톤으로 나란히 있어서 정작 제일 중요한 "오늘 할 일"이
+          묻힐 수 있다는 지적을 반영해, 액션 리스트를 리마인더보다 위로 올리고
+          다른 섹션과 동일한 레이블을 붙여 위계를 분명히 했다. */}
+      <div>
+        <SectionLabel>오늘 할 일</SectionLabel>
+        <Card className="divide-y-0">
+          {active.length === 0 && <p className="text-xs text-white/35 py-2">오늘 할 일이 없어요. + 버튼으로 추가해보세요.</p>}
+          {active.map((a) => (
+            <ActionRow key={a.id} action={a} />
+          ))}
+        </Card>
+      </div>
+
+      <button
+        onClick={() => openSheet({ kind: 'actionCompose' })}
+        className="w-full flex items-center gap-2.5 rounded-xl bg-brand-500/10 border border-brand-400/25 px-4 py-3 text-left"
+      >
+        <Sparkles size={16} className="text-brand-300 shrink-0" />
+        <span className="text-xs text-brand-100/90">"오늘 마감할 때 할 일 만들어줘" — AI에게 부탁해보세요</span>
+      </button>
 
       <div>
         <div className="flex items-center justify-between mb-2">
@@ -171,23 +230,6 @@ export function MyActions() {
           ) : (
             customReminders.map((r) => <ReminderRow key={r.id} reminder={r} />)
           )}
-        </Card>
-      </div>
-
-      <button
-        onClick={() => openSheet({ kind: 'actionCompose' })}
-        className="w-full flex items-center gap-2.5 rounded-xl bg-brand-500/10 border border-brand-400/25 px-4 py-3 text-left"
-      >
-        <Sparkles size={16} className="text-brand-300 shrink-0" />
-        <span className="text-xs text-brand-100/90">"오늘 마감할 때 할 일 만들어줘" — AI에게 부탁해보세요</span>
-      </button>
-
-      <div>
-        <Card className="divide-y-0">
-          {active.length === 0 && <p className="text-xs text-white/35 py-2">오늘 할 일이 없어요. + 버튼으로 추가해보세요.</p>}
-          {active.map((a) => (
-            <ActionRow key={a.id} action={a} />
-          ))}
         </Card>
       </div>
 
