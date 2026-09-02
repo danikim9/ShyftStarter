@@ -48,7 +48,7 @@ export function WageCalculatorView() {
             value={wageDraft}
             onChange={(e) => setWageDraft(e.target.value)}
             placeholder="예: 10000"
-            className="flex-1 min-w-0 rounded-lg bg-ink-950/6 border border-ink-950/10 px-3 py-2.5 text-sm text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50"
+            className="flex-1 min-w-0 rounded-lg bg-ink-950/6 border border-ink-950/10 px-3 py-2.5 text-[16px] text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50"
           />
           <span className="text-xs text-ink-950/40 shrink-0">원</span>
           <button
@@ -115,7 +115,7 @@ export function WageCalculatorView() {
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               placeholder="예: 추석 연휴 근무"
-              className="flex-1 min-w-0 rounded-lg bg-ink-950/6 border border-ink-950/10 px-3 py-2 text-xs text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50"
+              className="flex-1 min-w-0 rounded-lg bg-ink-950/6 border border-ink-950/10 px-3 py-2 text-[16px] text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50"
             />
             <input
               type="number"
@@ -123,7 +123,7 @@ export function WageCalculatorView() {
               value={hours}
               onChange={(e) => setHours(e.target.value)}
               placeholder="시간"
-              className="w-16 shrink-0 rounded-lg bg-ink-950/6 border border-ink-950/10 px-2 py-2 text-xs text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50"
+              className="w-16 shrink-0 rounded-lg bg-ink-950/6 border border-ink-950/10 px-2 py-2 text-[16px] text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50"
             />
             <button
               onClick={handleAddEntry}

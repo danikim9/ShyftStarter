@@ -19,7 +19,7 @@ export function AnnouncementComposer() {
         onChange={(e) => setText(e.target.value)}
         placeholder="예: 오늘 마감 후 재고 정리 같이 도와주실 분 계신가요?"
         rows={5}
-        className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-sm text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50 resize-none"
+        className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-[16px] text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50 resize-none"
         autoFocus
       />
       <PrimaryButton

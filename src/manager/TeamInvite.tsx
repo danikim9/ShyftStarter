@@ -114,7 +114,8 @@ function CodeCustomizer() {
               }}
               placeholder="예: GANGNAM2026"
               autoCapitalize="characters"
-              className={`flex-1 min-w-0 rounded-xl bg-ink-950/6 border px-3.5 py-2.5 text-sm text-ink-950 placeholder:text-ink-950/25 outline-none font-mono tracking-wide ${
+              // 33차 — iOS 자동 확대 문턱(16px) 회피
+              className={`flex-1 min-w-0 rounded-xl bg-ink-950/6 border px-3.5 py-2.5 text-[16px] text-ink-950 placeholder:text-ink-950/25 outline-none font-mono tracking-wide ${
                 error ? 'border-rose-signal/60' : 'border-ink-950/10 focus:border-brand-400/50'
               }`}
             />

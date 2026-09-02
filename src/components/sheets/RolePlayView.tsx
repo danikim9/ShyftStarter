@@ -53,7 +53,7 @@ export function RolePlayView() {
             onChange={(e) => setResponse(e.target.value)}
             placeholder="어떻게 답변하시겠어요? 실제로 말하듯 적어보세요."
             rows={4}
-            className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-sm text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50 transition resize-none"
+            className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-[16px] text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50 transition resize-none"
           />
           <PrimaryButton onClick={submit} disabled={!response.trim()}>
             제출하고 AI 평가받기

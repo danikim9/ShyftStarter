@@ -20,7 +20,7 @@ export function ActionComposer() {
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="예: 오픈 전 카운터 정리"
-        className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-sm text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50"
+        className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-[16px] text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50"
         autoFocus
       />
       <PrimaryButton

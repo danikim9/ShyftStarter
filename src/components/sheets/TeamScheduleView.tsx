@@ -135,7 +135,7 @@ function SwapForm({ requesterShiftDate, onDone, onCancel }: { requesterShiftDate
           onChange={(e) => setNote(e.target.value)}
           placeholder="예: 그날 병원 예약이 있어서요"
           rows={2}
-          className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-sm text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50 resize-none"
+          className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-[16px] text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50 resize-none"
         />
       </div>
       <div className="flex gap-2">
