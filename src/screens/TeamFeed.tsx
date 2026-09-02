@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Pin, MessageCircle, Plus, Megaphone, Users, Copy, Check, Share2 } from 'lucide-react'
+import { Pin, MessageCircle, Plus, Megaphone, Users, Copy, Check, Share2, ChevronDown, ChevronUp, History } from 'lucide-react'
 import { useAppState } from '../lib/store'
 import type { FeedItem } from '../types'
 import { Card, Badge, PrimaryButton } from '../components/ui'
@@ -21,7 +21,13 @@ function fmtTime(iso: string) {
 // 남긴 공지를 시각적으로 구분해야 한다. 매니저 공지는 앰버 톤 + 확성기
 // 아이콘 + "관리자 공지" 배지로, 동료 공지는 기존 브랜드 톤 아바타(이니셜)로
 // 구분한다 — 권위 있는 공지라는 신호를 주되 위계적으로 느껴지지 않게.
-function AnnouncementCard({ item }: { item: Extract<FeedItem, { type: 'announcement' }> }) {
+function AnnouncementCard({
+  item,
+  onAck,
+}: {
+  item: Extract<FeedItem, { type: 'announcement' }>
+  onAck?: () => void
+}) {
   const { toggleReaction, addComment, employee } = useAppState()
   const a = item.data
   const isManager = a.authorRole === 'manager'
@@ -41,17 +47,17 @@ function AnnouncementCard({ item }: { item: Extract<FeedItem, { type: 'announcem
           </span>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-semibold text-white">{a.authorName}</span>
+              <span className="text-xs font-semibold text-ink-950">{a.authorName}</span>
               {isManager && <Badge tone="amber">관리자 공지</Badge>}
             </div>
-            <div className="text-[10px] text-white/35">
+            <div className="text-[10px] text-ink-950/35">
               {isManager ? '매니저' : '팀원'} · {fmtTime(a.createdAt)}
             </div>
           </div>
         </div>
-        {a.pinned && <Pin size={13} className="text-brand-300 shrink-0" />}
+        {a.pinned && <Pin size={13} className="text-brand-600 shrink-0" />}
       </div>
-      <p className="text-sm text-white/85 leading-relaxed mb-3">{a.message}</p>
+      <p className="text-sm text-ink-950/85 leading-relaxed mb-3">{a.message}</p>
 
       <div className="flex items-center gap-1.5 flex-wrap">
         {QUICK_REACTIONS.map((emoji) => {
@@ -62,7 +68,7 @@ function AnnouncementCard({ item }: { item: Extract<FeedItem, { type: 'announcem
               key={emoji}
               onClick={() => toggleReaction(a.id, emoji)}
               className={`text-xs px-2 py-1 rounded-full border transition ${
-                mine ? 'bg-brand-500/20 border-brand-400/40' : 'bg-white/4 border-white/8'
+                mine ? 'bg-brand-500/20 border-brand-400/40' : 'bg-ink-950/4 border-ink-950/8'
               }`}
             >
               {emoji} {r?.employeeIds.length ?? ''}
@@ -71,18 +77,26 @@ function AnnouncementCard({ item }: { item: Extract<FeedItem, { type: 'announcem
         })}
         <button
           onClick={() => setShowComments((v) => !v)}
-          className="text-xs px-2 py-1 rounded-full bg-white/4 border border-white/8 text-white/50 flex items-center gap-1"
+          className="text-xs px-2 py-1 rounded-full bg-ink-950/4 border border-ink-950/8 text-ink-950/50 flex items-center gap-1"
         >
           <MessageCircle size={11} /> {a.comments.length}
         </button>
+        {onAck && (
+          <button
+            onClick={onAck}
+            className="ml-auto text-[11px] px-2.5 py-1 rounded-full bg-emerald-signal/12 border border-emerald-signal/25 text-emerald-600 font-medium flex items-center gap-1"
+          >
+            <Check size={12} /> 확인했어요
+          </button>
+        )}
       </div>
 
       {showComments && (
-        <div className="mt-3 pt-3 border-t border-white/8 space-y-2.5">
+        <div className="mt-3 pt-3 border-t border-ink-950/8 space-y-2.5">
           {a.comments.map((c) => (
             <div key={c.id} className="text-xs">
-              <span className="text-white/85 font-medium">{c.employeeName}</span>{' '}
-              <span className="text-white/55">{c.message}</span>
+              <span className="text-ink-950/85 font-medium">{c.employeeName}</span>{' '}
+              <span className="text-ink-950/55">{c.message}</span>
             </div>
           ))}
           <div className="flex items-center gap-2 pt-1">
@@ -90,7 +104,7 @@ function AnnouncementCard({ item }: { item: Extract<FeedItem, { type: 'announcem
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               placeholder="댓글 달기..."
-              className="flex-1 rounded-lg bg-white/6 border border-white/10 px-3 py-1.5 text-xs text-white placeholder:text-white/25 outline-none focus:border-brand-400/50"
+              className="flex-1 rounded-lg bg-ink-950/6 border border-ink-950/10 px-3 py-1.5 text-xs text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50"
             />
             <button
               onClick={() => {
@@ -98,7 +112,7 @@ function AnnouncementCard({ item }: { item: Extract<FeedItem, { type: 'announcem
                 setCommentText('')
               }}
               disabled={!commentText.trim()}
-              className="text-[11px] font-semibold text-brand-300 disabled:text-white/20 shrink-0"
+              className="text-[11px] font-semibold text-brand-600 disabled:text-ink-950/20 shrink-0"
             >
               등록
             </button>
@@ -109,7 +123,13 @@ function AnnouncementCard({ item }: { item: Extract<FeedItem, { type: 'announcem
   )
 }
 
-function HandoverCard({ item }: { item: Extract<FeedItem, { type: 'handover' }> }) {
+function HandoverCard({
+  item,
+  onAck,
+}: {
+  item: Extract<FeedItem, { type: 'handover' }>
+  onAck?: () => void
+}) {
   const h = item.data
   return (
     <Card>
@@ -117,13 +137,23 @@ function HandoverCard({ item }: { item: Extract<FeedItem, { type: 'handover' }> 
         <span className="w-7 h-7 rounded-full bg-emerald-signal flex items-center justify-center text-[11px] font-bold text-white shrink-0">
           {h.fromEmployeeName[0]}
         </span>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 mb-0.5">
-            <span className="text-xs font-semibold text-white">{h.fromEmployeeName}</span>
+            <span className="text-xs font-semibold text-ink-950">{h.fromEmployeeName}</span>
             <Badge tone="emerald">인수인계</Badge>
           </div>
-          <p className="text-sm text-white/80 leading-relaxed">{h.message}</p>
-          <div className="text-[10px] text-white/35 mt-1">{fmtTime(h.createdAt)}</div>
+          <p className="text-sm text-ink-950/80 leading-relaxed">{h.message}</p>
+          <div className="flex items-center justify-between mt-1.5">
+            <div className="text-[10px] text-ink-950/35">{fmtTime(h.createdAt)}</div>
+            {onAck && (
+              <button
+                onClick={onAck}
+                className="text-[11px] px-2.5 py-1 rounded-full bg-emerald-signal/12 border border-emerald-signal/25 text-emerald-600 font-medium flex items-center gap-1"
+              >
+                <Check size={12} /> 확인했어요
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </Card>
@@ -142,19 +172,19 @@ function OnboardingJoinSection() {
   return (
     <Card className="text-center py-7 space-y-4">
       <div>
-        <div className="w-12 h-12 rounded-2xl bg-white/8 flex items-center justify-center mx-auto text-xl mb-3">🏬</div>
-        <p className="text-sm font-semibold text-white/85 mb-1">동료들과 함께 시작해보세요</p>
-        <p className="text-xs text-white/40 leading-relaxed">
+        <div className="w-12 h-12 rounded-2xl bg-ink-950/8 flex items-center justify-center mx-auto text-xl mb-3">🏬</div>
+        <p className="text-sm font-semibold text-ink-950/85 mb-1">동료들과 함께 시작해보세요</p>
+        <p className="text-xs text-ink-950/40 leading-relaxed">
           코드가 없어도 괜찮아요 — 지금 바로 동료 그룹을 만들고
           <br />
           근무 일정을 함께 공유할 수 있어요
         </p>
       </div>
       <PrimaryButton onClick={() => createCrew()}>동료 그룹 만들기</PrimaryButton>
-      <div className="flex items-center gap-2 text-white/20 text-[10px]">
-        <div className="h-px flex-1 bg-white/8" />
+      <div className="flex items-center gap-2 text-ink-950/20 text-[10px]">
+        <div className="h-px flex-1 bg-ink-950/8" />
         코드가 있다면
-        <div className="h-px flex-1 bg-white/8" />
+        <div className="h-px flex-1 bg-ink-950/8" />
       </div>
       <div className="text-left">
         <JoinTeamForm onSuccess={() => {}} />
@@ -212,14 +242,14 @@ function CrewFeedPrompt() {
       {crewCode && (
         <Card className="space-y-3 bg-white/[0.03]">
           <div className="flex items-center gap-3">
-            <Users size={16} className="text-brand-300 shrink-0" />
+            <Users size={16} className="text-brand-600 shrink-0" />
             <div className="min-w-0 flex-1">
-              <p className="text-xs text-white/70 font-medium">동료 그룹 코드</p>
-              <p className="text-[11px] text-white/35 font-mono tracking-wide mt-0.5">{crewCode}</p>
+              <p className="text-xs text-ink-950/70 font-medium">동료 그룹 코드</p>
+              <p className="text-[11px] text-ink-950/35 font-mono tracking-wide mt-0.5">{crewCode}</p>
             </div>
             <button
               onClick={handleCopy}
-              className="shrink-0 w-8 h-8 rounded-lg bg-white/6 border border-white/10 flex items-center justify-center text-white/60 hover:text-white/90 transition"
+              className="shrink-0 w-8 h-8 rounded-lg bg-ink-950/6 border border-ink-950/10 flex items-center justify-center text-ink-950/60 hover:text-ink-950/90 transition"
               aria-label="동료 그룹 코드 복사"
             >
               {copied ? <Check size={13} className="text-emerald-signal" /> : <Copy size={13} />}
@@ -231,12 +261,12 @@ function CrewFeedPrompt() {
         </Card>
       )}
       <Card className="text-center py-8 space-y-3">
-        <div className="w-11 h-11 rounded-full bg-white/6 flex items-center justify-center mx-auto text-white/50">
+        <div className="w-11 h-11 rounded-full bg-ink-950/6 flex items-center justify-center mx-auto text-ink-950/50">
           <Users size={18} />
         </div>
         <div>
-          <p className="text-sm font-semibold text-white/85 mb-1">동료 그룹에 참여 중이에요</p>
-          <p className="text-xs text-white/40 leading-relaxed">
+          <p className="text-sm font-semibold text-ink-950/85 mb-1">동료 그룹에 참여 중이에요</p>
+          <p className="text-xs text-ink-950/40 leading-relaxed">
             공지·인수인계는 매니저가 매장을 개설하면 열려요
             <br />
             지금은 근무 일정 공유와 근무 교대까지 무료로 쓸 수 있어요
@@ -250,10 +280,39 @@ function CrewFeedPrompt() {
   )
 }
 
-export function TeamFeed() {
-  const { announcements, handovers, openSheet, membership } = useAppState()
+// 22차 — 솔로 UX 피드백 #4: 공지/인수인계를 "확인" 처리하면 메인 피드에서
+// 빠지고, 접혀 있는 히스토리 섹션에서만 다시 볼 수 있다. 확인 여부는
+// AppStateProvider의 readFeedIds에 저장돼 탭을 오가도 유지된다.
+function HistorySection({ items }: { items: FeedItem[] }) {
+  const [open, setOpen] = useState(false)
+  if (items.length === 0) return null
+  return (
+    <div className="pt-1">
+      <button onClick={() => setOpen((v) => !v)} className="w-full flex items-center justify-between py-2">
+        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-ink-950/30 uppercase tracking-wide">
+          <History size={12} /> 히스토리 {items.length}건
+        </div>
+        {open ? <ChevronUp size={14} className="text-ink-950/30" /> : <ChevronDown size={14} className="text-ink-950/30" />}
+      </button>
+      {open && (
+        <div className="space-y-3 opacity-70">
+          {items.map((item) =>
+            item.type === 'announcement' ? (
+              <AnnouncementCard key={item.data.id} item={item} />
+            ) : (
+              <HandoverCard key={item.data.id} item={item} />
+            )
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
 
-  const feed: FeedItem[] = [
+export function TeamFeed() {
+  const { announcements, handovers, openSheet, membership, readFeedIds, acknowledgeFeedItem } = useAppState()
+
+  const allFeed: FeedItem[] = [
     ...announcements.map((a) => ({ type: 'announcement' as const, data: a })),
     ...handovers.map((h) => ({ type: 'handover' as const, data: h })),
   ].sort((a, b) => {
@@ -262,26 +321,28 @@ export function TeamFeed() {
     if (aPinned !== bPinned) return aPinned ? -1 : 1
     return new Date(b.data.createdAt).getTime() - new Date(a.data.createdAt).getTime()
   })
+  const feed = allFeed.filter((item) => !readFeedIds.includes(item.data.id))
+  const historyFeed = allFeed.filter((item) => readFeedIds.includes(item.data.id))
 
   return (
     <div className="px-4 pt-5 pb-8 space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-white mb-1">Team</h1>
-          <p className="text-xs text-white/40">공지 + 인수인계만 모아둔 곳이에요 — 자유 채팅방은 아니에요.</p>
+          <h1 className="text-xl font-bold text-ink-950 mb-1">Team</h1>
+          <p className="text-xs text-ink-950/40">공지 + 인수인계만 모아둔 곳이에요 — 자유 채팅방은 아니에요.</p>
         </div>
         {membership === 'store' && (
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => openSheet({ kind: 'announcementCompose' })}
-              className="w-9 h-9 rounded-full bg-white/8 flex items-center justify-center text-white/70"
+              className="w-9 h-9 rounded-full bg-ink-950/8 flex items-center justify-center text-ink-950/70"
               aria-label="공지 작성"
             >
               <Megaphone size={16} />
             </button>
             <button
               onClick={() => openSheet({ kind: 'handoverCompose' })}
-              className="w-9 h-9 rounded-full bg-white/8 flex items-center justify-center text-white/70"
+              className="w-9 h-9 rounded-full bg-ink-950/8 flex items-center justify-center text-ink-950/70"
               aria-label="인수인계 추가"
             >
               <Plus size={16} />
@@ -292,13 +353,17 @@ export function TeamFeed() {
 
       {membership === 'store' ? (
         <div className="space-y-3">
+          {feed.length === 0 && historyFeed.length > 0 && (
+            <p className="text-xs text-ink-950/35 text-center py-4">새로운 공지·인수인계가 없어요. 확인한 내용은 히스토리에 있어요.</p>
+          )}
           {feed.map((item) =>
             item.type === 'announcement' ? (
-              <AnnouncementCard key={item.data.id} item={item} />
+              <AnnouncementCard key={item.data.id} item={item} onAck={() => acknowledgeFeedItem(item.data.id)} />
             ) : (
-              <HandoverCard key={item.data.id} item={item} />
+              <HandoverCard key={item.data.id} item={item} onAck={() => acknowledgeFeedItem(item.data.id)} />
             )
           )}
+          <HistorySection items={historyFeed} />
         </div>
       ) : membership === 'crew' ? (
         <CrewFeedPrompt />

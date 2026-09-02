@@ -16,28 +16,28 @@ export function KillerScriptView({ skillId }: { skillId: SkillId }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Badge tone="brand">{SKILLS[skillId].nameKo}</Badge>
-          <span className="text-xs text-white/40">{script.situationLabel}</span>
+          <span className="text-xs text-ink-950/40">{script.situationLabel}</span>
         </div>
         {variants.length > 1 && (
-          <span className="text-[11px] text-white/30 tabular-nums">
+          <span className="text-[11px] text-ink-950/30 tabular-nums">
             {idx + 1} / {variants.length}
           </span>
         )}
       </div>
 
       <div className="rounded-2xl bg-rose-950/20 border border-rose-500/20 p-4">
-        <div className="text-[11px] font-semibold text-rose-300/80 mb-1.5 tracking-wide">{script.beforeLabel}</div>
-        <p className="text-white/70 text-[15px]">{script.beforeLine}</p>
+        <div className="text-[11px] font-semibold text-rose-600/80 mb-1.5 tracking-wide">{script.beforeLabel}</div>
+        <p className="text-ink-950/70 text-[15px]">{script.beforeLine}</p>
       </div>
 
       <div className="rounded-2xl bg-brand-600/25 border border-brand-400/30 p-4">
-        <div className="text-[11px] font-semibold text-brand-200 mb-1.5 tracking-wide">TRY THIS INSTEAD</div>
-        <p className="text-white text-[16px] font-medium leading-snug">{script.afterLine}</p>
+        <div className="text-[11px] font-semibold text-brand-700 mb-1.5 tracking-wide">TRY THIS INSTEAD</div>
+        <p className="text-ink-950 text-[16px] font-medium leading-snug">{script.afterLine}</p>
       </div>
 
-      <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
-        <div className="text-[11px] font-semibold text-white/45 mb-1.5 tracking-wide">FOLLOW-UP</div>
-        <p className="text-white/75 text-[15px]">{script.followUpLine}</p>
+      <div className="rounded-2xl bg-ink-950/5 border border-ink-950/10 p-4">
+        <div className="text-[11px] font-semibold text-ink-950/45 mb-1.5 tracking-wide">FOLLOW-UP</div>
+        <p className="text-ink-950/75 text-[15px]">{script.followUpLine}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-2 pt-1">

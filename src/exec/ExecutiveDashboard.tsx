@@ -11,10 +11,10 @@ const NAV: { id: ExecView; label: string; icon: typeof Building2 }[] = [
 function Sidebar() {
   const { view, setView } = useExecState()
   return (
-    <div className="w-56 shrink-0 border-r border-white/8 flex flex-col py-5 px-3">
+    <div className="w-56 shrink-0 border-r border-ink-950/8 flex flex-col py-5 px-3">
       <div className="px-2 mb-6">
-        <div className="text-white font-bold text-sm">ShyftStarter</div>
-        <div className="text-[11px] text-white/35">Executive Dashboard</div>
+        <div className="text-ink-950 font-bold text-sm">ShyftStarter</div>
+        <div className="text-[11px] text-ink-950/35">Executive Dashboard</div>
       </div>
       <nav className="space-y-1">
         {NAV.map(({ id, label, icon: Icon }) => {
@@ -24,7 +24,7 @@ function Sidebar() {
               key={id}
               onClick={() => setView(id)}
               className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition ${
-                active ? 'bg-brand-500/15 text-brand-200' : 'text-white/50 hover:bg-white/5 hover:text-white/80'
+                active ? 'bg-brand-500/15 text-brand-700' : 'text-ink-950/50 hover:bg-ink-950/5 hover:text-ink-950/80'
               }`}
             >
               <Icon size={16} />
@@ -33,12 +33,12 @@ function Sidebar() {
           )
         })}
       </nav>
-      <div className="mt-auto px-2 pt-4 border-t border-white/8">
+      <div className="mt-auto px-2 pt-4 border-t border-ink-950/8">
         <div className="flex items-center gap-2.5">
-          <span className="w-8 h-8 rounded-full bg-ink-800 border border-white/10 flex items-center justify-center text-xs font-bold text-white">S</span>
+          <span className="w-8 h-8 rounded-full bg-ink-800 border border-ink-950/10 flex items-center justify-center text-xs font-bold text-ink-950">S</span>
           <div>
-            <div className="text-xs font-medium text-white/85">Sarah L.</div>
-            <div className="text-[10px] text-white/35">VP of Retail Operations</div>
+            <div className="text-xs font-medium text-ink-950/85">Sarah L.</div>
+            <div className="text-[10px] text-ink-950/35">VP of Retail Operations</div>
           </div>
         </div>
       </div>

@@ -16,11 +16,11 @@ export function QuestDetailView({ questId }: { questId: string }) {
         <Badge tone="brand">{meta.nameKo}</Badge>
         {isComplete && <Badge tone="emerald">완료</Badge>}
       </div>
-      <h4 className="text-lg font-semibold text-white leading-snug">{quest.title}</h4>
-      <p className="text-sm text-white/65 leading-relaxed">{quest.behavior}</p>
+      <h4 className="text-lg font-semibold text-ink-950 leading-snug">{quest.title}</h4>
+      <p className="text-sm text-ink-950/65 leading-relaxed">{quest.behavior}</p>
 
       <div>
-        <div className="flex justify-between text-xs text-white/50 mb-1.5">
+        <div className="flex justify-between text-xs text-ink-950/50 mb-1.5">
           <span>진행률</span>
           <span className="tabular-nums">
             {quest.progress} / {quest.target} {quest.unit}
@@ -29,9 +29,9 @@ export function QuestDetailView({ questId }: { questId: string }) {
         <ProgressBar value={quest.progress} max={quest.target} colorClass={isComplete ? 'bg-emerald-signal' : 'bg-brand-500'} />
       </div>
 
-      <div className="flex items-center justify-between rounded-xl bg-white/5 border border-white/10 px-4 py-3">
-        <span className="text-xs text-white/50">보상</span>
-        <span className="text-sm font-semibold text-amber-300">+{quest.rewardXp} XP</span>
+      <div className="flex items-center justify-between rounded-xl bg-ink-950/5 border border-ink-950/10 px-4 py-3">
+        <span className="text-xs text-ink-950/50">보상</span>
+        <span className="text-sm font-semibold text-amber-600">+{quest.rewardXp} XP</span>
       </div>
 
       <div className="grid grid-cols-2 gap-2 pt-1">

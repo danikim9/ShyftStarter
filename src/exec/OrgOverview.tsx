@@ -11,8 +11,8 @@ export function OrgOverview() {
   return (
     <div className="space-y-8 max-w-5xl">
       <div>
-        <h1 className="text-2xl font-bold text-white mb-1">Organization Performance</h1>
-        <p className="text-white/40 text-sm">
+        <h1 className="text-2xl font-bold text-ink-950 mb-1">Organization Performance</h1>
+        <p className="text-ink-950/40 text-sm">
           {org.totalStores}개 매장 · {org.totalEmployees}명 — 개별 직원 데이터가 아닌 매장/조직 단위 집계만
           보여줘요 (Executive 권한은 개인 식별 데이터에 접근하지 않아요).
         </p>
@@ -40,9 +40,9 @@ export function OrgOverview() {
         <SectionLabel>ORGANIZATION CAPABILITY MAP</SectionLabel>
         <Card>
           <OrgCapabilityRadar />
-          <p className="text-xs text-white/50 leading-relaxed mt-1 pt-3 border-t border-white/8">
-            플랫폼 도입 후 조직 평균 역량이 스킬당 평균 <span className="text-emerald-300 font-semibold">+{ORG_CAPABILITY_AVG_DELTA}점</span> 상승했어요.
-            8개 스킬 중 <span className="text-white/80 font-medium">클로징·크로스셀</span>이 여전히 조직 전체에서 가장 약하고, 동시에 매출에 가장
+          <p className="text-xs text-ink-950/50 leading-relaxed mt-1 pt-3 border-t border-ink-950/8">
+            플랫폼 도입 후 조직 평균 역량이 스킬당 평균 <span className="text-emerald-600 font-semibold">+{ORG_CAPABILITY_AVG_DELTA}점</span> 상승했어요.
+            8개 스킬 중 <span className="text-ink-950/80 font-medium">클로징·크로스셀</span>이 여전히 조직 전체에서 가장 약하고, 동시에 매출에 가장
             직접적으로 연결되는 영역이에요 — 다음 분기 트레이닝 투자 우선순위로 추천해요.
           </p>
         </Card>

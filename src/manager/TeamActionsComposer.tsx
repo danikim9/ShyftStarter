@@ -21,8 +21,8 @@ export function TeamActionsComposer() {
   return (
     <div className="space-y-8 max-w-3xl">
       <div>
-        <h1 className="text-2xl font-bold text-white mb-1">팀 액션 · 공지</h1>
-        <p className="text-white/40 text-sm max-w-xl leading-relaxed">
+        <h1 className="text-2xl font-bold text-ink-950 mb-1">팀 액션 · 공지</h1>
+        <p className="text-ink-950/40 text-sm max-w-xl leading-relaxed">
           체크리스트/퀘스트를 팀에 배포하고, 공지를 올려요. Employee App의 Team/My Actions 탭에 바로
           반영돼요(같은 프로토타입 안에서 실시간으로 확인해보세요 — 페르소나 전환 후 확인).
         </p>
@@ -40,9 +40,9 @@ export function TeamActionsComposer() {
               onChange={(e) => setAnnText(e.target.value)}
               placeholder="예: 오늘 POS 2번 사용하지 마세요 — 점검 중입니다."
               rows={3}
-              className="w-full rounded-xl bg-white/6 border border-white/10 px-3.5 py-3 text-sm text-white placeholder:text-white/25 outline-none focus:border-brand-400/50 resize-none"
+              className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-sm text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50 resize-none"
             />
-            <label className="flex items-center gap-2 text-xs text-white/50">
+            <label className="flex items-center gap-2 text-xs text-ink-950/50">
               <input type="checkbox" checked={annPinned} onChange={(e) => setAnnPinned(e.target.checked)} className="accent-brand-500" />
               상단 고정
             </label>
@@ -68,16 +68,16 @@ export function TeamActionsComposer() {
               value={actionTitle}
               onChange={(e) => setActionTitle(e.target.value)}
               placeholder="예: 재고 부족 상품 메모하기"
-              className="w-full rounded-xl bg-white/6 border border-white/10 px-3.5 py-3 text-sm text-white placeholder:text-white/25 outline-none focus:border-brand-400/50"
+              className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-sm text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50"
             />
             <div className="flex items-center gap-2">
-              <span className="text-xs text-white/40">목표 횟수</span>
+              <span className="text-xs text-ink-950/40">목표 횟수</span>
               <input
                 type="number"
                 min={1}
                 value={actionTarget}
                 onChange={(e) => setActionTarget(Math.max(1, Number(e.target.value) || 1))}
-                className="w-16 rounded-lg bg-white/6 border border-white/10 px-2 py-1.5 text-sm text-white outline-none focus:border-brand-400/50"
+                className="w-16 rounded-lg bg-ink-950/6 border border-ink-950/10 px-2 py-1.5 text-sm text-ink-950 outline-none focus:border-brand-400/50"
               />
             </div>
             <PrimaryButton
@@ -107,13 +107,13 @@ export function TeamActionsComposer() {
       <div>
         <SectionLabel>최근 배포한 팀 액션</SectionLabel>
         <Card>
-          {managerActions.length === 0 && <p className="text-xs text-white/35">아직 배포한 액션이 없어요.</p>}
+          {managerActions.length === 0 && <p className="text-xs text-ink-950/35">아직 배포한 액션이 없어요.</p>}
           {managerActions.map((a) => (
-            <div key={a.id} className="flex items-center justify-between py-2.5 border-b border-white/6 last:border-0">
-              <span className="text-sm text-white/80">{a.title}</span>
+            <div key={a.id} className="flex items-center justify-between py-2.5 border-b border-ink-950/6 last:border-0">
+              <span className="text-sm text-ink-950/80">{a.title}</span>
               <div className="flex items-center gap-2">
                 {a.assignedToAll && <Badge tone="brand">전체 팀</Badge>}
-                <span className="text-xs text-white/40 tabular-nums">{a.progress}/{a.target}</span>
+                <span className="text-xs text-ink-950/40 tabular-nums">{a.progress}/{a.target}</span>
               </div>
             </div>
           ))}
@@ -124,15 +124,15 @@ export function TeamActionsComposer() {
         <SectionLabel>최근 공지</SectionLabel>
         <Card className="space-y-3">
           {announcements.map((a) => (
-            <div key={a.id} className="flex items-start justify-between gap-3 py-2 border-b border-white/6 last:border-0">
+            <div key={a.id} className="flex items-start justify-between gap-3 py-2 border-b border-ink-950/6 last:border-0">
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  {a.pinned && <Pin size={11} className="text-brand-300 shrink-0" />}
-                  <p className="text-sm text-white/80 truncate">{a.message}</p>
+                  {a.pinned && <Pin size={11} className="text-brand-600 shrink-0" />}
+                  <p className="text-sm text-ink-950/80 truncate">{a.message}</p>
                 </div>
-                <div className="text-[10px] text-white/35 mt-0.5">{fmtTime(a.createdAt)}</div>
+                <div className="text-[10px] text-ink-950/35 mt-0.5">{fmtTime(a.createdAt)}</div>
               </div>
-              <div className="shrink-0 flex items-center gap-1 text-[11px] text-white/40">
+              <div className="shrink-0 flex items-center gap-1 text-[11px] text-ink-950/40">
                 <MessageCircle size={11} /> {a.comments.length}
               </div>
             </div>

@@ -28,9 +28,9 @@ function mirrorWeekDate(date: string): string | null {
 }
 
 function ShiftText({ entry }: { entry: RosterEntry }) {
-  if (entry === 'off') return <span className="text-white/30">휴무</span>
+  if (entry === 'off') return <span className="text-ink-950/30">휴무</span>
   return (
-    <span className="text-white/70 tabular-nums">
+    <span className="text-ink-950/70 tabular-nums">
       {entry.start}–{entry.end}
     </span>
   )
@@ -58,7 +58,7 @@ function SwapForm({ requesterShiftDate, onDone, onCancel }: { requesterShiftDate
   if (!teammateId) {
     return (
       <div className="space-y-3">
-        <p className="text-xs text-white/40 leading-relaxed">누구와 근무를 바꾸고 싶으신가요? 예정된 근무가 있는 팀원만 표시돼요.</p>
+        <p className="text-xs text-ink-950/40 leading-relaxed">누구와 근무를 바꾸고 싶으신가요? 예정된 근무가 있는 팀원만 표시돼요.</p>
         <div className="space-y-1.5">
           {teammates.map((m) => {
             const count = teammateShifts(m.id).length
@@ -67,7 +67,7 @@ function SwapForm({ requesterShiftDate, onDone, onCancel }: { requesterShiftDate
               <button
                 key={m.id}
                 onClick={() => setTeammateId(m.id)}
-                className="w-full flex items-center justify-between gap-2 rounded-xl bg-white/6 hover:bg-white/10 border border-white/8 px-3.5 py-3 transition"
+                className="w-full flex items-center justify-between gap-2 rounded-xl bg-ink-950/6 hover:bg-ink-950/10 border border-ink-950/8 px-3.5 py-3 transition"
               >
                 <span className="flex items-center gap-2.5">
                   <span
@@ -76,9 +76,9 @@ function SwapForm({ requesterShiftDate, onDone, onCancel }: { requesterShiftDate
                   >
                     {m.name[0]}
                   </span>
-                  <span className="text-sm text-white/85">{m.name}</span>
+                  <span className="text-sm text-ink-950/85">{m.name}</span>
                 </span>
-                <ChevronRight size={14} className="text-white/30" />
+                <ChevronRight size={14} className="text-ink-950/30" />
               </button>
             )
           })}
@@ -93,8 +93,8 @@ function SwapForm({ requesterShiftDate, onDone, onCancel }: { requesterShiftDate
   if (!targetDate) {
     return (
       <div className="space-y-3">
-        <p className="text-xs text-white/40 leading-relaxed">
-          <span className="text-white/70 font-medium">{teammate.name}</span>님의 어떤 근무와 바꿀까요?
+        <p className="text-xs text-ink-950/40 leading-relaxed">
+          <span className="text-ink-950/70 font-medium">{teammate.name}</span>님의 어떤 근무와 바꿀까요?
         </p>
         <div className="space-y-1.5">
           {teammateShifts(teammateId).map((d) => {
@@ -104,9 +104,9 @@ function SwapForm({ requesterShiftDate, onDone, onCancel }: { requesterShiftDate
               <button
                 key={d}
                 onClick={() => setTargetDate(d)}
-                className="w-full flex items-center justify-between rounded-xl bg-white/6 hover:bg-white/10 border border-white/8 px-3.5 py-3 transition"
+                className="w-full flex items-center justify-between rounded-xl bg-ink-950/6 hover:bg-ink-950/10 border border-ink-950/8 px-3.5 py-3 transition"
               >
-                <span className="text-sm text-white/85">
+                <span className="text-sm text-ink-950/85">
                   {md} ({dow})
                 </span>
                 <ShiftText entry={entry ?? 'off'} />
@@ -124,18 +124,18 @@ function SwapForm({ requesterShiftDate, onDone, onCancel }: { requesterShiftDate
 
   return (
     <div className="space-y-3">
-      <div className="rounded-xl bg-brand-500/10 border border-brand-400/20 px-3.5 py-3 text-xs text-brand-100 leading-relaxed">
+      <div className="rounded-xl bg-brand-500/10 border border-brand-400/20 px-3.5 py-3 text-xs text-brand-700 leading-relaxed">
         내 {reqFmt.md}({reqFmt.dow}) 근무 <ArrowLeftRight size={11} className="inline mx-1" /> {teammate.name}님 {tgtFmt.md}({tgtFmt.dow})
         근무를 서로 맞바꾸는 요청을 보내요. {teammate.name}님이 승인하면 즉시 교대되고, 매니저에게도 알림이 가요.
       </div>
       <div>
-        <label className="block text-[11px] font-semibold text-white/40 tracking-wide mb-1.5">메모 (선택)</label>
+        <label className="block text-[11px] font-semibold text-ink-950/40 tracking-wide mb-1.5">메모 (선택)</label>
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="예: 그날 병원 예약이 있어서요"
           rows={2}
-          className="w-full rounded-xl bg-white/6 border border-white/10 px-3.5 py-3 text-sm text-white placeholder:text-white/25 outline-none focus:border-brand-400/50 resize-none"
+          className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-sm text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50 resize-none"
         />
       </div>
       <div className="flex gap-2">
@@ -200,7 +200,7 @@ export function TeamScheduleView({ onGoToTeam }: { onGoToTeam: () => void }) {
   return (
     <div className="space-y-4">
       {membership === 'none' && (
-        <p className="text-xs text-white/40 leading-relaxed">
+        <p className="text-xs text-ink-950/40 leading-relaxed">
           매니저가 아직 이 앱을 쓰지 않아도 괜찮아요 — 본인 근무를 직접 입력해서 스스로 관리하거나, Team 탭에서
           동료들과 그룹을 만들어 함께 쓸 수 있어요.
         </p>
@@ -208,18 +208,18 @@ export function TeamScheduleView({ onGoToTeam }: { onGoToTeam: () => void }) {
 
       {membership !== 'none' && incomingRequests.length > 0 && (
         <div className="space-y-1.5">
-          <div className="text-[11px] font-semibold text-white/40 tracking-wide uppercase">받은 교대 요청</div>
+          <div className="text-[11px] font-semibold text-ink-950/40 tracking-wide uppercase">받은 교대 요청</div>
           {incomingRequests.map((r) => {
             const req = fmtRosterDate(r.requesterShiftDate)
             const tgt = fmtRosterDate(r.targetShiftDate)
             return (
               <Card key={r.id} className="space-y-2.5 border-brand-400/20 bg-brand-500/[0.06]">
-                <div className="text-sm text-white/85 leading-relaxed">
+                <div className="text-sm text-ink-950/85 leading-relaxed">
                   <span className="font-semibold">{r.requesterName}</span>님이 {req.md}({req.dow}) 근무를
-                  <ArrowLeftRight size={11} className="inline mx-1 text-white/30" />
+                  <ArrowLeftRight size={11} className="inline mx-1 text-ink-950/30" />
                   내 {tgt.md}({tgt.dow}) 근무와 바꾸자고 요청했어요
                 </div>
-                {r.note && <p className="text-xs text-white/40 leading-relaxed">"{r.note}"</p>}
+                {r.note && <p className="text-xs text-ink-950/40 leading-relaxed">"{r.note}"</p>}
                 <div className="flex gap-2">
                   <SecondaryButton className="flex-1" onClick={() => rejectSwap(r.id)}>
                     거절
@@ -236,12 +236,12 @@ export function TeamScheduleView({ onGoToTeam }: { onGoToTeam: () => void }) {
 
       {myRequests.length > 0 && (
         <div className="space-y-1.5">
-          <div className="text-[11px] font-semibold text-white/40 tracking-wide uppercase">내가 보낸 교대 요청</div>
+          <div className="text-[11px] font-semibold text-ink-950/40 tracking-wide uppercase">내가 보낸 교대 요청</div>
           {myRequests.map((r) => {
             const tgt = fmtRosterDate(r.targetShiftDate)
             return (
-              <div key={r.id} className="flex items-center justify-between gap-2 rounded-xl bg-white/5 border border-white/8 px-3.5 py-2.5">
-                <span className="text-xs text-white/70">
+              <div key={r.id} className="flex items-center justify-between gap-2 rounded-xl bg-ink-950/5 border border-ink-950/8 px-3.5 py-2.5">
+                <span className="text-xs text-ink-950/70">
                   {r.targetMemberName}님 · {tgt.md}({tgt.dow})와 교대
                 </span>
                 {statusBadge(r.status)}
@@ -257,7 +257,7 @@ export function TeamScheduleView({ onGoToTeam }: { onGoToTeam: () => void }) {
             key={w.id}
             onClick={() => setWeekIndex(i)}
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${
-              weekIndex === i ? 'bg-white text-ink-950' : 'bg-white/6 text-white/50 hover:text-white/80'
+              weekIndex === i ? 'bg-white text-ink-950' : 'bg-ink-950/6 text-ink-950/50 hover:text-ink-950/80'
             }`}
           >
             {w.label}
@@ -274,7 +274,7 @@ export function TeamScheduleView({ onGoToTeam }: { onGoToTeam: () => void }) {
               key={d}
               onClick={() => setSelectedDate(d)}
               className={`shrink-0 flex flex-col items-center gap-0.5 rounded-xl px-3 py-2 transition ${
-                active ? 'bg-brand-500 text-white' : d === TODAY ? 'bg-white/10 text-white/80' : 'bg-white/5 text-white/50'
+                active ? 'bg-brand-500 text-white' : d === TODAY ? 'bg-ink-950/10 text-ink-950/80' : 'bg-ink-950/5 text-ink-950/50'
               }`}
             >
               <span className="text-[10px] font-medium">{dow}</span>
@@ -298,14 +298,14 @@ export function TeamScheduleView({ onGoToTeam }: { onGoToTeam: () => void }) {
                   >
                     {m.name[0]}
                   </span>
-                  <span className="text-sm text-white/85">
+                  <span className="text-sm text-ink-950/85">
                     {m.name}
-                    {isMe && <span className="text-[10px] text-brand-300 font-medium ml-1.5">나</span>}
+                    {isMe && <span className="text-[10px] text-brand-600 font-medium ml-1.5">나</span>}
                   </span>
                 </span>
                 <span className="flex items-center gap-1.5 text-xs">
                   <ShiftText entry={entry} />
-                  {isMe && <Pencil size={11} className="text-white/25" />}
+                  {isMe && <Pencil size={11} className="text-ink-950/25" />}
                 </span>
               </div>
             )
@@ -318,7 +318,7 @@ export function TeamScheduleView({ onGoToTeam }: { onGoToTeam: () => void }) {
                 {row}
               </button>
             ) : (
-              <div key={m.id} className="flex items-center rounded-xl px-3.5 py-2.5 bg-white/5">
+              <div key={m.id} className="flex items-center rounded-xl px-3.5 py-2.5 bg-ink-950/5">
                 {row}
               </div>
             )
@@ -338,22 +338,22 @@ export function TeamScheduleView({ onGoToTeam }: { onGoToTeam: () => void }) {
                 >
                   {employee.name[0]}
                 </span>
-                <span className="text-sm text-white/85">
+                <span className="text-sm text-ink-950/85">
                   {employee.name}
-                  <span className="text-[10px] text-brand-300 font-medium ml-1.5">나</span>
+                  <span className="text-[10px] text-brand-600 font-medium ml-1.5">나</span>
                 </span>
               </span>
               <span className="flex items-center gap-1.5 text-xs">
                 <ShiftText entry={myEntry} />
-                <Pencil size={11} className="text-white/25" />
+                <Pencil size={11} className="text-ink-950/25" />
               </span>
             </div>
           </button>
 
           <Card className="space-y-2.5 bg-white/[0.03]">
             <div className="flex items-center gap-3">
-              <Users size={16} className="text-white/30 shrink-0" />
-              <p className="text-xs text-white/40 leading-relaxed flex-1">
+              <Users size={16} className="text-ink-950/30 shrink-0" />
+              <p className="text-xs text-ink-950/40 leading-relaxed flex-1">
                 팀에 참여하면 동료의 일정도 함께 보고, 서로 근무를 맞바꿀 수 있어요. 매니저가 아직 없어도
                 동료들과 직접 그룹을 만들 수 있어요.
               </p>
@@ -366,11 +366,11 @@ export function TeamScheduleView({ onGoToTeam }: { onGoToTeam: () => void }) {
       {canSwap && (
         <button
           onClick={() => setSwapping(true)}
-          className="w-full flex items-center justify-center gap-2 rounded-xl bg-white/6 hover:bg-white/10 border border-dashed border-white/15 px-4 py-3 transition"
+          className="w-full flex items-center justify-center gap-2 rounded-xl bg-ink-950/6 hover:bg-ink-950/10 border border-dashed border-ink-950/15 px-4 py-3 transition"
         >
-          <ArrowLeftRight size={14} className="text-white/60" />
-          <span className="text-sm font-medium text-white/80">이 근무 교대 요청하기</span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-amber-signal/15 text-amber-300 text-[10px] font-bold px-2 py-0.5">
+          <ArrowLeftRight size={14} className="text-ink-950/60" />
+          <span className="text-sm font-medium text-ink-950/80">이 근무 교대 요청하기</span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-signal/15 text-amber-600 text-[10px] font-bold px-2 py-0.5">
             <Crown size={10} /> PRO
           </span>
         </button>
