@@ -1,4 +1,4 @@
-import { ChevronRight, MessageSquarePlus, ChevronDown, ChevronUp, CalendarPlus, Users } from 'lucide-react'
+import { ChevronRight, MessageSquarePlus, ChevronDown, ChevronUp, CalendarPlus, CalendarDays } from 'lucide-react'
 import { useState } from 'react'
 import { useAppState } from '../lib/store'
 import { shifts, todayShift } from '../data/mockData'
@@ -123,7 +123,7 @@ export function MyShift() {
               onClick={() => openSheet({ kind: 'teamSchedule' })}
               className="text-xs text-brand-300 font-medium flex items-center gap-0.5"
             >
-              <Users size={13} /> 팀원 일정
+              <CalendarDays size={13} /> 근무 일정
             </button>
             <button onClick={handleExport} className="text-xs text-brand-300 font-medium flex items-center gap-0.5">
               <CalendarPlus size={13} /> 내보내기

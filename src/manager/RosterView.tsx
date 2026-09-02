@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight, Users, X, ArrowLeftRight, Check, Crown } from 'lucide-react'
-import { Card, PrimaryButton, SecondaryButton } from '../components/ui'
+import { ChevronLeft, ChevronRight, Users, X, ArrowLeftRight, Crown } from 'lucide-react'
+import { Card, PrimaryButton, SecondaryButton, Badge } from '../components/ui'
 import { ROSTER_WEEKS, ROSTER_MEMBERS, TODAY, fmtRosterDate, type RosterEntry } from '../data/roster'
 import { useAppState } from '../lib/store'
 
@@ -15,13 +15,13 @@ function ShiftPill({ entry }: { entry: RosterEntry }) {
   )
 }
 
-interface EditTarget {
+export interface EditTarget {
   memberId: string
   memberName: string
   date: string
 }
 
-function EditShiftModal({
+export function EditShiftModal({
   target,
   current,
   onClose,
@@ -118,25 +118,37 @@ function EditShiftModal({
   )
 }
 
+function swapStatusMeta(status: 'pending' | 'approved' | 'rejected') {
+  if (status === 'pending') return { label: '상대방 승인 대기 중', tone: 'amber' as const }
+  if (status === 'approved') return { label: '교대 완료 · 자동 반영됨', tone: 'emerald' as const }
+  return { label: '거절됨', tone: 'rose' as const }
+}
+
+// 16차 개편: 매니저는 더 이상 교대를 승인/거절하지 않는다 — 요청을 받은
+// 팀원이 직접 승인하면 그 즉시 근무가 교환되고, 매니저에게는 이 카드로
+// "이미 정해진 교대"를 알려주는 알림(FYI)만 온다.
 function SwapRequestsCard() {
-  const { swapRequests, approveSwap, rejectSwap } = useAppState()
-  const pending = swapRequests.filter((r) => r.status === 'pending')
-  if (pending.length === 0) return null
+  const { swapRequests } = useAppState()
+  const recent = swapRequests.filter((r) => r.status !== 'rejected').slice(0, 6)
+  if (recent.length === 0) return null
 
   return (
     <Card className="space-y-3 border-brand-400/20 bg-brand-500/[0.04]">
       <div className="flex items-center gap-2">
         <ArrowLeftRight size={14} className="text-brand-300" />
-        <h3 className="text-sm font-semibold text-white">근무 교대 요청</h3>
+        <h3 className="text-sm font-semibold text-white">근무 교대 알림</h3>
         <span className="inline-flex items-center gap-1 rounded-full bg-amber-signal/15 text-amber-300 text-[10px] font-bold px-2 py-0.5">
           <Crown size={10} /> PRO
         </span>
-        <span className="text-[11px] text-white/35 ml-auto">{pending.length}건 대기 중</span>
       </div>
+      <p className="text-[11px] text-white/35 leading-relaxed -mt-1">
+        팀원끼리 직접 요청하고 승인해요 — 승인되면 여기로 자동 알림이 와요.
+      </p>
       <div className="space-y-2">
-        {pending.map((r) => {
+        {recent.map((r) => {
           const req = fmtRosterDate(r.requesterShiftDate)
           const tgt = fmtRosterDate(r.targetShiftDate)
+          const meta = swapStatusMeta(r.status)
           return (
             <div key={r.id} className="flex items-center justify-between gap-3 rounded-xl bg-white/5 border border-white/8 px-3.5 py-3">
               <div className="min-w-0">
@@ -149,21 +161,7 @@ function SwapRequestsCard() {
                 </div>
                 {r.note && <p className="text-xs text-white/40 mt-1 leading-relaxed">"{r.note}"</p>}
               </div>
-              <div className="shrink-0 flex items-center gap-1.5">
-                <button
-                  onClick={() => rejectSwap(r.id)}
-                  className="w-8 h-8 rounded-lg bg-white/6 hover:bg-white/12 text-white/50 flex items-center justify-center transition"
-                  title="거절"
-                >
-                  <X size={14} />
-                </button>
-                <button
-                  onClick={() => approveSwap(r.id)}
-                  className="h-8 px-3 rounded-lg bg-brand-500 hover:bg-brand-400 text-white text-xs font-semibold flex items-center gap-1 transition"
-                >
-                  <Check size={13} /> 승인
-                </button>
-              </div>
+              <Badge tone={meta.tone}>{meta.label}</Badge>
             </div>
           )
         })}

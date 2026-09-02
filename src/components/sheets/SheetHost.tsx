@@ -10,6 +10,7 @@ import { HandoverComposer } from './HandoverComposer'
 import { ActionComposer } from './ActionComposer'
 import { JoinTeamForm } from '../../auth/JoinTeamForm'
 import { TeamScheduleView } from './TeamScheduleView'
+import { ReminderComposer } from './ReminderComposer'
 import type { TabId } from '../BottomNav'
 
 const TITLES: Record<string, string> = {
@@ -22,7 +23,8 @@ const TITLES: Record<string, string> = {
   handoverCompose: '인수인계 남기기',
   actionCompose: '할 일 추가',
   joinTeam: '팀 참여',
-  teamSchedule: '팀원 일정',
+  teamSchedule: '근무 일정',
+  reminderCompose: '리마인더 추가',
 }
 
 export function SheetHost({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
@@ -61,6 +63,8 @@ export function SheetHost({ onNavigate }: { onNavigate: (tab: TabId) => void }) 
     content = <JoinTeamForm onSuccess={closeSheet} />
   } else if (sheet.kind === 'teamSchedule') {
     content = <TeamScheduleView />
+  } else if (sheet.kind === 'reminderCompose') {
+    content = <ReminderComposer />
   }
 
   return (

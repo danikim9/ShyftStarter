@@ -3,7 +3,7 @@
 // Announcement. Strategy doc: claude/shyftstarter-v2-strategy-b2c-pivot.md
 // ---------------------------------------------------------------------------
 
-import type { Action, Announcement, HandoverNote } from '../types'
+import type { Action, Announcement, HandoverNote, Reminder } from '../types'
 import { CURRENT_EMPLOYEE_ID } from './mockData'
 
 export const STORE_ID = 'st_gangnam'
@@ -62,6 +62,27 @@ export const INITIAL_ACTIONS: Action[] = [
     progress: 1,
     dueLabel: '지난 시프트',
     completedAt: '2026-08-26T11:20:00.000Z',
+  },
+]
+
+// 개인 알람/리마인더 — 매니저 없이도(솔로 사용자여도) 바로 쓸 수 있는 셀프 기능이라
+// 기본으로 근무 시작 알림 1개를 켜둔 상태로 시드한다.
+export const INITIAL_REMINDERS: Reminder[] = [
+  {
+    id: 'rem_shift_start',
+    kind: 'shiftStart',
+    label: '근무 시작 알림',
+    offsetMinutes: 30,
+    enabled: true,
+    createdAt: '2026-08-24T09:00:00.000Z',
+  },
+  {
+    id: 'rem_custom_1',
+    kind: 'custom',
+    label: '마감 전 냉장고 온도 체크하기',
+    time: '21:30',
+    enabled: true,
+    createdAt: '2026-08-26T10:00:00.000Z',
   },
 ]
 
