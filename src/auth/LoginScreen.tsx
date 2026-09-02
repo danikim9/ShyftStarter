@@ -13,11 +13,8 @@ import type { ReactElement } from 'react'
 export type AuthProvider = 'naver' | 'kakao' | 'google' | 'apple'
 
 function NaverMark() {
-  // 네이버 브랜드 버튼(초록 배경)은 앱 전체 테마와 무관하게 항상 흰 글자를
-  // 쓴다 — 23차 라이트 테마 전환의 자동 치환(white→ink-950) 대상에서
-  // 제외해야 하는 지점이라 여기 명시해둔다.
   return (
-    <span className="w-5 h-5 rounded-[5px] bg-white/20 flex items-center justify-center text-[11px] font-extrabold text-white shrink-0">
+    <span className="w-5 h-5 rounded-[5px] bg-white/15 flex items-center justify-center text-[11px] font-extrabold text-white shrink-0">
       N
     </span>
   )
@@ -55,27 +52,23 @@ function AppleMark() {
   )
 }
 
-// 23차 — 네이버(초록)/카카오(노랑)/Apple(검정) 버튼은 각 사의 고정 브랜드
-// 색이라 라이트 테마로 바뀌어도 그대로 두고, 그 위 글자색만 배경 대비가
-// 유지되도록 각각 맞춘다(네이버·Apple은 흰 글자, 카카오·Google은 어두운
-// 글자) — 자동 치환 대상에서 제외하고 직접 지정.
 const PROVIDERS: { id: AuthProvider; label: string; className: string; mark: () => ReactElement }[] = [
   { id: 'naver', label: '네이버로 계속하기', className: 'bg-[#03C75A] text-white', mark: NaverMark },
   { id: 'kakao', label: '카카오로 계속하기', className: 'bg-[#FEE500] text-[#191919]', mark: KakaoMark },
-  { id: 'google', label: 'Google로 계속하기', className: 'bg-white text-ink-950 border border-ink-950/10', mark: GoogleMark },
-  { id: 'apple', label: 'Apple로 계속하기', className: 'bg-black text-white border border-black', mark: AppleMark },
+  { id: 'google', label: 'Google로 계속하기', className: 'bg-white text-ink-900 border border-black/10', mark: GoogleMark },
+  { id: 'apple', label: 'Apple로 계속하기', className: 'bg-black text-white border border-white/15', mark: AppleMark },
 ]
 
 export function LoginScreen({ onLogin }: { onLogin: (provider: AuthProvider) => void }) {
   return (
-    <div className="min-h-screen w-full bg-[radial-gradient(circle_at_top,_#f3edff_0%,_#ffffff_55%)] flex items-center justify-center py-0 sm:py-8 px-0 sm:px-4">
-      <div className="relative w-full max-w-[430px] h-[100dvh] sm:h-[880px] sm:rounded-[2.75rem] sm:border sm:border-ink-950/8 overflow-hidden flex flex-col bg-paper sm:shadow-[0_30px_80px_-20px_rgba(139,92,246,0.25)] px-7">
+    <div className="min-h-screen w-full bg-[radial-gradient(circle_at_top,_#1b2140_0%,_#0b0e1a_60%)] flex items-center justify-center py-0 sm:py-8 px-0 sm:px-4">
+      <div className="relative w-full max-w-[430px] h-[100dvh] sm:h-[880px] sm:rounded-[2.75rem] sm:border sm:border-white/10 overflow-hidden flex flex-col bg-ink-950 sm:shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7)] px-7">
         <div className="flex-1 flex flex-col items-center justify-center">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-2xl font-black text-white shadow-lg shadow-brand-500/30 mb-5">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-700 flex items-center justify-center text-2xl font-black text-white shadow-lg shadow-brand-900/40 mb-5">
             S
           </div>
-          <h1 className="text-ink-950 text-xl font-bold mb-1.5">ShyftStarter</h1>
-          <p className="text-ink-950/40 text-sm text-center leading-relaxed">
+          <h1 className="text-white text-xl font-bold mb-1.5">ShyftStarter</h1>
+          <p className="text-white/40 text-sm text-center leading-relaxed">
             내 근무를 정리하고, 팀과 연결하고,
             <br />
             매일의 일을 더 잘하게 만드는 Shift Companion
@@ -93,7 +86,7 @@ export function LoginScreen({ onLogin }: { onLogin: (provider: AuthProvider) => 
               {label}
             </button>
           ))}
-          <p className="text-center text-[11px] text-ink-950/25 pt-3 leading-relaxed">
+          <p className="text-center text-[11px] text-white/25 pt-3 leading-relaxed">
             계속 진행하면 ShyftStarter 이용약관 및
             <br />
             개인정보 처리방침에 동의하는 것으로 간주됩니다

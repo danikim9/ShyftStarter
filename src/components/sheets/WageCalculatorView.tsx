@@ -34,8 +34,8 @@ export function WageCalculatorView() {
 
   return (
     <div className="space-y-5">
-      <p className="text-xs text-ink-950/40 leading-relaxed">
-        입력한 시급을 기준으로 계산한 <span className="text-ink-950/70 font-medium">예상 금액</span>이에요 — 세금·공제
+      <p className="text-xs text-white/40 leading-relaxed">
+        입력한 시급을 기준으로 계산한 <span className="text-white/70 font-medium">예상 금액</span>이에요 — 세금·공제
         전이고 실제 급여와 다를 수 있어요. 정확한 급여는 매니저나 급여명세서로 확인해주세요.
       </p>
 
@@ -48,12 +48,12 @@ export function WageCalculatorView() {
             value={wageDraft}
             onChange={(e) => setWageDraft(e.target.value)}
             placeholder="예: 10000"
-            className="flex-1 min-w-0 rounded-lg bg-ink-950/6 border border-ink-950/10 px-3 py-2.5 text-sm text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50"
+            className="flex-1 min-w-0 rounded-lg bg-white/6 border border-white/10 px-3 py-2.5 text-sm text-white placeholder:text-white/25 outline-none focus:border-brand-400/50"
           />
-          <span className="text-xs text-ink-950/40 shrink-0">원</span>
+          <span className="text-xs text-white/40 shrink-0">원</span>
           <button
             onClick={() => setHourlyWage(Number(wageDraft) || 0)}
-            className="shrink-0 rounded-lg bg-ink-950/10 hover:bg-ink-950/15 transition px-3.5 py-2.5 text-xs font-semibold text-ink-950/80"
+            className="shrink-0 rounded-lg bg-white/10 hover:bg-white/15 transition px-3.5 py-2.5 text-xs font-semibold text-white/80"
           >
             저장
           </button>
@@ -64,45 +64,45 @@ export function WageCalculatorView() {
         <SectionLabel>이번 근무 기준 예상 급여</SectionLabel>
         <Card className="space-y-2.5">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-ink-950/60">완료·진행 중 근무 ({fmtHours(confirmedHours)}시간)</span>
-            <span className="text-ink-950/85 font-medium tabular-nums">{fmtWon(confirmedPay)}</span>
+            <span className="text-white/60">완료·진행 중 근무 ({fmtHours(confirmedHours)}시간)</span>
+            <span className="text-white/85 font-medium tabular-nums">{fmtWon(confirmedPay)}</span>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-ink-950/60">예정된 근무 ({fmtHours(upcomingHours)}시간)</span>
-            <span className="text-ink-950/85 font-medium tabular-nums">{fmtWon(upcomingPay)}</span>
+            <span className="text-white/60">예정된 근무 ({fmtHours(upcomingHours)}시간)</span>
+            <span className="text-white/85 font-medium tabular-nums">{fmtWon(upcomingPay)}</span>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-ink-950/60">추가 수당</span>
-            <span className="text-ink-950/85 font-medium tabular-nums">{fmtWon(extraPay)}</span>
+            <span className="text-white/60">추가 수당</span>
+            <span className="text-white/85 font-medium tabular-nums">{fmtWon(extraPay)}</span>
           </div>
-          <div className="pt-2.5 border-t border-ink-950/8 flex items-center justify-between">
-            <span className="text-sm font-semibold text-ink-950">예상 총액 (세전)</span>
-            <span className="text-lg font-bold text-emerald-600 tabular-nums">{fmtWon(total)}</span>
+          <div className="pt-2.5 border-t border-white/8 flex items-center justify-between">
+            <span className="text-sm font-semibold text-white">예상 총액 (세전)</span>
+            <span className="text-lg font-bold text-emerald-300 tabular-nums">{fmtWon(total)}</span>
           </div>
         </Card>
       </div>
 
       <div>
         <SectionLabel>공휴수당·연장수당 직접 기록</SectionLabel>
-        <p className="text-[11px] text-ink-950/35 leading-relaxed -mt-1 mb-2">
+        <p className="text-[11px] text-white/35 leading-relaxed -mt-1 mb-2">
           계산이 복잡한 수당은 자동으로 계산하지 않아요 — 일한 시간을 입력하면 시급의 {wageSettings.overtimeMultiplier}배로
           계산해서 더해드려요.
         </p>
         <Card className="space-y-2.5">
           {extraPayEntries.length === 0 ? (
-            <p className="text-xs text-ink-950/35 py-1">아직 기록한 추가 수당이 없어요.</p>
+            <p className="text-xs text-white/35 py-1">아직 기록한 추가 수당이 없어요.</p>
           ) : (
             extraPayEntries.map((e) => (
-              <div key={e.id} className="flex items-center justify-between gap-2 py-1.5 border-b border-ink-950/6 last:border-0">
+              <div key={e.id} className="flex items-center justify-between gap-2 py-1.5 border-b border-white/6 last:border-0">
                 <div className="min-w-0">
-                  <div className="text-xs text-ink-950/85 truncate">{e.label}</div>
-                  <div className="text-[10px] text-ink-950/35">
+                  <div className="text-xs text-white/85 truncate">{e.label}</div>
+                  <div className="text-[10px] text-white/35">
                     {fmtHours(e.hours)}시간 · {fmtWon(e.hours * wageSettings.hourlyWage * wageSettings.overtimeMultiplier)}
                   </div>
                 </div>
                 <button
                   onClick={() => removeExtraPayEntry(e.id)}
-                  className="shrink-0 text-ink-950/25 hover:text-rose-600 transition"
+                  className="shrink-0 text-white/25 hover:text-rose-300 transition"
                   aria-label="삭제"
                 >
                   <Trash2 size={13} />
@@ -115,7 +115,7 @@ export function WageCalculatorView() {
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               placeholder="예: 추석 연휴 근무"
-              className="flex-1 min-w-0 rounded-lg bg-ink-950/6 border border-ink-950/10 px-3 py-2 text-xs text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50"
+              className="flex-1 min-w-0 rounded-lg bg-white/6 border border-white/10 px-3 py-2 text-xs text-white placeholder:text-white/25 outline-none focus:border-brand-400/50"
             />
             <input
               type="number"
@@ -123,11 +123,11 @@ export function WageCalculatorView() {
               value={hours}
               onChange={(e) => setHours(e.target.value)}
               placeholder="시간"
-              className="w-16 shrink-0 rounded-lg bg-ink-950/6 border border-ink-950/10 px-2 py-2 text-xs text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50"
+              className="w-16 shrink-0 rounded-lg bg-white/6 border border-white/10 px-2 py-2 text-xs text-white placeholder:text-white/25 outline-none focus:border-brand-400/50"
             />
             <button
               onClick={handleAddEntry}
-              className="shrink-0 w-8 h-8 rounded-lg bg-brand-500 hover:bg-brand-600 text-white flex items-center justify-center active:scale-90 transition"
+              className="shrink-0 w-8 h-8 rounded-lg bg-white text-ink-950 flex items-center justify-center active:scale-90 transition"
               aria-label="추가 수당 기록"
             >
               <Plus size={14} />

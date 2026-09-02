@@ -28,14 +28,14 @@ function CopyRow({ label, value }: { label: string; value: string }) {
 
   return (
     <div>
-      <div className="text-[11px] text-ink-950/40 mb-1">{label}</div>
+      <div className="text-[11px] text-white/40 mb-1">{label}</div>
       <div className="flex items-center gap-2">
-        <div className="flex-1 min-w-0 rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-2.5 text-sm text-ink-950/90 font-mono truncate">
+        <div className="flex-1 min-w-0 rounded-xl bg-white/6 border border-white/10 px-3.5 py-2.5 text-sm text-white/90 font-mono truncate">
           {value}
         </div>
         <button
           onClick={handleCopy}
-          className="shrink-0 w-9 h-9 rounded-xl bg-ink-950/6 border border-ink-950/10 flex items-center justify-center text-ink-950/60 hover:text-ink-950/90 transition"
+          className="shrink-0 w-9 h-9 rounded-xl bg-white/6 border border-white/10 flex items-center justify-center text-white/60 hover:text-white/90 transition"
           aria-label={`${label} 복사`}
         >
           {copied ? <Check size={14} className="text-emerald-signal" /> : <Copy size={14} />}
@@ -80,19 +80,19 @@ function CodeCustomizer() {
     <Card className="space-y-3">
       <div className="flex items-center gap-2">
         <SectionLabel>코드 커스터마이즈</SectionLabel>
-        <span className="inline-flex items-center gap-1 rounded-full bg-amber-signal/15 text-amber-600 text-[10px] font-bold px-2 py-0.5 -mt-2">
+        <span className="inline-flex items-center gap-1 rounded-full bg-amber-signal/15 text-amber-300 text-[10px] font-bold px-2 py-0.5 -mt-2">
           <Crown size={10} /> PRO
         </span>
       </div>
 
       {!editing ? (
         <div className="flex items-center gap-2">
-          <div className="flex-1 min-w-0 rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-2.5 text-sm text-ink-950/90 font-mono truncate">
+          <div className="flex-1 min-w-0 rounded-xl bg-white/6 border border-white/10 px-3.5 py-2.5 text-sm text-white/90 font-mono truncate">
             {storeCode}
           </div>
           <button
             onClick={startEditing}
-            className="shrink-0 w-9 h-9 rounded-xl bg-ink-950/6 border border-ink-950/10 flex items-center justify-center text-ink-950/60 hover:text-ink-950/90 transition"
+            className="shrink-0 w-9 h-9 rounded-xl bg-white/6 border border-white/10 flex items-center justify-center text-white/60 hover:text-white/90 transition"
             aria-label="참여 코드 수정"
           >
             <Pencil size={14} />
@@ -109,20 +109,20 @@ function CodeCustomizer() {
               }}
               placeholder="예: GANGNAM2026"
               autoCapitalize="characters"
-              className={`flex-1 min-w-0 rounded-xl bg-ink-950/6 border px-3.5 py-2.5 text-sm text-ink-950 placeholder:text-ink-950/25 outline-none font-mono tracking-wide ${
-                error ? 'border-rose-signal/60' : 'border-ink-950/10 focus:border-brand-400/50'
+              className={`flex-1 min-w-0 rounded-xl bg-white/6 border px-3.5 py-2.5 text-sm text-white placeholder:text-white/25 outline-none font-mono tracking-wide ${
+                error ? 'border-rose-signal/60' : 'border-white/10 focus:border-brand-400/50'
               }`}
             />
             <button
               onClick={() => setDraft(generateRandomCode())}
-              className="shrink-0 w-9 h-9 rounded-xl bg-ink-950/6 border border-ink-950/10 flex items-center justify-center text-ink-950/60 hover:text-ink-950/90 transition"
+              className="shrink-0 w-9 h-9 rounded-xl bg-white/6 border border-white/10 flex items-center justify-center text-white/60 hover:text-white/90 transition"
               aria-label="무작위로 코드 생성"
               title="무작위로 생성"
             >
               <Shuffle size={14} />
             </button>
           </div>
-          {error && <p className="text-[11px] text-rose-600">{error}</p>}
+          {error && <p className="text-[11px] text-rose-300">{error}</p>}
           <div className="flex gap-2">
             <SecondaryButton className="flex-1" onClick={() => setEditing(false)}>
               취소
@@ -134,7 +134,7 @@ function CodeCustomizer() {
         </div>
       )}
 
-      <p className="text-[11px] text-ink-950/30 leading-relaxed">
+      <p className="text-[11px] text-white/30 leading-relaxed">
         코드를 바꾸면 그 순간부터 이전 코드는 더 이상 쓸 수 없어요 — 이미 참여한 직원은 그대로 유지돼요.
       </p>
     </Card>
@@ -147,7 +147,7 @@ export function TeamInvite() {
     <div className="space-y-3">
       <SectionLabel>팀 초대</SectionLabel>
       <Card className="space-y-4">
-        <p className="text-xs text-ink-950/40 leading-relaxed">
+        <p className="text-xs text-white/40 leading-relaxed">
           아래 코드나 링크를 매장 단체 채팅방에 공유하면, 직원이 개인 계정으로 로그인 후 입력해 바로{' '}
           {STORE_NAME} 팀에 참여해요 — 공지·인수인계를 그때부터 받기 시작합니다.
         </p>
@@ -157,22 +157,22 @@ export function TeamInvite() {
           <CopyRow label="참여 링크" value={storeJoinLink} />
         </div>
 
-        <div className="flex items-center gap-3 rounded-xl border border-dashed border-ink-950/12 p-3">
-          <div className="w-14 h-14 rounded-lg bg-ink-950/5 flex items-center justify-center relative shrink-0">
-            <QrCode size={26} className="text-ink-950/15" />
+        <div className="flex items-center gap-3 rounded-xl border border-dashed border-white/12 p-3">
+          <div className="w-14 h-14 rounded-lg bg-white/5 flex items-center justify-center relative shrink-0">
+            <QrCode size={26} className="text-white/15" />
             <div className="absolute inset-0 flex items-center justify-center bg-ink-950/40 rounded-lg">
-              <Lock size={13} className="text-ink-950/40" />
+              <Lock size={13} className="text-white/40" />
             </div>
           </div>
           <div className="min-w-0">
-            <div className="text-xs font-medium text-ink-950/70">QR 코드로 초대</div>
-            <div className="text-[11px] text-ink-950/35 leading-relaxed">
+            <div className="text-xs font-medium text-white/70">QR 코드로 초대</div>
+            <div className="text-[11px] text-white/35 leading-relaxed">
               매장에 붙여두고 스캔만으로 참여 — Business 티어부터 제공돼요
             </div>
           </div>
           <button
             onClick={() => showToast('QR 초대는 Business 티어부터 제공돼요')}
-            className="ml-auto shrink-0 text-[11px] font-semibold text-ink-950/40 border border-ink-950/12 rounded-full px-2.5 py-1"
+            className="ml-auto shrink-0 text-[11px] font-semibold text-white/40 border border-white/12 rounded-full px-2.5 py-1"
           >
             잠금
           </button>

@@ -11,7 +11,7 @@ export function AnnouncementComposer() {
 
   return (
     <div className="space-y-4">
-      <p className="text-xs text-ink-950/50 leading-relaxed">
+      <p className="text-xs text-white/50 leading-relaxed">
         팀 전체에게 보이는 공지예요. 일정 변경, 공유할 소식 등을 남겨보세요.
       </p>
       <textarea
@@ -19,7 +19,7 @@ export function AnnouncementComposer() {
         onChange={(e) => setText(e.target.value)}
         placeholder="예: 오늘 마감 후 재고 정리 같이 도와주실 분 계신가요?"
         rows={5}
-        className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-sm text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50 resize-none"
+        className="w-full rounded-xl bg-white/6 border border-white/10 px-3.5 py-3 text-sm text-white placeholder:text-white/25 outline-none focus:border-brand-400/50 resize-none"
         autoFocus
       />
       <PrimaryButton

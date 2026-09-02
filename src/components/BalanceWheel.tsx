@@ -25,22 +25,22 @@ export function BalanceWheel({ skills }: { skills: EmployeeSkillScore[] }) {
     <div className="h-72 w-full -ml-2">
       <ResponsiveContainer width="100%" height="100%">
         <RadarChart data={data} outerRadius="70%">
-          <PolarGrid stroke="rgba(43,36,64,0.12)" />
+          <PolarGrid stroke="rgba(255,255,255,0.12)" />
           <PolarAngleAxis
             dataKey="skill"
-            tick={{ fill: 'rgba(43,36,64,0.75)', fontSize: 11 }}
+            tick={{ fill: 'rgba(255,255,255,0.75)', fontSize: 11 }}
           />
           <PolarRadiusAxis
             angle={90}
             domain={[0, 100]}
-            tick={{ fill: 'rgba(43,36,64,0.25)', fontSize: 9 }}
+            tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 9 }}
             axisLine={false}
           />
           <Radar
             name="입사 시"
             dataKey="입사시"
-            stroke="rgba(43,36,64,0.35)"
-            fill="rgba(43,36,64,0.08)"
+            stroke="rgba(255,255,255,0.35)"
+            fill="rgba(255,255,255,0.08)"
             fillOpacity={1}
             strokeWidth={1.5}
             strokeDasharray="3 3"
@@ -54,17 +54,17 @@ export function BalanceWheel({ skills }: { skills: EmployeeSkillScore[] }) {
             strokeWidth={2}
           />
           <Legend
-            wrapperStyle={{ fontSize: 12, color: 'rgba(43,36,64,0.7)' }}
+            wrapperStyle={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}
             iconType="circle"
           />
           <Tooltip
             contentStyle={{
-              background: '#ffffff',
-              border: '1px solid rgba(43,36,64,0.1)',
+              background: '#171d38',
+              border: '1px solid rgba(255,255,255,0.1)',
               borderRadius: 12,
               fontSize: 12,
             }}
-            labelStyle={{ color: '#2b2440' }}
+            labelStyle={{ color: 'white' }}
           />
         </RadarChart>
       </ResponsiveContainer>

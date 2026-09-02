@@ -28,11 +28,11 @@ export function Home({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
     <div className="px-4 pt-5 pb-8 space-y-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-ink-950/40 text-xs mb-0.5">{fmtDate(todayShift.date)} · {todayShift.start}–{todayShift.end} · {todayShift.store}</div>
-          <h1 className="text-xl font-bold text-ink-950">Good morning, {employee.name}님</h1>
+          <div className="text-white/40 text-xs mb-0.5">{fmtDate(todayShift.date)} · {todayShift.start}–{todayShift.end} · {todayShift.store}</div>
+          <h1 className="text-xl font-bold text-white">Good morning, {employee.name}님</h1>
         </div>
         {todayMood && (
-          <div className="shrink-0 flex items-center gap-1 rounded-full bg-ink-950/6 px-2.5 py-1.5 mt-0.5" title="오늘 컨디션 체크인">
+          <div className="shrink-0 flex items-center gap-1 rounded-full bg-white/6 px-2.5 py-1.5 mt-0.5" title="오늘 컨디션 체크인">
             <span className="text-base leading-none">{MOOD_EMOJI[todayMood]}</span>
           </div>
         )}
@@ -44,18 +44,18 @@ export function Home({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
         className="w-full text-left rounded-2xl bg-gradient-to-br from-brand-500 to-brand-800 p-5 shadow-lg shadow-brand-900/40 active:scale-[0.99] transition"
       >
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-semibold text-white/80 tracking-wide">TODAY'S MISSION</span>
-          <ChevronRight size={16} className="text-white/70" />
+          <span className="text-[11px] font-semibold text-white/70 tracking-wide">TODAY'S MISSION</span>
+          <ChevronRight size={16} className="text-white/50" />
         </div>
         <div className="text-white text-xl font-bold mt-1">{focusMeta.nameKo} 개선하기</div>
-        <div className="text-white/80 text-sm mt-1">{todayMission.title}</div>
+        <div className="text-white/70 text-sm mt-1">{todayMission.title}</div>
       </button>
 
       {/* Quests summary */}
       <div>
         <div className="flex items-center justify-between mb-2">
           <SectionLabel>QUESTS</SectionLabel>
-          <button onClick={() => onNavigate('quests')} className="text-xs text-brand-600 font-medium flex items-center gap-0.5">
+          <button onClick={() => onNavigate('quests')} className="text-xs text-brand-300 font-medium flex items-center gap-0.5">
             전체 보기 <ChevronRight size={13} />
           </button>
         </div>
@@ -67,14 +67,14 @@ export function Home({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
               className="w-full text-left"
             >
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-ink-950/80">{q.title}</span>
-                <span className="text-ink-950/40 tabular-nums text-xs">{q.progress}/{q.target}</span>
+                <span className="text-white/80">{q.title}</span>
+                <span className="text-white/40 tabular-nums text-xs">{q.progress}/{q.target}</span>
               </div>
               <ProgressBar value={q.progress} max={q.target} />
             </button>
           ))}
           {completedToday.length > 0 && (
-            <div className="pt-2 border-t border-ink-950/8 flex items-center gap-2 text-xs text-emerald-600">
+            <div className="pt-2 border-t border-white/8 flex items-center gap-2 text-xs text-emerald-300">
               <Flame size={13} /> {completedToday[0].title} 완료 · +{completedToday[0].rewardXp} XP
             </div>
           )}
@@ -98,7 +98,7 @@ export function Home({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
       <div>
         <div className="flex items-center justify-between mb-2">
           <SectionLabel>TODAY'S STATS</SectionLabel>
-          <button onClick={() => onNavigate('stats')} className="text-xs text-brand-600 font-medium flex items-center gap-0.5">
+          <button onClick={() => onNavigate('stats')} className="text-xs text-brand-300 font-medium flex items-center gap-0.5">
             전체 보기 <ChevronRight size={13} />
           </button>
         </div>
@@ -114,7 +114,7 @@ export function Home({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
         <div className="flex items-start gap-2.5">
           <span className="text-lg leading-none mt-0.5">💡</span>
           <div>
-            <div className="text-[11px] font-semibold text-amber-600/90 tracking-wide mb-1">AI NUDGE</div>
+            <div className="text-[11px] font-semibold text-amber-300/90 tracking-wide mb-1">AI NUDGE</div>
             <p className="text-sm text-amber-50/90 leading-relaxed">{nudge.message}</p>
           </div>
         </div>

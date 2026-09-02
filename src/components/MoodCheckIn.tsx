@@ -19,10 +19,9 @@ export const MOOD_EMOJI: Record<MoodValue, string> = {
 }
 
 export function MoodCheckIn() {
-  const { moodPromptOpen, todayMood, submitMood, skipMoodCheckIn, moodInsightMessage, continueAfterMoodInsight } = useAppState()
+  const { moodPromptOpen, submitMood, skipMoodCheckIn } = useAppState()
   const [hover, setHover] = useState<MoodValue | null>(null)
   const open = moodPromptOpen
-  const showingInsight = open && moodInsightMessage !== null
 
   return (
     <div
@@ -33,26 +32,13 @@ export function MoodCheckIn() {
     >
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
       <div
-        className={`relative w-full max-w-xs rounded-3xl bg-ink-900 border border-ink-950/10 shadow-2xl p-6 text-center transition-all duration-300 ${
+        className={`relative w-full max-w-xs rounded-3xl bg-ink-900 border border-white/10 shadow-2xl p-6 text-center transition-all duration-300 ${
           open ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
         }`}
       >
-        {showingInsight ? (
-          <>
-            <div className="text-4xl mb-3">{todayMood ? MOOD_EMOJI[todayMood] : '👋'}</div>
-            <p className="text-ink-950 text-sm font-medium leading-relaxed mb-5">{moodInsightMessage}</p>
-            <button
-              onClick={continueAfterMoodInsight}
-              className="w-full rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-semibold py-2.5 text-sm active:scale-[0.98] transition"
-            >
-              확인
-            </button>
-          </>
-        ) : (
-          <>
         <div className="text-3xl mb-2">👋</div>
-        <h3 className="text-ink-950 font-bold text-base mb-1">오늘 컨디션 어때요?</h3>
-        <p className="text-ink-950/40 text-xs mb-5">표정 하나만 눌러주세요 · 1초면 끝나요</p>
+        <h3 className="text-white font-bold text-base mb-1">오늘 컨디션 어때요?</h3>
+        <p className="text-white/40 text-xs mb-5">표정 하나만 눌러주세요 · 1초면 끝나요</p>
 
         <div className="flex items-center justify-center gap-2 mb-3">
           {([1, 2, 3, 4, 5] as MoodValue[]).map((v) => (
@@ -70,13 +56,11 @@ export function MoodCheckIn() {
             </button>
           ))}
         </div>
-        <div className="h-4 text-xs text-ink-950/35 mb-4">{hover ? MOOD_LABELS[hover] : ' '}</div>
+        <div className="h-4 text-xs text-white/35 mb-4">{hover ? MOOD_LABELS[hover] : ' '}</div>
 
-        <button onClick={skipMoodCheckIn} className="text-xs text-ink-950/30 hover:text-ink-950/50 transition">
+        <button onClick={skipMoodCheckIn} className="text-xs text-white/30 hover:text-white/50 transition">
           다음에 할게요
         </button>
-          </>
-        )}
       </div>
     </div>
   )
