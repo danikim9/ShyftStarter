@@ -10,14 +10,14 @@ import { PrimaryButton, SecondaryButton } from '../components/ui'
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <label className="block text-[11px] font-semibold text-white/40 tracking-wide mb-1.5">{label}</label>
+      <label className="block text-[11px] font-semibold text-ink-950/40 tracking-wide mb-1.5">{label}</label>
       {children}
     </div>
   )
 }
 
 const inputClass =
-  'w-full rounded-lg bg-white/6 border border-white/10 px-3 py-2.5 text-sm text-white placeholder:text-white/25 outline-none focus:border-brand-400/50 transition'
+  'w-full rounded-lg bg-ink-950/6 border border-ink-950/10 px-3 py-2.5 text-sm text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50 transition'
 
 function QuestForm({ memberId, onClose }: { memberId: string; onClose: () => void }) {
   const member = getTeamMember(memberId)
@@ -30,7 +30,7 @@ function QuestForm({ memberId, onClose }: { memberId: string; onClose: () => voi
   return (
     <>
       <div className="overflow-y-auto app-scroll px-6 py-5 grow space-y-4">
-        <div className="flex items-center gap-2 rounded-lg bg-brand-500/10 border border-brand-400/20 px-3 py-2 text-xs text-brand-200">
+        <div className="flex items-center gap-2 rounded-lg bg-brand-500/10 border border-brand-400/20 px-3 py-2 text-xs text-brand-700">
           <Sparkles size={13} className="shrink-0" />
           AI가 {member.name}님의 가장 낮은 역량({draft.kpiConnection})을 기준으로 초안을 자동 생성했어요. 자유롭게 수정하세요.
         </div>
@@ -89,11 +89,11 @@ function QuestForm({ memberId, onClose }: { memberId: string; onClose: () => voi
 
         <button
           onClick={() => set('aiPersonalization', !draft.aiPersonalization)}
-          className="w-full flex items-center justify-between rounded-lg bg-white/6 border border-white/10 px-3 py-2.5"
+          className="w-full flex items-center justify-between rounded-lg bg-ink-950/6 border border-ink-950/10 px-3 py-2.5"
         >
-          <span className="text-sm text-white/80">AI Personalization</span>
+          <span className="text-sm text-ink-950/80">AI Personalization</span>
           <span
-            className={`w-9 h-5 rounded-full relative transition-colors ${draft.aiPersonalization ? 'bg-brand-500' : 'bg-white/15'}`}
+            className={`w-9 h-5 rounded-full relative transition-colors ${draft.aiPersonalization ? 'bg-brand-500' : 'bg-ink-950/15'}`}
           >
             <span
               className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${
@@ -102,10 +102,10 @@ function QuestForm({ memberId, onClose }: { memberId: string; onClose: () => voi
             />
           </span>
         </button>
-        <p className="text-[11px] text-white/30 -mt-2">직원별로 문구·난이도·목표 수치를 자동 조정해요. 최종 실행은 매니저가 결정해요.</p>
+        <p className="text-[11px] text-ink-950/30 -mt-2">직원별로 문구·난이도·목표 수치를 자동 조정해요. 최종 실행은 매니저가 결정해요.</p>
       </div>
 
-      <div className="px-6 py-4 border-t border-white/8 shrink-0 flex gap-2">
+      <div className="px-6 py-4 border-t border-ink-950/8 shrink-0 flex gap-2">
         <SecondaryButton onClick={onClose} className="flex-1">
           취소
         </SecondaryButton>
@@ -131,13 +131,13 @@ export function QuestCreateModal() {
     <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${open ? '' : 'pointer-events-none'}`} aria-hidden={!open}>
       <div className={`absolute inset-0 bg-black/60 transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0'}`} onClick={closeQuestModal} />
       <div
-        className={`relative w-full max-w-md max-h-[85vh] rounded-2xl bg-ink-900 border border-white/10 shadow-2xl flex flex-col transition-all duration-300 ${
+        className={`relative w-full max-w-md max-h-[85vh] rounded-2xl bg-ink-900 border border-ink-950/10 shadow-2xl flex flex-col transition-all duration-300 ${
           open ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
         }`}
       >
-        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-white/8 shrink-0">
-          <h3 className="text-sm font-semibold text-white">CREATE QUEST</h3>
-          <button onClick={closeQuestModal} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/8 text-white/60">
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-ink-950/8 shrink-0">
+          <h3 className="text-sm font-semibold text-ink-950">CREATE QUEST</h3>
+          <button onClick={closeQuestModal} className="w-8 h-8 flex items-center justify-center rounded-full bg-ink-950/8 text-ink-950/60">
             <X size={15} />
           </button>
         </div>

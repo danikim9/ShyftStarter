@@ -20,26 +20,26 @@ export function CorrelationChart() {
     <div className="h-72 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart margin={{ top: 12, right: 20, bottom: 24, left: 4 }}>
-          <CartesianGrid stroke="rgba(255,255,255,0.06)" />
+          <CartesianGrid stroke="rgba(43,36,64,0.06)" />
           <XAxis
             dataKey="x"
             type="number"
             domain={[minX, maxX]}
-            tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
-            axisLine={{ stroke: 'rgba(255,255,255,0.15)' }}
+            tick={{ fill: 'rgba(43,36,64,0.4)', fontSize: 11 }}
+            axisLine={{ stroke: 'rgba(43,36,64,0.15)' }}
             tickLine={false}
-            label={{ value: '체크리스트 이수율 (%) →', position: 'insideBottom', offset: -14, fill: 'rgba(255,255,255,0.35)', fontSize: 11 }}
+            label={{ value: '체크리스트 이수율 (%) →', position: 'insideBottom', offset: -14, fill: 'rgba(43,36,64,0.35)', fontSize: 11 }}
           />
           <YAxis
             dataKey="y"
             type="number"
             domain={['dataMin - 8000', 'dataMax + 8000']}
             tickFormatter={(v) => `₩${Math.round(v / 1000)}k`}
-            tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
-            axisLine={{ stroke: 'rgba(255,255,255,0.15)' }}
+            tick={{ fill: 'rgba(43,36,64,0.4)', fontSize: 11 }}
+            axisLine={{ stroke: 'rgba(43,36,64,0.15)' }}
             tickLine={false}
             width={54}
-            label={{ value: 'ATV →', angle: -90, position: 'insideLeft', fill: 'rgba(255,255,255,0.35)', fontSize: 11 }}
+            label={{ value: 'ATV →', angle: -90, position: 'insideLeft', fill: 'rgba(43,36,64,0.35)', fontSize: 11 }}
           />
           <Tooltip
             cursor={{ strokeDasharray: '3 3' }}
@@ -48,9 +48,9 @@ export function CorrelationChart() {
               const d = payload[0].payload
               if (d.name === undefined) return null
               return (
-                <div className="rounded-xl bg-ink-800 border border-white/10 px-3 py-2 text-xs">
-                  <div className="text-white font-semibold mb-0.5">{d.name}</div>
-                  <div className="text-white/50">
+                <div className="rounded-xl bg-ink-800 border border-ink-950/10 px-3 py-2 text-xs">
+                  <div className="text-ink-950 font-semibold mb-0.5">{d.name}</div>
+                  <div className="text-ink-950/50">
                     이수율 {d.x}% · ATV ₩{Math.round(d.y / 1000)}k
                   </div>
                 </div>

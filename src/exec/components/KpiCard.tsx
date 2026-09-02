@@ -14,12 +14,12 @@ export function KpiCard({
 }) {
   return (
     <Card className="flex flex-col gap-1.5">
-      <div className="flex items-center gap-2 text-white/40">
+      <div className="flex items-center gap-2 text-ink-950/40">
         {icon}
         <span className="text-[11px] font-semibold tracking-wide uppercase">{label}</span>
       </div>
-      <div className="text-2xl font-bold text-white tabular-nums leading-none">{value}</div>
-      {sublabel && <div className="text-[11px] text-white/35">{sublabel}</div>}
+      <div className="text-2xl font-bold text-ink-950 tabular-nums leading-none">{value}</div>
+      {sublabel && <div className="text-[11px] text-ink-950/35">{sublabel}</div>}
     </Card>
   )
 }
