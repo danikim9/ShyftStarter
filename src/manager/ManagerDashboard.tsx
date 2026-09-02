@@ -1,4 +1,4 @@
-import { Users, Grid3x3, Megaphone, CalendarDays, Construction } from 'lucide-react'
+import { Users, Grid3x3, Megaphone, CalendarDays, Construction, Crown } from 'lucide-react'
 import { ManagerStateProvider, useManagerState, type ManagerView } from '../lib/managerStore'
 import { STORES } from '../data/stores'
 import { TeamActionsComposer } from './TeamActionsComposer'
@@ -11,11 +11,16 @@ import { QuestCreateModal } from './QuestCreateModal'
 import { CoachingGuideModal } from './CoachingGuideModal'
 import { SecondaryButton } from '../components/ui'
 
-const NAV: { id: ManagerView; label: string; icon: typeof Users }[] = [
+// 26차 — "(고급)"이 사이드바 폭(224px)에서 한글 단어 단위로 줄바꿈되지 않고
+// 글자 중간에서 잘려 보이던 문제 수정: 라벨에서 괄호 표기를 떼어내고, 다른
+// PRO 기능들(TeamInvite/RosterView/TeamScheduleView)과 동일한 Crown+PRO
+// 배지로 별도 표시. 라벨 자체도 break-keep으로 감싸 혹시 두 줄로 넘어가도
+// 한글 단어 중간이 아니라 단어 경계에서만 줄바꿈되도록 함.
+const NAV: { id: ManagerView; label: string; icon: typeof Users; pro?: boolean }[] = [
   { id: 'actions', label: '팀 액션 · 공지', icon: Megaphone },
   { id: 'roster', label: '근무 일정 관리', icon: CalendarDays },
   { id: 'team', label: '팀 현황', icon: Users },
-  { id: 'matrix', label: 'Will × Capability (고급)', icon: Grid3x3 },
+  { id: 'matrix', label: 'Will × Capability', icon: Grid3x3, pro: true },
 ]
 
 function Sidebar() {
@@ -29,18 +34,25 @@ function Sidebar() {
       </div>
       <StoreSwitcher />
       <nav className="space-y-1">
-        {NAV.map(({ id, label, icon: Icon }) => {
+        {NAV.map(({ id, label, icon: Icon, pro }) => {
           const active = view === id
           return (
             <button
               key={id}
               onClick={() => setView(id)}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition ${
+              className={`w-full flex items-start gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition ${
                 active ? 'bg-brand-500/15 text-brand-700' : 'text-ink-950/50 hover:bg-ink-950/5 hover:text-ink-950/80'
               }`}
             >
-              <Icon size={16} />
-              {label}
+              <Icon size={16} className="mt-0.5 shrink-0" />
+              <span className="flex flex-col items-start gap-1 min-w-0">
+                <span className="break-keep leading-snug text-left">{label}</span>
+                {pro && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-signal/15 text-amber-600 text-[10px] font-bold px-2 py-0.5">
+                    <Crown size={10} /> PRO
+                  </span>
+                )}
+              </span>
             </button>
           )
         })}

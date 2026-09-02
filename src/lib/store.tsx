@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import type { Action, ActionEvent, Announcement, Comment, ExtraPayEntry, HandoverNote, MoodValue, Quest, Reaction, Reminder, SkillId, SwapRequest, TeamMembership, WageSettings } from '../types'
+import type { Action, ActionEvent, Announcement, Comment, Employee, ExtraPayEntry, HandoverNote, MoodValue, Quest, Reaction, Reminder, SkillId, SwapRequest, TeamMembership, WageSettings } from '../types'
 import { employee, quests as initialQuests, checklistGroup as initialChecklist, todayShift, CURRENT_EMPLOYEE_ID } from '../data/mockData'
 import { team } from '../data/team'
 import { getMoodInsight } from '../lib/moodInsight'
@@ -34,6 +34,7 @@ export type SheetKind =
   | 'teamSchedule'
   | 'reminderCompose'
   | 'wageCalculator'
+  | 'profileEdit'
   | null
 
 type RosterState = Record<string, Record<string, RosterEntry>>
@@ -52,7 +53,10 @@ export interface SheetState {
 }
 
 interface AppStateShape {
-  employee: typeof employee
+  employee: Employee
+  // 26차 — Employee 프로필 간단 편집(이름/직함만). mockData()의 나머지 필드
+  // (스킬/레벨/경력 등)는 그대로 두고 이름·직함만 편집 가능한 상태로 승격.
+  updateProfile: (name: string, role: string) => void
   quests: Quest[]
   markQuestProgress: (questId: string) => void
   checklist: typeof initialChecklist
@@ -137,6 +141,12 @@ interface AppStateShape {
 const AppStateContext = createContext<AppStateShape | null>(null)
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
+  // 26차 — 이름/직함만 별도 상태로 승격(나머지 employee 필드는 mockData가
+  // 여전히 단일 소스). 인사말(MyShift/Home)뿐 아니라 인수인계·공지·댓글
+  // 작성자명, 근무 교대 요청자명에도 즉시 반영되도록 아래에서 이 두 값을
+  // 참조하는 지점들을 employee.name/role 직접 참조에서 이 상태로 바꿨다.
+  const [profileName, setProfileName] = useState(employee.name)
+  const [profileRole, setProfileRole] = useState(employee.role)
   const [quests, setQuests] = useState<Quest[]>(initialQuests)
   const [checklist, setChecklist] = useState(initialChecklist)
   const [sheet, setSheet] = useState<SheetState>({ kind: null })
@@ -309,7 +319,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       shiftId: todayShift.id,
       storeId: STORE_ID,
       fromEmployeeId: CURRENT_EMPLOYEE_ID,
-      fromEmployeeName: employee.name,
+      fromEmployeeName: profileName,
       message: message.trim(),
       createdAt: new Date().toISOString(),
     }
@@ -343,7 +353,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     const post: Announcement = {
       id: `an_${Date.now()}`,
       storeId: STORE_ID,
-      authorName: employee.name,
+      authorName: profileName,
       authorRole: 'employee',
       message: message.trim(),
       pinned: false,
@@ -388,7 +398,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     const comment: Comment = {
       id: `c_${Date.now()}`,
       employeeId: CURRENT_EMPLOYEE_ID,
-      employeeName: employee.name,
+      employeeName: profileName,
       message: message.trim(),
       createdAt: new Date().toISOString(),
     }
@@ -459,6 +469,18 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     return { ok: true }
   }
 
+  // 26차 — 프로필 편집(이름/직함만). 둘 다 빈 값이면 저장하지 않고, 하나만
+  // 비었으면 그 항목은 기존 값을 유지한다(예: 이름만 입력하고 직함을
+  // 지웠다면 직함은 이전 값 그대로).
+  const updateProfile = (name: string, role: string) => {
+    const trimmedName = name.trim()
+    const trimmedRole = role.trim()
+    if (!trimmedName && !trimmedRole) return
+    if (trimmedName) setProfileName(trimmedName)
+    if (trimmedRole) setProfileRole(trimmedRole)
+    showToast('프로필을 저장했어요')
+  }
+
   // 21차 — 예상 급여 계산기. "정확한 급여"라고 주장하지 않기 위해 시급은
   // 사용자가 직접 입력하고, 공휴수당/연장수당처럼 계산이 복잡해지는 항목은
   // 자동 산출하지 않는 대신 시간을 직접 기록하면 배율(overtimeMultiplier)로
@@ -490,7 +512,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setRoster((prev) => ({ ...prev, [memberId]: { ...prev[memberId], [date]: entry } }))
   }
 
-  const nameOf = (memberId: string) => ROSTER_MEMBERS.find((m) => m.id === memberId)?.name ?? memberId
+  // 26차 — 본인(CURRENT_EMPLOYEE_ID)은 team.ts에서 파생된 ROSTER_MEMBERS의
+  // 고정 이름 대신, 프로필 편집으로 바뀐 profileName을 우선 사용한다.
+  const nameOf = (memberId: string) =>
+    memberId === CURRENT_EMPLOYEE_ID ? profileName : ROSTER_MEMBERS.find((m) => m.id === memberId)?.name ?? memberId
 
   // PRO — 근무 교대 요청. 16차 개편: 매니저가 아니라 "상대 팀원"이 승인 주체다.
   // 요청을 보내면 상대 팀원에게 승인 알람이 가고, 상대가 직접 승인하면 그
@@ -642,9 +667,17 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // 26차 — 나머지 필드(스킬/레벨/경력 등)는 mockData의 employee가 여전히
+  // 단일 소스, 이름/직함만 편집된 값으로 덮어써 컨텍스트에 노출한다.
+  const currentEmployee: Employee = useMemo(
+    () => ({ ...employee, name: profileName, role: profileRole }),
+    [profileName, profileRole]
+  )
+
   const value = useMemo<AppStateShape>(
     () => ({
-      employee,
+      employee: currentEmployee,
+      updateProfile,
       quests,
       markQuestProgress,
       checklist,
@@ -704,6 +737,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       rejectSwap,
     }),
     [
+      currentEmployee,
       quests,
       checklist,
       sheet,

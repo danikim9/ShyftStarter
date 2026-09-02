@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Crown, ArrowLeftRight, ChevronRight, Pencil, Users } from 'lucide-react'
 import { useAppState } from '../../lib/store'
-import { employee, CURRENT_EMPLOYEE_ID } from '../../data/mockData'
+import { CURRENT_EMPLOYEE_ID } from '../../data/mockData'
 import { ROSTER_WEEKS, ROSTER_MEMBERS, TODAY, fmtRosterDate, type RosterEntry } from '../../data/roster'
 import { Badge, PrimaryButton, SecondaryButton, Card } from '../ui'
 import { EditShiftModal } from '../../manager/RosterView'
@@ -160,7 +160,7 @@ function SwapForm({ requesterShiftDate, onDone, onCancel }: { requesterShiftDate
 // 온보딩 화면도 Team 탭에 안으로 들어갔다. 여기(근무 일정 시트)는 이제
 // Team 탭으로 안내하는 역할만 한다.
 export function TeamScheduleView({ onGoToTeam }: { onGoToTeam: () => void }) {
-  const { roster, swapRequests, membership, updateRosterEntry, showToast, approveSwap, rejectSwap } = useAppState()
+  const { employee, roster, swapRequests, membership, updateRosterEntry, showToast, approveSwap, rejectSwap } = useAppState()
   const [weekIndex, setWeekIndex] = useState(0)
   const [selectedDate, setSelectedDate] = useState(TODAY)
   const [swapping, setSwapping] = useState(false)
