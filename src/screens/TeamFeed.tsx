@@ -111,7 +111,7 @@ function AnnouncementCard({
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               placeholder="댓글 달기..."
-              className="flex-1 rounded-lg bg-ink-950/6 border border-ink-950/10 px-3 py-1.5 text-xs text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50"
+              className="flex-1 rounded-lg bg-ink-950/6 border border-ink-950/10 px-3 py-1.5 text-[16px] text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50"
             />
             <button
               onClick={() => {

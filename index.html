@@ -6,8 +6,17 @@
          항상 0으로 취급해, 실기기(홈 화면 추가/전체화면 프리뷰)에서 앱이
          노치·상태 표시줄 아래로 그대로 그려지면서 겹치는 문제가 있었다.
          cover를 추가해야 App.tsx/ManagerDashboard.tsx/OnboardingScreen.tsx에
-         넣은 safe-area 패딩이 실제 값을 받아 동작한다. -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+         넣은 safe-area 패딩이 실제 값을 받아 동작한다.
+         33차 — 30~32차 내내 "화면이 확대돼 보인다"고 리포트됐던 버그의 실제
+         원인이 코드가 아니라 사용자 아이폰의 핀치줌 상태였던 게 확인됐다.
+         Xcode로 빌드해 WKWebView로 띄우는 앱 형태로 쓰고 있어, 실수로
+         핀치줌이 걸리면 이번처럼 다시 풀기 번거롭다(웹뷰는 Safari와 달리
+         user-scalable=no를 접근성 예외 없이 그대로 따른다) — 그래서 애초에
+         핀치줌 자체가 안 걸리도록 maximum-scale=1.0과 user-scalable=no를
+         추가했다. 참고: 이건 저시력 사용자의 확대 기능을 막는 트레이드오프라
+         일반 웹사이트라면 권장되지 않지만, 이 앱은 네이티브 앱처럼 래핑돼
+         쓰이고 있고 사용자가 명시적으로 요청해 적용함. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>ShyftStarter</title>
     <meta name="theme-color" content="#ffffff" />
   </head>

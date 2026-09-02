@@ -18,7 +18,7 @@ export function ReminderComposer() {
           value={label}
           onChange={(e) => setLabel(e.target.value)}
           placeholder="예: 마감 전 재고 카운트하기"
-          className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-sm text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50"
+          className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-[16px] text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50"
           autoFocus
         />
       </div>
@@ -28,7 +28,7 @@ export function ReminderComposer() {
           type="time"
           value={time}
           onChange={(e) => setTime(e.target.value)}
-          className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-sm text-ink-950 outline-none focus:border-brand-400/50"
+          className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-[16px] text-ink-950 outline-none focus:border-brand-400/50"
         />
       </div>
       <PrimaryButton

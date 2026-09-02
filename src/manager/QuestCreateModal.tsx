@@ -16,8 +16,11 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
   )
 }
 
+// 33차 — text-sm(15px)이 iOS 자동 확대 문턱(16px)보다 작아 입력창 탭 시
+// 화면이 확대되는 원인이었을 가능성이 높아, 이 앱의 모든 input/textarea/
+// select에 공통으로 text-[16px]를 적용했다(index.html 참고).
 const inputClass =
-  'w-full rounded-lg bg-ink-950/6 border border-ink-950/10 px-3 py-2.5 text-sm text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50 transition'
+  'w-full rounded-lg bg-ink-950/6 border border-ink-950/10 px-3 py-2.5 text-[16px] text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50 transition'
 
 function QuestForm({ memberId, onClose }: { memberId: string; onClose: () => void }) {
   const member = getTeamMember(memberId)

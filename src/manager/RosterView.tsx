@@ -97,7 +97,7 @@ export function EditShiftModal({
                 type="time"
                 value={start}
                 onChange={(e) => setStart(e.target.value)}
-                className="w-full rounded-lg bg-ink-950/6 border border-ink-950/10 px-3 py-2.5 text-sm text-ink-950 outline-none focus:border-brand-400/50"
+                className="w-full rounded-lg bg-ink-950/6 border border-ink-950/10 px-3 py-2.5 text-[16px] text-ink-950 outline-none focus:border-brand-400/50"
               />
             </div>
             <div>
@@ -106,7 +106,7 @@ export function EditShiftModal({
                 type="time"
                 value={end}
                 onChange={(e) => setEnd(e.target.value)}
-                className="w-full rounded-lg bg-ink-950/6 border border-ink-950/10 px-3 py-2.5 text-sm text-ink-950 outline-none focus:border-brand-400/50"
+                className="w-full rounded-lg bg-ink-950/6 border border-ink-950/10 px-3 py-2.5 text-[16px] text-ink-950 outline-none focus:border-brand-400/50"
               />
             </div>
           </div>

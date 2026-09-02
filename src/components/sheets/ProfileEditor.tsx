@@ -26,7 +26,7 @@ export function ProfileEditor() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="이름"
-            className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-sm text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50"
+            className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-[16px] text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50"
             autoFocus
           />
         </label>
@@ -36,7 +36,7 @@ export function ProfileEditor() {
             value={role}
             onChange={(e) => setRole(e.target.value)}
             placeholder="예: Sales Associate"
-            className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-sm text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50"
+            className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-[16px] text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50"
           />
         </label>
       </div>

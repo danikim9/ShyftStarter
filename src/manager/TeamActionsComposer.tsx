@@ -40,7 +40,7 @@ export function TeamActionsComposer() {
               onChange={(e) => setAnnText(e.target.value)}
               placeholder="예: 오늘 POS 2번 사용하지 마세요 — 점검 중입니다."
               rows={3}
-              className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-sm text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50 resize-none"
+              className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-[16px] text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50 resize-none"
             />
             <label className="flex items-center gap-2 text-xs text-ink-950/50">
               <input type="checkbox" checked={annPinned} onChange={(e) => setAnnPinned(e.target.checked)} className="accent-brand-500" />
@@ -68,7 +68,8 @@ export function TeamActionsComposer() {
               value={actionTitle}
               onChange={(e) => setActionTitle(e.target.value)}
               placeholder="예: 재고 부족 상품 메모하기"
-              className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-sm text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50"
+              // 33차 — iOS 자동 확대 문턱(16px) 회피
+              className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-[16px] text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50"
             />
             <div className="flex items-center gap-2">
               <span className="text-xs text-ink-950/40">목표 횟수</span>
@@ -77,7 +78,7 @@ export function TeamActionsComposer() {
                 min={1}
                 value={actionTarget}
                 onChange={(e) => setActionTarget(Math.max(1, Number(e.target.value) || 1))}
-                className="w-16 rounded-lg bg-ink-950/6 border border-ink-950/10 px-2 py-1.5 text-sm text-ink-950 outline-none focus:border-brand-400/50"
+                className="w-16 rounded-lg bg-ink-950/6 border border-ink-950/10 px-2 py-1.5 text-[16px] text-ink-950 outline-none focus:border-brand-400/50"
               />
             </div>
             <PrimaryButton
