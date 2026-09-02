@@ -36,12 +36,12 @@ export function RolePlayView() {
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <Badge tone="brand">{meta.nameKo}</Badge>
-        <span className="text-xs text-ink-950/40">{scenario.title}</span>
+        <span className="text-xs text-white/40">{scenario.title}</span>
       </div>
 
       <div className="flex gap-2 items-start">
-        <span className="shrink-0 w-7 h-7 rounded-full bg-ink-950/10 flex items-center justify-center text-sm">🧑</span>
-        <div className="rounded-2xl rounded-tl-sm bg-ink-950/8 px-3.5 py-2.5 text-sm text-ink-950/85 leading-relaxed max-w-[85%]">
+        <span className="shrink-0 w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-sm">🧑</span>
+        <div className="rounded-2xl rounded-tl-sm bg-white/8 px-3.5 py-2.5 text-sm text-white/85 leading-relaxed max-w-[85%]">
           {scenario.customerLine}
         </div>
       </div>
@@ -53,32 +53,32 @@ export function RolePlayView() {
             onChange={(e) => setResponse(e.target.value)}
             placeholder="어떻게 답변하시겠어요? 실제로 말하듯 적어보세요."
             rows={4}
-            className="w-full rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-3 text-sm text-ink-950 placeholder:text-ink-950/25 outline-none focus:border-brand-400/50 transition resize-none"
+            className="w-full rounded-xl bg-white/6 border border-white/10 px-3.5 py-3 text-sm text-white placeholder:text-white/25 outline-none focus:border-brand-400/50 transition resize-none"
           />
           <PrimaryButton onClick={submit} disabled={!response.trim()}>
             제출하고 AI 평가받기
           </PrimaryButton>
-          <p className="text-[11px] text-ink-950/30 text-center leading-relaxed">
+          <p className="text-[11px] text-white/30 text-center leading-relaxed">
             텍스트 기반 연습이에요. 음성 녹음·음성 캡처는 사용하지 않아요.
           </p>
         </>
       ) : (
         <div className="space-y-4">
           <div className="flex gap-2 items-start justify-end">
-            <div className="rounded-2xl rounded-tr-sm bg-brand-600/40 px-3.5 py-2.5 text-sm text-ink-950 leading-relaxed max-w-[85%]">
+            <div className="rounded-2xl rounded-tr-sm bg-brand-600/40 px-3.5 py-2.5 text-sm text-white leading-relaxed max-w-[85%]">
               {response}
             </div>
           </div>
 
           <Card className="text-center">
-            <div className="text-[11px] font-semibold text-ink-950/40 tracking-wide mb-1">SCORE</div>
-            <div className="text-4xl font-bold text-ink-950 tabular-nums">{result.overall}</div>
+            <div className="text-[11px] font-semibold text-white/40 tracking-wide mb-1">SCORE</div>
+            <div className="text-4xl font-bold text-white tabular-nums">{result.overall}</div>
           </Card>
 
           <Card className="space-y-3">
             {(Object.keys(result.axes) as (keyof RolePlayResult['axes'])[]).map((axis) => (
               <div key={axis}>
-                <div className="flex justify-between text-xs text-ink-950/55 mb-1">
+                <div className="flex justify-between text-xs text-white/55 mb-1">
                   <span>{AXIS_LABEL[axis]}</span>
                   <span className="tabular-nums">{result.axes[axis]}</span>
                 </div>
@@ -88,7 +88,7 @@ export function RolePlayView() {
           </Card>
 
           <Card className="bg-amber-signal/8 border-amber-signal/25">
-            <div className="text-[11px] font-semibold text-amber-600/90 tracking-wide mb-1">TIP</div>
+            <div className="text-[11px] font-semibold text-amber-300/90 tracking-wide mb-1">TIP</div>
             <p className="text-sm text-amber-50/90 leading-relaxed">{result.tip}</p>
           </Card>
 

@@ -23,19 +23,19 @@ export function Sheet({
     >
       <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" onClick={onClose} />
       <div
-        className={`absolute left-0 right-0 bottom-0 max-h-[88%] rounded-t-3xl bg-ink-900 border-t border-ink-950/10 shadow-2xl flex flex-col transition-transform duration-300 ${
+        className={`absolute left-0 right-0 bottom-0 max-h-[88%] rounded-t-3xl bg-ink-900 border-t border-white/10 shadow-2xl flex flex-col transition-transform duration-300 ${
           open ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
-        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-ink-950/8 shrink-0">
+        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-white/8 shrink-0">
           <div className="w-8" />
-          <h3 className="text-sm font-semibold text-ink-950/90">{title}</h3>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-ink-950/8 text-ink-950/60">
+          <h3 className="text-sm font-semibold text-white/90">{title}</h3>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/8 text-white/60">
             <X size={15} />
           </button>
         </div>
         <div className="overflow-y-auto app-scroll px-5 py-4 grow">{children}</div>
-        {footer && <div className="px-5 py-4 border-t border-ink-950/8 shrink-0">{footer}</div>}
+        {footer && <div className="px-5 py-4 border-t border-white/8 shrink-0">{footer}</div>}
       </div>
     </div>
   )
