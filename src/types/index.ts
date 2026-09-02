@@ -408,11 +408,15 @@ export interface Comment {
   createdAt: string
 }
 
+// 19차 — 공지 작성 권한을 매니저 전용에서 팀원 전체로 확장. authorRole은 이제
+// 실제 작성 주체를 그대로 기록해 카드에서 "관리자 공지" 배지 등 시각적으로
+// 구분하는 데 쓰인다. 'employee'가 남긴 공지는 상단 고정(pinned) 권한이 없다
+// (고정은 여전히 매니저만 — TeamActionsComposer 참고).
 export interface Announcement {
   id: string
   storeId: string
   authorName: string
-  authorRole: 'manager' | 'system'
+  authorRole: 'manager' | 'employee' | 'system'
   message: string
   pinned: boolean
   createdAt: string
@@ -425,6 +429,17 @@ export interface Announcement {
 export type FeedItem =
   | { type: 'announcement'; data: Announcement }
   | { type: 'handover'; data: HandoverNote }
+
+// ---------------------------------------------------------------------------
+// 팀 소속 상태 — v2 전략 문서 §9 "매장 / 부서 / 동료 그룹 3층 모델" 반영.
+// 'none': 아직 아무 팀에도 속하지 않은 솔로 상태.
+// 'crew': 직원이 매니저 없이 스스로 만들거나 참여한 "동료 그룹"(Free 티어) —
+//   일정 공유 + 근무 교대 요청까지만 열린다. 공지·인수인계 피드·매니저
+//   대시보드는 열리지 않는다(그건 여전히 매장/Team 티어의 가치).
+// 'store': 매니저가 발급한 매장 코드로 참여한 상태(Team 티어) — 기존 전체
+//   기능(공지·인수인계·팀 액션)이 모두 열린다.
+// ---------------------------------------------------------------------------
+export type TeamMembership = 'none' | 'crew' | 'store'
 
 // ---------------------------------------------------------------------------
 // PRO — 근무 교대(Shift Swap) 요청. 16차 개편: 매니저가 아니라 "상대 팀원"이

@@ -139,8 +139,11 @@ function SwapForm({ requesterShiftDate, onDone, onCancel }: { requesterShiftDate
   )
 }
 
-export function TeamScheduleView() {
-  const { roster, swapRequests, hasJoinedTeam, updateRosterEntry, showToast, openSheet, approveSwap, rejectSwap } = useAppState()
+// 19차 — 동료 그룹 코드 카드는 Team 탭으로 옮겼고, 매장/그룹 코드를 입력하는
+// 온보딩 화면도 Team 탭에 안으로 들어갔다. 여기(근무 일정 시트)는 이제
+// Team 탭으로 안내하는 역할만 한다.
+export function TeamScheduleView({ onGoToTeam }: { onGoToTeam: () => void }) {
+  const { roster, swapRequests, membership, updateRosterEntry, showToast, approveSwap, rejectSwap } = useAppState()
   const [weekIndex, setWeekIndex] = useState(0)
   const [selectedDate, setSelectedDate] = useState(TODAY)
   const [swapping, setSwapping] = useState(false)
@@ -149,7 +152,7 @@ export function TeamScheduleView() {
   const week = ROSTER_WEEKS[weekIndex]
   const myEntry = roster[CURRENT_EMPLOYEE_ID]?.[selectedDate] ?? 'off'
   const myAvatarColor = ROSTER_MEMBERS.find((m) => m.id === CURRENT_EMPLOYEE_ID)?.avatarColor ?? '#5b5ff2'
-  const canSwap = hasJoinedTeam && myEntry !== 'off' && isUpcoming(selectedDate)
+  const canSwap = membership !== 'none' && myEntry !== 'off' && isUpcoming(selectedDate)
   const myRequests = swapRequests.filter((r) => r.requesterId === CURRENT_EMPLOYEE_ID)
   // 받은 교대 요청 — 상대 팀원이 승인 주체가 되는 16차 흐름의 "수신" 쪽.
   // 단일 페르소나 제약상 시드 데이터(박준서 → 지은)로 데모한다.
@@ -178,14 +181,14 @@ export function TeamScheduleView() {
 
   return (
     <div className="space-y-4">
-      {!hasJoinedTeam && (
+      {membership === 'none' && (
         <p className="text-xs text-white/40 leading-relaxed">
-          매니저가 아직 이 앱을 쓰지 않아도 괜찮아요 — 본인 근무를 직접 입력해서 스스로 관리할 수 있어요.
-          팀에 참여하면 같은 일정을 동료와 서로 볼 수 있어요.
+          매니저가 아직 이 앱을 쓰지 않아도 괜찮아요 — 본인 근무를 직접 입력해서 스스로 관리하거나, Team 탭에서
+          동료들과 그룹을 만들어 함께 쓸 수 있어요.
         </p>
       )}
 
-      {hasJoinedTeam && incomingRequests.length > 0 && (
+      {membership !== 'none' && incomingRequests.length > 0 && (
         <div className="space-y-1.5">
           <div className="text-[11px] font-semibold text-white/40 tracking-wide uppercase">받은 교대 요청</div>
           {incomingRequests.map((r) => {
@@ -263,7 +266,7 @@ export function TeamScheduleView() {
         })}
       </div>
 
-      {hasJoinedTeam ? (
+      {membership !== 'none' ? (
         <div className="space-y-1.5">
           {ROSTER_MEMBERS.map((m) => {
             const entry = roster[m.id]?.[selectedDate] ?? 'off'
@@ -329,15 +332,15 @@ export function TeamScheduleView() {
             </div>
           </button>
 
-          <Card className="flex items-center gap-3 bg-white/[0.03]">
-            <Users size={16} className="text-white/30 shrink-0" />
-            <p className="text-xs text-white/40 leading-relaxed flex-1">팀에 참여하면 동료의 일정도 함께 보고, 서로 근무를 맞바꿀 수 있어요.</p>
-            <button
-              onClick={() => openSheet({ kind: 'joinTeam' })}
-              className="shrink-0 text-[11px] font-semibold text-brand-300"
-            >
-              참여하기
-            </button>
+          <Card className="space-y-2.5 bg-white/[0.03]">
+            <div className="flex items-center gap-3">
+              <Users size={16} className="text-white/30 shrink-0" />
+              <p className="text-xs text-white/40 leading-relaxed flex-1">
+                팀에 참여하면 동료의 일정도 함께 보고, 서로 근무를 맞바꿀 수 있어요. 매니저가 아직 없어도
+                동료들과 직접 그룹을 만들 수 있어요.
+              </p>
+            </div>
+            <SecondaryButton onClick={onGoToTeam}>Team 탭에서 참여하기</SecondaryButton>
           </Card>
         </div>
       )}

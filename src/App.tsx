@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Smartphone, LayoutDashboard, LineChart, LogOut } from 'lucide-react'
 import { AppStateProvider } from './lib/store'
 import { LoginScreen } from './auth/LoginScreen'
-import { JoinTeamScreen } from './auth/JoinTeamScreen'
 import { BottomNav, type TabId } from './components/BottomNav'
 import { SheetHost } from './components/sheets/SheetHost'
 import { Toast } from './components/Toast'
@@ -131,7 +130,10 @@ function ExecutiveAppShell() {
   )
 }
 
-type Stage = 'login' | 'join' | 'app'
+// 19차 — 로그인 직후 매장/그룹 코드를 받던 별도 'join' 스테이지를 없앴다.
+// 그 온보딩 내용은 Team 탭 안으로 그대로 옮겨졌다(TeamFeed.tsx의
+// OnboardingJoinSection 참고) — 로그인하면 바로 앱으로 들어간다.
+type Stage = 'login' | 'app'
 
 export default function App() {
   const [stage, setStage] = useState<Stage>('login')
@@ -139,8 +141,7 @@ export default function App() {
 
   return (
     <AppStateProvider>
-      {stage === 'login' && <LoginScreen onLogin={() => setStage('join')} />}
-      {stage === 'join' && <JoinTeamScreen onDone={() => setStage('app')} />}
+      {stage === 'login' && <LoginScreen onLogin={() => setStage('app')} />}
       {stage === 'app' && (
         <>
           <PersonaSwitcher persona={persona} onChange={setPersona} />

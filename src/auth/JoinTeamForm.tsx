@@ -22,7 +22,7 @@ export function JoinTeamForm({ onSuccess }: { onSuccess: () => void }) {
     <div className="space-y-3">
       <div className="flex items-center gap-2 text-white/50 text-xs">
         <Users size={14} />
-        매니저에게 받은 매장 참여 코드를 입력해주세요
+        매니저의 매장 참여 코드나, 동료가 만든 그룹 코드를 입력해주세요
       </div>
       <input
         value={code}
@@ -31,7 +31,7 @@ export function JoinTeamForm({ onSuccess }: { onSuccess: () => void }) {
           setError(false)
         }}
         onKeyDown={(e) => e.key === 'Enter' && submit()}
-        placeholder="예: GN-4821"
+        placeholder="예: GN-4821 또는 CREW-9F2Q"
         autoCapitalize="characters"
         className={`w-full rounded-xl bg-white/6 border px-3.5 py-3 text-sm text-white placeholder:text-white/25 outline-none tracking-wide ${
           error ? 'border-rose-signal/60' : 'border-white/10 focus:border-brand-400/50'

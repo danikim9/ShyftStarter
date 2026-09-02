@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { Copy, Check, QrCode, Lock } from 'lucide-react'
-import { STORE_NAME, STORE_CODE, STORE_JOIN_LINK } from '../data/mvpData'
-import { Card, SectionLabel } from '../components/ui'
+import { Copy, Check, QrCode, Lock, Crown, Pencil, Shuffle } from 'lucide-react'
+import { STORE_NAME } from '../data/mvpData'
+import { Card, SectionLabel, PrimaryButton, SecondaryButton } from '../components/ui'
 import { useAppState } from '../lib/store'
 
 async function copyText(text: string): Promise<boolean> {
@@ -45,10 +45,106 @@ function CopyRow({ label, value }: { label: string; value: string }) {
   )
 }
 
-export function TeamInvite() {
-  const { showToast } = useAppState()
+function generateRandomCode(): string {
+  return Math.random().toString(36).slice(2, 8).toUpperCase()
+}
+
+// 20차 — 매니저 PRO: 참여 코드 커스터마이즈. 랜덤 발급 코드 대신 매장에
+// 어울리는 코드를 직접 정하거나(예: GANGNAM2026), 새로 무작위 발급도 할 수
+// 있다. PRO 배지를 붙여 유료 티어 기능이라는 것을 정직하게 표기하되, 14차
+// 근무 교대 요청 때와 같은 원칙으로 실제로 동작하게 구현했다 — 진짜 코드가
+// 바뀌고, 직원 쪽 참여 화면(Team 탭)에서 새 코드로 즉시 참여할 수 있다.
+function CodeCustomizer() {
+  const { storeCode, setStoreCode } = useAppState()
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(storeCode)
+  const [error, setError] = useState<string | null>(null)
+
+  const startEditing = () => {
+    setDraft(storeCode)
+    setError(null)
+    setEditing(true)
+  }
+
+  const handleSave = () => {
+    const result = setStoreCode(draft)
+    if (result.ok) {
+      setEditing(false)
+      setError(null)
+    } else {
+      setError(result.reason)
+    }
+  }
+
   return (
-    <div>
+    <Card className="space-y-3">
+      <div className="flex items-center gap-2">
+        <SectionLabel>코드 커스터마이즈</SectionLabel>
+        <span className="inline-flex items-center gap-1 rounded-full bg-amber-signal/15 text-amber-300 text-[10px] font-bold px-2 py-0.5 -mt-2">
+          <Crown size={10} /> PRO
+        </span>
+      </div>
+
+      {!editing ? (
+        <div className="flex items-center gap-2">
+          <div className="flex-1 min-w-0 rounded-xl bg-white/6 border border-white/10 px-3.5 py-2.5 text-sm text-white/90 font-mono truncate">
+            {storeCode}
+          </div>
+          <button
+            onClick={startEditing}
+            className="shrink-0 w-9 h-9 rounded-xl bg-white/6 border border-white/10 flex items-center justify-center text-white/60 hover:text-white/90 transition"
+            aria-label="참여 코드 수정"
+          >
+            <Pencil size={14} />
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-2.5">
+          <div className="flex items-center gap-2">
+            <input
+              value={draft}
+              onChange={(e) => {
+                setDraft(e.target.value)
+                setError(null)
+              }}
+              placeholder="예: GANGNAM2026"
+              autoCapitalize="characters"
+              className={`flex-1 min-w-0 rounded-xl bg-white/6 border px-3.5 py-2.5 text-sm text-white placeholder:text-white/25 outline-none font-mono tracking-wide ${
+                error ? 'border-rose-signal/60' : 'border-white/10 focus:border-brand-400/50'
+              }`}
+            />
+            <button
+              onClick={() => setDraft(generateRandomCode())}
+              className="shrink-0 w-9 h-9 rounded-xl bg-white/6 border border-white/10 flex items-center justify-center text-white/60 hover:text-white/90 transition"
+              aria-label="무작위로 코드 생성"
+              title="무작위로 생성"
+            >
+              <Shuffle size={14} />
+            </button>
+          </div>
+          {error && <p className="text-[11px] text-rose-300">{error}</p>}
+          <div className="flex gap-2">
+            <SecondaryButton className="flex-1" onClick={() => setEditing(false)}>
+              취소
+            </SecondaryButton>
+            <PrimaryButton className="flex-1" onClick={handleSave}>
+              저장
+            </PrimaryButton>
+          </div>
+        </div>
+      )}
+
+      <p className="text-[11px] text-white/30 leading-relaxed">
+        코드를 바꾸면 그 순간부터 이전 코드는 더 이상 쓸 수 없어요 — 이미 참여한 직원은 그대로 유지돼요.
+      </p>
+    </Card>
+  )
+}
+
+export function TeamInvite() {
+  const { showToast, storeCode, storeJoinLink } = useAppState()
+  return (
+    <div className="space-y-3">
       <SectionLabel>팀 초대</SectionLabel>
       <Card className="space-y-4">
         <p className="text-xs text-white/40 leading-relaxed">
@@ -57,8 +153,8 @@ export function TeamInvite() {
         </p>
 
         <div className="grid sm:grid-cols-2 gap-3">
-          <CopyRow label="참여 코드" value={STORE_CODE} />
-          <CopyRow label="참여 링크" value={STORE_JOIN_LINK} />
+          <CopyRow label="참여 코드" value={storeCode} />
+          <CopyRow label="참여 링크" value={storeJoinLink} />
         </div>
 
         <div className="flex items-center gap-3 rounded-xl border border-dashed border-white/12 p-3">
@@ -82,6 +178,8 @@ export function TeamInvite() {
           </button>
         </div>
       </Card>
+
+      <CodeCustomizer />
     </div>
   )
 }

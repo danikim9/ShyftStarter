@@ -8,8 +8,19 @@ import { CURRENT_EMPLOYEE_ID } from './mockData'
 
 export const STORE_ID = 'st_gangnam'
 export const STORE_NAME = '강남점'
-export const STORE_CODE = 'GN-4821' // invite code for the "팀 참여" flow — see joinTeam() in lib/store.tsx
-export const STORE_JOIN_LINK = `https://shyftstarter.app/join/${STORE_CODE}`
+// 20차 — 참여 코드 커스터마이즈(매니저 PRO)로 이 값은 이제 "초기 시드"일 뿐이다.
+// 실제 유효한 매장 코드는 AppStateProvider의 storeCode 상태(src/lib/store.tsx)이고,
+// joinTeam()도 그 동적 값을 기준으로 비교한다 — 매니저가 코드를 바꾸면 이 상수값은
+// 더 이상 유효하지 않게 된다(단일 코드만 유효 — 신구 코드 동시 허용 없음).
+export const STORE_CODE = 'GN-4821'
+export const buildStoreJoinLink = (code: string) => `https://shyftstarter.app/join/${code}`
+
+// v2 전략 §9-1 — 동료 그룹(Crew). 매니저 없이 직원끼리 먼저 모이는 시나리오를
+// 데모하기 위해 "이미 다른 동료가 만들어 둔 그룹"의 예시 코드를 하나 심어둔다 —
+// 직접 새로 만들기(createCrew)와, 이미 있는 그룹에 코드로 참여하기(joinTeam) 양쪽
+// 흐름을 모두 지은 한 페르소나로 시연할 수 있게 하기 위함.
+export const CREW_DEMO_CODE = 'CREW-9F2Q' // 박준서가 미리 만들어 둔 동료 그룹이라는 설정
+export const CREW_DEMO_NAME = '강남점 동료들'
 
 export const INITIAL_ACTIONS: Action[] = [
   {
