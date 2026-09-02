@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Crown, ArrowLeftRight, ChevronRight } from 'lucide-react'
+import { Crown, ArrowLeftRight, ChevronRight, Pencil, Users } from 'lucide-react'
 import { useAppState } from '../../lib/store'
-import { CURRENT_EMPLOYEE_ID } from '../../data/mockData'
+import { employee, CURRENT_EMPLOYEE_ID } from '../../data/mockData'
 import { ROSTER_WEEKS, ROSTER_MEMBERS, TODAY, fmtRosterDate, type RosterEntry } from '../../data/roster'
-import { Badge, PrimaryButton, SecondaryButton } from '../ui'
+import { Badge, PrimaryButton, SecondaryButton, Card } from '../ui'
+import { EditShiftModal } from '../../manager/RosterView'
 
 function isUpcoming(date: string) {
   return date >= TODAY
@@ -19,8 +20,8 @@ function ShiftText({ entry }: { entry: RosterEntry }) {
 }
 
 function statusBadge(status: 'pending' | 'approved' | 'rejected') {
-  if (status === 'pending') return <Badge tone="amber">대기 중</Badge>
-  if (status === 'approved') return <Badge tone="emerald">승인됨</Badge>
+  if (status === 'pending') return <Badge tone="amber">승인 대기 중</Badge>
+  if (status === 'approved') return <Badge tone="emerald">교대 완료</Badge>
   return <Badge tone="rose">거절됨</Badge>
 }
 
@@ -108,7 +109,7 @@ function SwapForm({ requesterShiftDate, onDone, onCancel }: { requesterShiftDate
     <div className="space-y-3">
       <div className="rounded-xl bg-brand-500/10 border border-brand-400/20 px-3.5 py-3 text-xs text-brand-100 leading-relaxed">
         내 {reqFmt.md}({reqFmt.dow}) 근무 <ArrowLeftRight size={11} className="inline mx-1" /> {teammate.name}님 {tgtFmt.md}({tgtFmt.dow})
-        근무를 서로 맞바꾸는 요청을 보내요. 매니저가 승인하면 실제로 교대돼요.
+        근무를 서로 맞바꾸는 요청을 보내요. {teammate.name}님이 승인하면 즉시 교대되고, 매니저에게도 알림이 가요.
       </div>
       <div>
         <label className="block text-[11px] font-semibold text-white/40 tracking-wide mb-1.5">메모 (선택)</label>
@@ -139,15 +140,31 @@ function SwapForm({ requesterShiftDate, onDone, onCancel }: { requesterShiftDate
 }
 
 export function TeamScheduleView() {
-  const { roster, swapRequests } = useAppState()
+  const { roster, swapRequests, hasJoinedTeam, updateRosterEntry, showToast, openSheet, approveSwap, rejectSwap } = useAppState()
   const [weekIndex, setWeekIndex] = useState(0)
   const [selectedDate, setSelectedDate] = useState(TODAY)
   const [swapping, setSwapping] = useState(false)
+  const [editingDate, setEditingDate] = useState<string | null>(null)
 
   const week = ROSTER_WEEKS[weekIndex]
   const myEntry = roster[CURRENT_EMPLOYEE_ID]?.[selectedDate] ?? 'off'
-  const canSwap = myEntry !== 'off' && isUpcoming(selectedDate)
+  const myAvatarColor = ROSTER_MEMBERS.find((m) => m.id === CURRENT_EMPLOYEE_ID)?.avatarColor ?? '#5b5ff2'
+  const canSwap = hasJoinedTeam && myEntry !== 'off' && isUpcoming(selectedDate)
   const myRequests = swapRequests.filter((r) => r.requesterId === CURRENT_EMPLOYEE_ID)
+  // 받은 교대 요청 — 상대 팀원이 승인 주체가 되는 16차 흐름의 "수신" 쪽.
+  // 단일 페르소나 제약상 시드 데이터(박준서 → 지은)로 데모한다.
+  const incomingRequests = swapRequests.filter((r) => r.targetMemberId === CURRENT_EMPLOYEE_ID && r.status === 'pending')
+
+  const handleSaveOwn = (entry: RosterEntry) => {
+    if (!editingDate) return
+    updateRosterEntry(CURRENT_EMPLOYEE_ID, editingDate, entry)
+    const { md, dow } = fmtRosterDate(editingDate)
+    showToast(
+      entry === 'off'
+        ? `${md}(${dow})를 휴무로 표시했어요`
+        : `${md}(${dow}) 근무를 ${entry.start}–${entry.end}로 입력했어요`
+    )
+  }
 
   if (swapping) {
     return (
@@ -161,6 +178,41 @@ export function TeamScheduleView() {
 
   return (
     <div className="space-y-4">
+      {!hasJoinedTeam && (
+        <p className="text-xs text-white/40 leading-relaxed">
+          매니저가 아직 이 앱을 쓰지 않아도 괜찮아요 — 본인 근무를 직접 입력해서 스스로 관리할 수 있어요.
+          팀에 참여하면 같은 일정을 동료와 서로 볼 수 있어요.
+        </p>
+      )}
+
+      {hasJoinedTeam && incomingRequests.length > 0 && (
+        <div className="space-y-1.5">
+          <div className="text-[11px] font-semibold text-white/40 tracking-wide uppercase">받은 교대 요청</div>
+          {incomingRequests.map((r) => {
+            const req = fmtRosterDate(r.requesterShiftDate)
+            const tgt = fmtRosterDate(r.targetShiftDate)
+            return (
+              <Card key={r.id} className="space-y-2.5 border-brand-400/20 bg-brand-500/[0.06]">
+                <div className="text-sm text-white/85 leading-relaxed">
+                  <span className="font-semibold">{r.requesterName}</span>님이 {req.md}({req.dow}) 근무를
+                  <ArrowLeftRight size={11} className="inline mx-1 text-white/30" />
+                  내 {tgt.md}({tgt.dow}) 근무와 바꾸자고 요청했어요
+                </div>
+                {r.note && <p className="text-xs text-white/40 leading-relaxed">"{r.note}"</p>}
+                <div className="flex gap-2">
+                  <SecondaryButton className="flex-1" onClick={() => rejectSwap(r.id)}>
+                    거절
+                  </SecondaryButton>
+                  <PrimaryButton className="flex-1" onClick={() => approveSwap(r.id)}>
+                    승인하기
+                  </PrimaryButton>
+                </div>
+              </Card>
+            )
+          })}
+        </div>
+      )}
+
       {myRequests.length > 0 && (
         <div className="space-y-1.5">
           <div className="text-[11px] font-semibold text-white/40 tracking-wide uppercase">내가 보낸 교대 요청</div>
@@ -211,34 +263,84 @@ export function TeamScheduleView() {
         })}
       </div>
 
-      <div className="space-y-1.5">
-        {ROSTER_MEMBERS.map((m) => {
-          const entry = roster[m.id]?.[selectedDate] ?? 'off'
-          const isMe = m.id === CURRENT_EMPLOYEE_ID
-          return (
-            <div
-              key={m.id}
-              className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 ${isMe ? 'bg-brand-500/10 border border-brand-400/20' : 'bg-white/5'}`}
-            >
+      {hasJoinedTeam ? (
+        <div className="space-y-1.5">
+          {ROSTER_MEMBERS.map((m) => {
+            const entry = roster[m.id]?.[selectedDate] ?? 'off'
+            const isMe = m.id === CURRENT_EMPLOYEE_ID
+            const row = (
+              <div className="flex items-center justify-between flex-1 min-w-0">
+                <span className="flex items-center gap-2.5">
+                  <span
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0"
+                    style={{ background: m.avatarColor }}
+                  >
+                    {m.name[0]}
+                  </span>
+                  <span className="text-sm text-white/85">
+                    {m.name}
+                    {isMe && <span className="text-[10px] text-brand-300 font-medium ml-1.5">나</span>}
+                  </span>
+                </span>
+                <span className="flex items-center gap-1.5 text-xs">
+                  <ShiftText entry={entry} />
+                  {isMe && <Pencil size={11} className="text-white/25" />}
+                </span>
+              </div>
+            )
+            return isMe ? (
+              <button
+                key={m.id}
+                onClick={() => setEditingDate(selectedDate)}
+                className="w-full flex items-center rounded-xl px-3.5 py-2.5 bg-brand-500/10 border border-brand-400/20 hover:bg-brand-500/15 transition"
+              >
+                {row}
+              </button>
+            ) : (
+              <div key={m.id} className="flex items-center rounded-xl px-3.5 py-2.5 bg-white/5">
+                {row}
+              </div>
+            )
+          })}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <button
+            onClick={() => setEditingDate(selectedDate)}
+            className="w-full flex items-center rounded-xl px-3.5 py-3 bg-brand-500/10 border border-brand-400/20 hover:bg-brand-500/15 transition"
+          >
+            <div className="flex items-center justify-between flex-1 min-w-0">
               <span className="flex items-center gap-2.5">
                 <span
                   className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0"
-                  style={{ background: m.avatarColor }}
+                  style={{ background: myAvatarColor }}
                 >
-                  {m.name[0]}
+                  {employee.name[0]}
                 </span>
                 <span className="text-sm text-white/85">
-                  {m.name}
-                  {isMe && <span className="text-[10px] text-brand-300 font-medium ml-1.5">나</span>}
+                  {employee.name}
+                  <span className="text-[10px] text-brand-300 font-medium ml-1.5">나</span>
                 </span>
               </span>
-              <span className="text-xs">
-                <ShiftText entry={entry} />
+              <span className="flex items-center gap-1.5 text-xs">
+                <ShiftText entry={myEntry} />
+                <Pencil size={11} className="text-white/25" />
               </span>
             </div>
-          )
-        })}
-      </div>
+          </button>
+
+          <Card className="flex items-center gap-3 bg-white/[0.03]">
+            <Users size={16} className="text-white/30 shrink-0" />
+            <p className="text-xs text-white/40 leading-relaxed flex-1">팀에 참여하면 동료의 일정도 함께 보고, 서로 근무를 맞바꿀 수 있어요.</p>
+            <button
+              onClick={() => openSheet({ kind: 'joinTeam' })}
+              className="shrink-0 text-[11px] font-semibold text-brand-300"
+            >
+              참여하기
+            </button>
+          </Card>
+        </div>
+      )}
 
       {canSwap && (
         <button
@@ -252,6 +354,13 @@ export function TeamScheduleView() {
           </span>
         </button>
       )}
+
+      <EditShiftModal
+        target={editingDate ? { memberId: CURRENT_EMPLOYEE_ID, memberName: employee.name, date: editingDate } : null}
+        current={editingDate ? roster[CURRENT_EMPLOYEE_ID]?.[editingDate] ?? 'off' : null}
+        onClose={() => setEditingDate(null)}
+        onSave={handleSaveOwn}
+      />
     </div>
   )
 }

@@ -58,6 +58,20 @@ export function PrimaryButton({
   )
 }
 
+export function Toggle({ checked, onChange, label }: { checked: boolean; onChange: () => void; label?: string }) {
+  return (
+    <button
+      onClick={onChange}
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      className={`w-9 h-5 rounded-full relative transition-colors shrink-0 ${checked ? 'bg-brand-500' : 'bg-white/15'}`}
+    >
+      <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${checked ? 'left-4' : 'left-0.5'}`} />
+    </button>
+  )
+}
+
 export function SecondaryButton({
   children,
   onClick,

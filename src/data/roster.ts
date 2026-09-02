@@ -8,6 +8,7 @@
 // ---------------------------------------------------------------------------
 
 import { team } from './team'
+import type { SwapRequest } from '../types'
 
 export type RosterEntry = { start: string; end: string } | 'off'
 
@@ -78,3 +79,22 @@ export const INITIAL_ROSTER: Record<string, Record<string, RosterEntry>> = {
 }
 
 export const ROSTER_MEMBERS = team.map((m) => ({ id: m.id, name: m.name, role: m.role, avatarColor: m.avatarColor, tenure: m.tenure }))
+
+// 16차 — 받은 교대 요청 데모 시드. 단일 페르소나(지은) 제약상 "상대 팀원이
+// 승인한다"는 흐름의 수신 쪽을 보여주려면 지은을 대상(target)으로 하는 요청이
+// 미리 하나 있어야 한다 — 박준서가 8/31 근무를 지은의 9/1 근무와 바꾸자고
+// 요청한 상태로 시작한다. 지은이 이 요청을 열어 직접 승인/거절할 수 있다.
+export const INITIAL_SWAP_REQUESTS: SwapRequest[] = [
+  {
+    id: 'swap_seed_1',
+    requesterId: 'emp_junseo',
+    requesterName: '박준서',
+    requesterShiftDate: '2026-08-31',
+    targetMemberId: 'emp_jieun',
+    targetMemberName: '지은',
+    targetShiftDate: '2026-09-01',
+    note: '그날 가족 행사가 있어서 근무를 바꿀 수 있을까요?',
+    status: 'pending',
+    createdAt: '2026-08-29T14:20:00.000Z',
+  },
+]

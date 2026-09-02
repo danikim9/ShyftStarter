@@ -1,8 +1,9 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
-import type { Action, ActionEvent, Announcement, Comment, HandoverNote, MoodValue, Quest, Reaction, SkillId, SwapRequest } from '../types'
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import type { Action, ActionEvent, Announcement, Comment, HandoverNote, MoodValue, Quest, Reaction, Reminder, SkillId, SwapRequest } from '../types'
 import { employee, quests as initialQuests, checklistGroup as initialChecklist, todayShift, CURRENT_EMPLOYEE_ID } from '../data/mockData'
-import { INITIAL_ACTIONS, INITIAL_ANNOUNCEMENTS, INITIAL_HANDOVERS, STORE_ID, STORE_NAME, STORE_CODE } from '../data/mvpData'
-import { INITIAL_ROSTER, ROSTER_MEMBERS, type RosterEntry } from '../data/roster'
+import { INITIAL_ACTIONS, INITIAL_ANNOUNCEMENTS, INITIAL_HANDOVERS, INITIAL_REMINDERS, STORE_ID, STORE_NAME, STORE_CODE } from '../data/mvpData'
+import { INITIAL_ROSTER, INITIAL_SWAP_REQUESTS, ROSTER_MEMBERS, type RosterEntry } from '../data/roster'
+import { PROGRESS_SUMMARY } from '../data/progressData'
 
 export type SheetKind =
   | 'killerScript'
@@ -15,6 +16,7 @@ export type SheetKind =
   | 'actionCompose'
   | 'joinTeam'
   | 'teamSchedule'
+  | 'reminderCompose'
   | null
 
 type RosterState = Record<string, Record<string, RosterEntry>>
@@ -52,7 +54,15 @@ interface AppStateShape {
   addAction: (a: Pick<Action, 'title' | 'kind' | 'target'> & Partial<Action>) => void
   completeAction: (id: string) => void
   weeklyCompletionCount: number
+  currentStreakDays: number
   actionEvents: ActionEvent[] // silent log — not rendered, see types.ts ActionEvent
+  // 개인 알람/리마인더 — 솔로 사용자도 매니저 없이 바로 쓸 수 있는 셀프 기능
+  reminders: Reminder[]
+  addReminder: (input: { label: string; time: string }) => void
+  toggleReminder: (id: string) => void
+  removeReminder: (id: string) => void
+  setShiftReminderOffset: (offsetMinutes: number) => void
+  fireReminderNow: (id: string) => void
   handovers: HandoverNote[]
   addHandover: (message: string) => void
   announcements: Announcement[]
@@ -88,7 +98,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [announcements, setAnnouncements] = useState<Announcement[]>(INITIAL_ANNOUNCEMENTS)
   const [hasJoinedTeam, setHasJoinedTeam] = useState(false)
   const [roster, setRoster] = useState<RosterState>(() => cloneRoster(INITIAL_ROSTER))
-  const [swapRequests, setSwapRequests] = useState<SwapRequest[]>([])
+  const [swapRequests, setSwapRequests] = useState<SwapRequest[]>(INITIAL_SWAP_REQUESTS)
+  const [reminders, setReminders] = useState<Reminder[]>(INITIAL_REMINDERS)
 
   const markQuestProgress = (questId: string) => {
     setQuests((prev) =>
@@ -158,6 +169,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     const days = (Date.now() - new Date(a.completedAt).getTime()) / (1000 * 60 * 60 * 24)
     return days <= 7
   }).length
+
+  // 솔로 리텐션 갭 보완 — My Actions의 완료 피드백이 "이번 주 N회"뿐이면 "성장하고
+  // 있다"는 감각이 약하다는 판단으로 연속 활동 스트릭을 함께 노출한다. 실제 완료
+  // 시각(completedAt)은 데모가 실행되는 실제 접속일 기준이라 내러티브상의 "오늘"
+  // (mockData.ts TODAY=2026-08-30)과 어긋날 수 있어, Progress 화면(P1)이 이미
+  // 쓰고 있는 동일한 스트릭 수치(PROGRESS_SUMMARY)를 그대로 재사용해 두 화면의
+  // 숫자가 서로 어긋나지 않게 했다 — 지금 막 완료한 항목은 이번 주 카운터에 바로
+  // 반영되므로 "방금 한 게 반영 안 된다"는 느낌은 없다.
+  const currentStreakDays = PROGRESS_SUMMARY.currentStreakDays
 
   const addHandover = (message: string) => {
     if (!message.trim()) return
@@ -248,10 +268,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const nameOf = (memberId: string) => ROSTER_MEMBERS.find((m) => m.id === memberId)?.name ?? memberId
 
-  // PRO — 근무 교대 요청. 지은(CURRENT_EMPLOYEE_ID)이 자신의 예정 근무를 팀원의
-  // 예정 근무와 맞바꾸자고 요청하면, 매니저가 승인/거절한다. 실제 프로덕트에서는
-  // 유료 티어 기능이지만, 여기서는 진짜로 동작하는 데모로 구현해 매니저 승인
-  // 워크플로 자체를 보여준다 — UI에는 PRO 배지로 표시.
+  // PRO — 근무 교대 요청. 16차 개편: 매니저가 아니라 "상대 팀원"이 승인 주체다.
+  // 요청을 보내면 상대 팀원에게 승인 알람이 가고, 상대가 직접 승인하면 그
+  // 즉시 두 사람의 근무가 실제로 교환되며, 그 순간 매니저에게는 승인 권한이
+  // 아니라 "이미 정해진 교대" 알림만 간다(FYI). 실제 프로덕트에서는 유료
+  // 티어 기능이지만, 여기서는 진짜로 동작하는 데모로 구현했다 — UI에는 PRO
+  // 배지로 표시. 단일 페르소나(지은) 제약상 "상대가 승인" 쪽은 지은을
+  // target으로 하는 시드 요청(INITIAL_SWAP_REQUESTS)으로 함께 데모한다.
   const requestSwap: AppStateShape['requestSwap'] = ({ requesterShiftDate, targetMemberId, targetShiftDate, note }) => {
     const req: SwapRequest = {
       id: `swap_${Date.now()}`,
@@ -266,13 +289,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       createdAt: new Date().toISOString(),
     }
     setSwapRequests((prev) => [req, ...prev])
-    showToast('교대 요청을 보냈어요 — 매니저 승인을 기다려주세요')
+    showToast(`${nameOf(targetMemberId)}님에게 승인 알람을 보냈어요`)
   }
 
+  // 상대 팀원이 승인 — 즉시 두 근무를 교환하고, 매니저에게 알림을 보낸다(승인 X, FYI).
   const approveSwap = (id: string) => {
     setSwapRequests((prev) => {
       const req = prev.find((r) => r.id === id)
       if (!req || req.status !== 'pending') return prev
+      const now = new Date().toISOString()
       setRoster((prevRoster) => {
         const requesterEntry = prevRoster[req.requesterId]?.[req.requesterShiftDate] ?? 'off'
         const targetEntry = prevRoster[req.targetMemberId]?.[req.targetShiftDate] ?? 'off'
@@ -290,8 +315,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           },
         }
       })
-      showToast(`${req.requesterName}님 ↔ ${req.targetMemberName}님 교대를 승인했어요`)
-      return prev.map((r) => (r.id === id ? { ...r, status: 'approved' } : r))
+      showToast(`${req.requesterName}님과 근무를 맞바꿨어요 — 매니저에게 알림을 보냈어요`)
+      return prev.map((r) => (r.id === id ? { ...r, status: 'approved', respondedAt: now, managerNotifiedAt: now } : r))
     })
   }
 
@@ -300,9 +325,98 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       const req = prev.find((r) => r.id === id)
       if (!req || req.status !== 'pending') return prev
       showToast('교대 요청을 거절했어요')
-      return prev.map((r) => (r.id === id ? { ...r, status: 'rejected' } : r))
+      return prev.map((r) => (r.id === id ? { ...r, status: 'rejected', respondedAt: new Date().toISOString() } : r))
     })
   }
+
+  // 개인 알람/리마인더 — 매니저가 아직 앱을 쓰지 않는 상태에서도 솔로 사용자가
+  // 바로 켤 수 있는 셀프 기능. 커스텀 리마인더는 실제 현재 시각과 비교해서 정말로
+  // 울리고(아래 useEffect), 근무 시작 알림은 설정/문구는 실제로 저장되지만 데모의
+  // 내러티브 "오늘"과 실제 접속일이 다를 수 있어 fireReminderNow로 즉시 확인할 수
+  // 있게 했다 — 실제 백엔드가 붙으면 offsetMinutes 그대로 진짜 예약 푸시에 쓴다.
+  const requestNotifyPermission = () => {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission().catch(() => {})
+    }
+  }
+
+  const fireBrowserNotification = (title: string, body: string) => {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification(title, { body })
+      } catch {
+        // 알림 API가 막혀 있어도 토스트로는 이미 보여줬으니 조용히 무시
+      }
+    }
+  }
+
+  const addReminder: AppStateShape['addReminder'] = ({ label, time }) => {
+    if (!label.trim() || !time) return
+    const reminder: Reminder = {
+      id: `rem_${Date.now()}`,
+      kind: 'custom',
+      label: label.trim(),
+      time,
+      enabled: true,
+      createdAt: new Date().toISOString(),
+    }
+    setReminders((prev) => [reminder, ...prev])
+    requestNotifyPermission()
+    showToast('리마인더를 추가했어요')
+  }
+
+  const toggleReminder = (id: string) => {
+    setReminders((prev) => prev.map((r) => (r.id === id ? { ...r, enabled: !r.enabled } : r)))
+    requestNotifyPermission()
+  }
+
+  const removeReminder = (id: string) => {
+    setReminders((prev) => prev.filter((r) => r.id !== id))
+    showToast('리마인더를 삭제했어요')
+  }
+
+  const setShiftReminderOffset = (offsetMinutes: number) => {
+    setReminders((prev) => prev.map((r) => (r.kind === 'shiftStart' ? { ...r, offsetMinutes } : r)))
+  }
+
+  const fireReminderNow = (id: string) => {
+    const target = reminders.find((r) => r.id === id)
+    if (!target) return
+    const body =
+      target.kind === 'shiftStart'
+        ? `${target.offsetMinutes}분 뒤 근무가 시작돼요 — 오늘 근무 준비를 확인해보세요`
+        : target.label
+    showToast(`🔔 ${target.kind === 'shiftStart' ? target.label : target.label}`)
+    fireBrowserNotification('ShyftStarter', body)
+    setReminders((prev) => prev.map((r) => (r.id === id ? { ...r, lastFiredAt: new Date().toISOString() } : r)))
+  }
+
+  // 커스텀 리마인더 실시간 체크 — 탭이 열려 있는 동안 20초마다 현재 실제 시각(HH:MM)과
+  // 비교해서 일치하면 정말로 토스트 + (권한 허용 시) 브라우저 알림을 띄운다.
+  useEffect(() => {
+    const check = () => {
+      const now = new Date()
+      const nowHHMM = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+      const todayKey = now.toISOString().slice(0, 10)
+      setReminders((prev) =>
+        prev.map((r) => {
+          if (r.kind !== 'custom' || !r.enabled || !r.time) return r
+          const alreadyFiredToday = r.lastFiredAt && r.lastFiredAt.slice(0, 10) === todayKey
+          if (r.time === nowHHMM && !alreadyFiredToday) {
+            setTimeout(() => {
+              showToast(`🔔 ${r.label}`)
+              fireBrowserNotification('ShyftStarter', r.label)
+            }, 0)
+            return { ...r, lastFiredAt: now.toISOString() }
+          }
+          return r
+        })
+      )
+    }
+    const interval = setInterval(check, 20000)
+    return () => clearInterval(interval)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const value = useMemo<AppStateShape>(
     () => ({
@@ -324,7 +438,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       addAction,
       completeAction,
       weeklyCompletionCount,
+      currentStreakDays,
       actionEvents,
+      reminders,
+      addReminder,
+      toggleReminder,
+      removeReminder,
+      setShiftReminderOffset,
+      fireReminderNow,
       handovers,
       addHandover,
       announcements,
@@ -349,9 +470,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       moodCheckedIn,
       actions,
       actionEvents,
+      reminders,
       handovers,
       announcements,
       weeklyCompletionCount,
+      currentStreakDays,
       hasJoinedTeam,
       roster,
       swapRequests,

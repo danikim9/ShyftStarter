@@ -427,10 +427,11 @@ export type FeedItem =
   | { type: 'handover'; data: HandoverNote }
 
 // ---------------------------------------------------------------------------
-// PRO — 근무 교대(Shift Swap) 요청. 직원이 자신의 예정 근무를 팀원의 예정
-// 근무와 맞바꾸자고 요청하면, 매니저가 승인/거절한다. roster.ts의 팀 전체
-// 근무표(memberId → date → RosterEntry) 위에서 동작 — 승인되면 두 날짜의
-// 근무 배정이 두 사람 사이에서 실제로 교환된다.
+// PRO — 근무 교대(Shift Swap) 요청. 16차 개편: 매니저가 아니라 "상대 팀원"이
+// 승인 주체다 — 요청을 받은 팀원이 직접 승인/거절하고, 승인되는 즉시 두 날짜의
+// 근무 배정이 두 사람 사이에서 실제로 교환된다. 매니저는 승인 권한이 없고,
+// 승인된 교대에 대한 알림(FYI)만 받는다. roster.ts의 팀 전체 근무표
+// (memberId → date → RosterEntry) 위에서 동작.
 // ---------------------------------------------------------------------------
 
 export type SwapRequestStatus = 'pending' | 'approved' | 'rejected'
@@ -446,4 +447,29 @@ export interface SwapRequest {
   note?: string
   status: SwapRequestStatus
   createdAt: string
+  respondedAt?: string // 상대 팀원이 승인/거절한 시각
+  managerNotifiedAt?: string // 승인되는 순간 매니저에게 알림이 간 시각 — 승인 권한이 아니라 FYI
+}
+
+// ---------------------------------------------------------------------------
+// 개인 알람/리마인더 — 근무 시작 전 알림 + 사용자가 직접 만드는 커스텀 리마인더.
+// 브라우저 탭이 열려 있는 동안 인앱 토스트 + (권한 허용 시) Notification API로
+// 실제 동작한다. 커스텀 리마인더는 오늘 기준 실제 시각과 비교해 정말로 울리고,
+// 근무 시작 알림은 "다음 근무 X분 전"이라는 설정/문구까지는 실제로 동작하되,
+// 데모의 오늘 날짜(내러티브)와 실제 접속 시각이 다를 수 있어 "지금 테스트" 버튼으로
+// 확인하도록 설계했다 — 실제 백엔드가 붙으면 이 offsetMinutes 값 그대로 진짜 예약
+// 푸시에 쓸 수 있다.
+// ---------------------------------------------------------------------------
+
+export type ReminderKind = 'shiftStart' | 'custom'
+
+export interface Reminder {
+  id: string
+  kind: ReminderKind
+  label: string
+  offsetMinutes?: number // shiftStart 전용 — 근무 시작 몇 분 전
+  time?: string // custom 전용 — 'HH:MM' (24h), 오늘 기준
+  enabled: boolean
+  createdAt: string
+  lastFiredAt?: string
 }
