@@ -1,5 +1,13 @@
 # ShyftStarter — Prototype (v2: Shift Companion MVP)
 
+> **이 폴더는 ShyftStarter의 세 코드 폴더 중 Employee(팀원용) 전용입니다.**
+> `shyftstarter_manager/`, `shyftstarter_executive/`와 원래 하나였던 프로토타입에서 나눈
+> 것이라, 상태 관리(`src/lib/store.tsx`)·타입(`src/types/`)·데이터 모델(`src/data/`) 같은
+> 공유 인프라는 세 폴더에 각각 복사되어 있습니다. 직접 만질 일이 많은 Employee 전용 코드는
+> `src/screens/`, `src/auth/`, `src/onboarding/`, `src/components/`에 있습니다.
+> `.env`에 `VITE_PERSONA=employee`가 고정돼 있어 `npm install && npm run dev`만 하면 온보딩
+> → 로그인 데모 → My Shift/My Actions/Team 3탭으로 바로 들어갑니다(페르소나 전환 버튼 없음).
+
 > 최신 업데이트: **v2 피벗 — "Shift Companion" MVP**. Employee App을 **My Shift / Team / My Actions** 3탭으로
 > 단순화했습니다. 기존 Stats/Coach/Progress/Team 리더보드/Executive Dashboard 등 P0~P2 기능은
 > **코드는 그대로 두고 nav에서만 숨겼습니다** (아래 "숨겨진 기능" 섹션 참고 — Business+/Enterprise 티어에서

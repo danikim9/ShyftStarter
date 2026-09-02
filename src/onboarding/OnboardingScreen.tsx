@@ -45,7 +45,10 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
   return (
     <div className="min-h-screen w-full bg-[radial-gradient(circle_at_top,_#f3edff_0%,_#ffffff_55%)] flex items-center justify-center py-0 sm:py-8 px-0 sm:px-4">
       <div className="relative w-full max-w-[430px] h-[100dvh] sm:h-[880px] sm:rounded-[2.75rem] sm:border sm:border-ink-950/8 overflow-hidden flex flex-col bg-paper sm:shadow-[0_30px_80px_-20px_rgba(139,92,246,0.25)] px-7">
-        <div className="flex justify-end pt-6">
+        {/* 28차 — 실기기(노치/다이나믹 아일랜드)에서 실제 상태 표시줄과 겹치는
+            문제 수정 — App.tsx StatusBar와 동일하게 안전 영역만큼 위쪽 여백을
+            확보한다(프리뷰에서는 기존 pt-6 그대로, 안전 영역이 더 크면 그만큼). */}
+        <div className="flex justify-end" style={{ paddingTop: 'max(1.5rem, var(--safe-top))' }}>
           <button onClick={onDone} className="text-xs text-ink-950/35 font-medium py-1.5 px-2 -mr-2">
             건너뛰기
           </button>
