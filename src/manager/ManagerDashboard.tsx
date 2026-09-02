@@ -22,10 +22,10 @@ function Sidebar() {
   const { view, setView, selectedStoreId } = useManagerState()
   const currentStore = STORES.find((s) => s.id === selectedStoreId) ?? STORES[0]
   return (
-    <div className="w-56 shrink-0 border-r border-white/8 flex flex-col py-5 px-3">
+    <div className="w-56 shrink-0 border-r border-ink-950/8 flex flex-col py-5 px-3">
       <div className="px-2 mb-4">
-        <div className="text-white font-bold text-sm">ShyftStarter</div>
-        <div className="text-[11px] text-white/35">Manager Dashboard</div>
+        <div className="text-ink-950 font-bold text-sm">ShyftStarter</div>
+        <div className="text-[11px] text-ink-950/35">Manager Dashboard</div>
       </div>
       <StoreSwitcher />
       <nav className="space-y-1">
@@ -36,7 +36,7 @@ function Sidebar() {
               key={id}
               onClick={() => setView(id)}
               className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition ${
-                active ? 'bg-brand-500/15 text-brand-200' : 'text-white/50 hover:bg-white/5 hover:text-white/80'
+                active ? 'bg-brand-500/15 text-brand-700' : 'text-ink-950/50 hover:bg-ink-950/5 hover:text-ink-950/80'
               }`}
             >
               <Icon size={16} />
@@ -45,12 +45,12 @@ function Sidebar() {
           )
         })}
       </nav>
-      <div className="mt-auto px-2 pt-4 border-t border-white/8">
+      <div className="mt-auto px-2 pt-4 border-t border-ink-950/8">
         <div className="flex items-center gap-2.5">
           <span className="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-xs font-bold text-white">K</span>
           <div>
-            <div className="text-xs font-medium text-white/85">Kim M.</div>
-            <div className="text-[10px] text-white/35">Store Manager · {currentStore.name}</div>
+            <div className="text-xs font-medium text-ink-950/85">Kim M.</div>
+            <div className="text-[10px] text-ink-950/35">Store Manager · {currentStore.name}</div>
           </div>
         </div>
       </div>
@@ -63,11 +63,11 @@ function StorePlaceholder({ storeName }: { storeName: string }) {
   return (
     <div className="flex-1 flex items-center justify-center px-8 py-8">
       <div className="max-w-sm text-center space-y-3">
-        <div className="w-12 h-12 mx-auto rounded-2xl bg-white/6 flex items-center justify-center">
-          <Construction size={20} className="text-white/40" />
+        <div className="w-12 h-12 mx-auto rounded-2xl bg-ink-950/6 flex items-center justify-center">
+          <Construction size={20} className="text-ink-950/40" />
         </div>
-        <h2 className="text-white font-semibold">{storeName} 데이터는 아직 준비 중이에요</h2>
-        <p className="text-sm text-white/40 leading-relaxed">
+        <h2 className="text-ink-950 font-semibold">{storeName} 데이터는 아직 준비 중이에요</h2>
+        <p className="text-sm text-ink-950/40 leading-relaxed">
           여러 매장을 함께 운영하는 매니저를 위한 매장 전환 UX 예시예요. 지금 데모는 강남점 데이터로만
           구성되어 있고, 실제 매장별 데이터 연동은 다음 단계에서 진행돼요.
         </p>
