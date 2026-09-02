@@ -26,16 +26,27 @@ export function EditShiftModal({
   current,
   onClose,
   onSave,
+  repeatTargetDate = null,
+  onApplyToDate,
 }: {
   target: EditTarget | null
   current: RosterEntry | null
   onClose: () => void
   onSave: (entry: RosterEntry) => void
+  // 21차 — 솔로 UX 리뷰 피드백 #3(반복 근무 등록). ROSTER_WEEKS가 딱 2주치라
+  // "이 패턴 무한 반복"까지는 지원하지 않고, 대신 "다른 한 주의 같은 요일"을
+  // 계산해 하나의 체크박스로 즉시 적용할 수 있게 한다 — 셀프 근무 입력(15차)
+  // 에서 매주 같은 요일을 두 번 따로 입력해야 했던 마찰을 줄인다. 셀프
+  // 근무 입력(TeamScheduleView)에서만 넘겨주고, 매니저의 팀 전체 로스터
+  // 편집에서는 넘기지 않아 기존 동작은 그대로다.
+  repeatTargetDate?: string | null
+  onApplyToDate?: (date: string, entry: RosterEntry) => void
 }) {
   const open = !!target
   const [isOff, setIsOff] = useState(current === 'off')
   const [start, setStart] = useState(current && current !== 'off' ? current.start : '10:00')
   const [end, setEnd] = useState(current && current !== 'off' ? current.end : '18:00')
+  const [repeat, setRepeat] = useState(false)
 
   // reset local edit state whenever a new cell is opened
   const key = target ? `${target.memberId}_${target.date}` : ''
@@ -45,10 +56,12 @@ export function EditShiftModal({
     setIsOff(current === 'off')
     setStart(current && current !== 'off' ? current.start : '10:00')
     setEnd(current && current !== 'off' ? current.end : '18:00')
+    setRepeat(false)
   }
 
   if (!target) return null
   const { md, dow } = fmtRosterDate(target.date)
+  const repeatMeta = repeatTargetDate ? fmtRosterDate(repeatTargetDate) : null
 
   return (
     <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${open ? '' : 'pointer-events-none'}`} aria-hidden={!open}>
@@ -97,6 +110,20 @@ export function EditShiftModal({
               />
             </div>
           </div>
+
+          {repeatTargetDate && onApplyToDate && (
+            <label className="flex items-center gap-2.5 rounded-lg bg-white/4 border border-white/8 px-3 py-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={repeat}
+                onChange={(e) => setRepeat(e.target.checked)}
+                className="w-4 h-4 accent-brand-500"
+              />
+              <span className="text-xs text-white/60">
+                {repeatMeta?.md}({repeatMeta?.dow})에도 같은 근무로 반복 적용
+              </span>
+            </label>
+          )}
         </div>
 
         <div className="px-6 py-4 border-t border-white/8 flex gap-2">
@@ -106,7 +133,9 @@ export function EditShiftModal({
           <PrimaryButton
             className="flex-1"
             onClick={() => {
-              onSave(isOff ? 'off' : { start, end })
+              const entry: RosterEntry = isOff ? 'off' : { start, end }
+              onSave(entry)
+              if (repeat && repeatTargetDate && onApplyToDate) onApplyToDate(repeatTargetDate, entry)
               onClose()
             }}
           >

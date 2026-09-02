@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Pin, MessageCircle, Plus, Megaphone, Users, Copy, Check } from 'lucide-react'
+import { Pin, MessageCircle, Plus, Megaphone, Users, Copy, Check, Share2 } from 'lucide-react'
 import { useAppState } from '../lib/store'
 import type { FeedItem } from '../types'
-import { Card, Badge, PrimaryButton, SecondaryButton } from '../components/ui'
+import { Card, Badge, PrimaryButton } from '../components/ui'
 import { JoinTeamForm } from '../auth/JoinTeamForm'
+import { buildStoreJoinLink } from '../data/mvpData'
 
 const QUICK_REACTIONS = ['👍', '🙌', '❤️']
 
@@ -130,30 +131,34 @@ function HandoverCard({ item }: { item: Extract<FeedItem, { type: 'handover' }> 
 }
 
 // 19차 — 처음 로그인 후 매장/그룹 코드를 입력하던 별도 온보딩 화면(App.tsx의
-// 'join' 스테이지)을 없애고, 그 내용을 Team 탭 안으로 그대로 옮겼다. 코드가
-// 없는 사람은 바로 아래 "동료 그룹 만들기"로 스스로 그룹을 시작할 수 있다.
+// 'join' 스테이지)을 없애고, 그 내용을 Team 탭 안으로 그대로 옮겼다.
+// 21차 — 솔로 UX 리뷰 피드백 #3: 코드 입력 폼이 1순위로 보이면, 정말 처음
+// 앱을 깐 사람(코드가 없는 쪽이 훨씬 흔함) 입장에서 "나는 코드가 없는데
+// 어떡하지" 하고 막힐 수 있다는 지적을 반영해 순서를 뒤집었다 — "동료 그룹
+// 만들기"를 1차 CTA로 올리고, 코드 입력은 "코드가 있다면" 보조 옵션으로
+// 내렸다.
 function OnboardingJoinSection() {
   const { createCrew } = useAppState()
   return (
     <Card className="text-center py-7 space-y-4">
       <div>
         <div className="w-12 h-12 rounded-2xl bg-white/8 flex items-center justify-center mx-auto text-xl mb-3">🏬</div>
-        <p className="text-sm font-semibold text-white/85 mb-1">근무하는 매장에 참여해보세요</p>
+        <p className="text-sm font-semibold text-white/85 mb-1">동료들과 함께 시작해보세요</p>
         <p className="text-xs text-white/40 leading-relaxed">
-          매니저나 동료가 공유한 코드가 있다면
+          코드가 없어도 괜찮아요 — 지금 바로 동료 그룹을 만들고
           <br />
-          지금 입력하고 팀 공지·인수인계를 바로 받아보세요
+          근무 일정을 함께 공유할 수 있어요
         </p>
+      </div>
+      <PrimaryButton onClick={() => createCrew()}>동료 그룹 만들기</PrimaryButton>
+      <div className="flex items-center gap-2 text-white/20 text-[10px]">
+        <div className="h-px flex-1 bg-white/8" />
+        코드가 있다면
+        <div className="h-px flex-1 bg-white/8" />
       </div>
       <div className="text-left">
         <JoinTeamForm onSuccess={() => {}} />
       </div>
-      <div className="flex items-center gap-2 text-white/20 text-[10px]">
-        <div className="h-px flex-1 bg-white/8" />
-        또는
-        <div className="h-px flex-1 bg-white/8" />
-      </div>
-      <SecondaryButton onClick={() => createCrew()}>동료 그룹 만들기</SecondaryButton>
     </Card>
   )
 }
@@ -163,6 +168,11 @@ function OnboardingJoinSection() {
 // 참여한 팀이 없어요"라고 하면 부정확하니, 동료 그룹에는 있지만 이 기능은
 // 아직이라는 걸 정직하게 설명하는 별도 프롬프트. 19차부터는 동료 그룹 코드
 // 카드도 여기(Team 탭)에 함께 보여준다 — 예전엔 근무 일정 시트에 있었다.
+// 21차 — 솔로 UX 리뷰 피드백: 그룹을 막 만든 직후엔 코드 카드만 덩그러니
+// 있어서 "이제 뭘 하지" 하는 정지 지점이 생길 수 있다는 지적을 반영해,
+// 복사 아이콘 옆에 바로 공유할 수 있는 명확한 CTA를 추가했다 — Web Share
+// API가 있으면 기기의 공유 시트(카카오톡 포함 설치된 앱 목록)를 그대로
+// 띄우고, 지원하지 않는 환경(대부분의 데스크톱 브라우저)이면 복사로 대체한다.
 function CrewFeedPrompt() {
   const { openSheet, crewCode, showToast } = useAppState()
   const [copied, setCopied] = useState(false)
@@ -179,22 +189,45 @@ function CrewFeedPrompt() {
     }
   }
 
+  const handleShare = async () => {
+    if (!crewCode) return
+    const shareData = {
+      title: 'ShyftStarter 동료 그룹 초대',
+      text: `ShyftStarter 동료 그룹에 참여해보세요 — 코드: ${crewCode}`,
+      url: buildStoreJoinLink(crewCode),
+    }
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share(shareData)
+        return
+      } catch {
+        // 사용자가 공유를 취소했거나 API를 지원하지 않음 — 복사로 대체
+      }
+    }
+    handleCopy()
+  }
+
   return (
     <div className="space-y-3">
       {crewCode && (
-        <Card className="flex items-center gap-3 bg-white/[0.03]">
-          <Users size={16} className="text-brand-300 shrink-0" />
-          <div className="min-w-0 flex-1">
-            <p className="text-xs text-white/70 font-medium">동료 그룹 코드</p>
-            <p className="text-[11px] text-white/35 font-mono tracking-wide mt-0.5">{crewCode}</p>
+        <Card className="space-y-3 bg-white/[0.03]">
+          <div className="flex items-center gap-3">
+            <Users size={16} className="text-brand-300 shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs text-white/70 font-medium">동료 그룹 코드</p>
+              <p className="text-[11px] text-white/35 font-mono tracking-wide mt-0.5">{crewCode}</p>
+            </div>
+            <button
+              onClick={handleCopy}
+              className="shrink-0 w-8 h-8 rounded-lg bg-white/6 border border-white/10 flex items-center justify-center text-white/60 hover:text-white/90 transition"
+              aria-label="동료 그룹 코드 복사"
+            >
+              {copied ? <Check size={13} className="text-emerald-signal" /> : <Copy size={13} />}
+            </button>
           </div>
-          <button
-            onClick={handleCopy}
-            className="shrink-0 w-8 h-8 rounded-lg bg-white/6 border border-white/10 flex items-center justify-center text-white/60 hover:text-white/90 transition"
-            aria-label="동료 그룹 코드 복사"
-          >
-            {copied ? <Check size={13} className="text-emerald-signal" /> : <Copy size={13} />}
-          </button>
+          <PrimaryButton onClick={handleShare} className="flex items-center justify-center gap-1.5">
+            <Share2 size={14} /> 동료에게 지금 공유하기
+          </PrimaryButton>
         </Card>
       )}
       <Card className="text-center py-8 space-y-3">

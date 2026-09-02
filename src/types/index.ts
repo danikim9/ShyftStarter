@@ -488,3 +488,22 @@ export interface Reminder {
   createdAt: string
   lastFiredAt?: string
 }
+
+// ---------------------------------------------------------------------------
+// 21차 — 예상 급여 계산기. "정확한 급여"가 아니라 "대략 이 정도"를 보여주는
+// 추정치다. 공휴수당·연장수당처럼 계산이 복잡해지는 항목은 자동으로 계산하지
+// 않고, 사용자가 일한 시간을 직접 입력하면 시급 × overtimeMultiplier로
+// 단순 가산한다 — 정확성보다 "매 근무 후 확인하는 습관"을 만드는 게 목적.
+// ---------------------------------------------------------------------------
+
+export interface WageSettings {
+  hourlyWage: number // 원 단위, 사용자가 직접 입력 — 0이면 아직 설정 전
+  overtimeMultiplier: number // 공휴수당/연장수당 가산 배율 (기본 1.5, 단순화된 모델)
+}
+
+export interface ExtraPayEntry {
+  id: string
+  label: string // 예: "추석 연휴 근무", "저녁 연장 2시간"
+  hours: number
+  createdAt: string
+}

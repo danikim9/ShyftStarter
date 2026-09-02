@@ -19,9 +19,9 @@ export const MOOD_EMOJI: Record<MoodValue, string> = {
 }
 
 export function MoodCheckIn() {
-  const { moodCheckedIn, submitMood, skipMoodCheckIn } = useAppState()
+  const { moodPromptOpen, submitMood, skipMoodCheckIn } = useAppState()
   const [hover, setHover] = useState<MoodValue | null>(null)
-  const open = !moodCheckedIn
+  const open = moodPromptOpen
 
   return (
     <div

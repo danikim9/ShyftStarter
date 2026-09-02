@@ -1,7 +1,20 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import type { Action, ActionEvent, Announcement, Comment, HandoverNote, MoodValue, Quest, Reaction, Reminder, SkillId, SwapRequest, TeamMembership } from '../types'
+import type { Action, ActionEvent, Announcement, Comment, ExtraPayEntry, HandoverNote, MoodValue, Quest, Reaction, Reminder, SkillId, SwapRequest, TeamMembership, WageSettings } from '../types'
 import { employee, quests as initialQuests, checklistGroup as initialChecklist, todayShift, CURRENT_EMPLOYEE_ID } from '../data/mockData'
-import { INITIAL_ACTIONS, INITIAL_ANNOUNCEMENTS, INITIAL_HANDOVERS, INITIAL_REMINDERS, STORE_ID, STORE_NAME, STORE_CODE, CREW_DEMO_CODE, buildStoreJoinLink } from '../data/mvpData'
+import {
+  INITIAL_ACTIONS,
+  INITIAL_ANNOUNCEMENTS,
+  INITIAL_HANDOVERS,
+  INITIAL_REMINDERS,
+  INITIAL_WAGE_SETTINGS,
+  INITIAL_EXTRA_PAY,
+  ACTION_TREND_HISTORY,
+  STORE_ID,
+  STORE_NAME,
+  STORE_CODE,
+  CREW_DEMO_CODE,
+  buildStoreJoinLink,
+} from '../data/mvpData'
 import { INITIAL_ROSTER, INITIAL_SWAP_REQUESTS, ROSTER_MEMBERS, type RosterEntry } from '../data/roster'
 import { PROGRESS_SUMMARY } from '../data/progressData'
 
@@ -18,6 +31,7 @@ export type SheetKind =
   | 'joinTeam'
   | 'teamSchedule'
   | 'reminderCompose'
+  | 'wageCalculator'
   | null
 
 type RosterState = Record<string, Record<string, RosterEntry>>
@@ -48,6 +62,9 @@ interface AppStateShape {
   showToast: (msg: string) => void
   todayMood: MoodValue | null
   moodCheckedIn: boolean
+  // 21차 — 컨디션 체크인을 로그인 직후가 아니라 "오늘 근무 상세"를 열 때(하루를
+  // 실제로 시작하는 순간)까지 미룬다. moodPromptOpen이 실제 모달 노출 여부다.
+  moodPromptOpen: boolean
   submitMood: (v: MoodValue) => void
   skipMoodCheckIn: () => void
   // v2 — Shift Companion MVP
@@ -58,6 +75,14 @@ interface AppStateShape {
   weeklyCompletionCount: number
   currentStreakDays: number
   actionEvents: ActionEvent[] // silent log — not rendered, see types.ts ActionEvent
+  // 21차 — My Actions "습관 그래프" 미니 트렌드: 지난 3주 목업 + 이번 주 실시간 값
+  weeklyActionTrend: number[]
+  // 21차 — 예상 급여 계산기(정확한 급여가 아니라 대략적인 추정치)
+  wageSettings: WageSettings
+  setHourlyWage: (won: number) => void
+  extraPayEntries: ExtraPayEntry[]
+  addExtraPayEntry: (input: { label: string; hours: number }) => void
+  removeExtraPayEntry: (id: string) => void
   // 개인 알람/리마인더 — 솔로 사용자도 매니저 없이 바로 쓸 수 있는 셀프 기능
   reminders: Reminder[]
   addReminder: (input: { label: string; time: string }) => void
@@ -104,6 +129,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<string | null>(null)
   const [todayMood, setTodayMood] = useState<MoodValue | null>(null)
   const [moodCheckedIn, setMoodCheckedIn] = useState(false)
+  // 21차 — moodPromptOpen이 실제 노출 트리거다(더 이상 로그인 즉시 열리지 않음).
+  // pendingSheetAfterMood는 컨디션 체크인을 마친 뒤 원래 열려던 시트(오늘 근무
+  // 상세)를 이어서 열기 위한 대기열.
+  const [moodPromptOpen, setMoodPromptOpen] = useState(false)
+  const [pendingSheetAfterMood, setPendingSheetAfterMood] = useState<SheetState | null>(null)
 
   // v2 — Shift Companion MVP state
   const [actions, setActions] = useState<Action[]>(INITIAL_ACTIONS)
@@ -116,6 +146,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [roster, setRoster] = useState<RosterState>(() => cloneRoster(INITIAL_ROSTER))
   const [swapRequests, setSwapRequests] = useState<SwapRequest[]>(INITIAL_SWAP_REQUESTS)
   const [reminders, setReminders] = useState<Reminder[]>(INITIAL_REMINDERS)
+  const [wageSettings, setWageSettingsState] = useState<WageSettings>(INITIAL_WAGE_SETTINGS)
+  const [extraPayEntries, setExtraPayEntries] = useState<ExtraPayEntry[]>(INITIAL_EXTRA_PAY)
 
   const markQuestProgress = (questId: string) => {
     setQuests((prev) =>
@@ -143,10 +175,39 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setTimeout(() => setToast(null), 2600)
   }
 
+  // 21차 — 컨디션 체크인 타이밍 재검토(솔로 UX 리뷰 피드백). 로그인 직후
+  // 앱을 한 번도 못 본 상태에서 바로 묻던 것을, "오늘 근무 상세"를 여는
+  // 순간(하루를 실제로 시작하는 자연스러운 지점)까지 미룬다. openSheet가
+  // 오늘 시프트의 shiftDetail을 요청하면 실제 시트를 열기 전에 먼저 체크인을
+  // 띄우고, 체크인이 끝나면 원래 열려던 시트를 이어서 연다.
+  const openSheet = (s: SheetState) => {
+    const isTodayShiftDetail = s.kind === 'shiftDetail' && s.shiftId === todayShift.id
+    if (isTodayShiftDetail && !moodCheckedIn) {
+      setPendingSheetAfterMood(s)
+      setMoodPromptOpen(true)
+      return
+    }
+    setSheet(s)
+  }
+
+  const proceedAfterMood = () => {
+    setMoodPromptOpen(false)
+    if (pendingSheetAfterMood) {
+      setSheet(pendingSheetAfterMood)
+      setPendingSheetAfterMood(null)
+    }
+  }
+
   const submitMood = (v: MoodValue) => {
     setTodayMood(v)
     setMoodCheckedIn(true)
     showToast('오늘 컨디션 체크인 완료')
+    proceedAfterMood()
+  }
+
+  const skipMoodCheckIn = () => {
+    setMoodCheckedIn(true)
+    proceedAfterMood()
   }
 
   // v2 — Shift Companion MVP actions
@@ -210,6 +271,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   // 숫자가 서로 어긋나지 않게 했다 — 지금 막 완료한 항목은 이번 주 카운터에 바로
   // 반영되므로 "방금 한 게 반영 안 된다"는 느낌은 없다.
   const currentStreakDays = PROGRESS_SUMMARY.currentStreakDays
+
+  // 21차 — My Actions "습관 그래프". 지난 3주는 목업(ACTION_TREND_HISTORY),
+  // 마지막 막대(이번 주)만 실시간 weeklyCompletionCount로 채워 지금 막 완료한
+  // 항목이 바로 반영되게 한다.
+  const weeklyActionTrend = [...ACTION_TREND_HISTORY, weeklyCompletionCount]
 
   const addHandover = (message: string) => {
     if (!message.trim()) return
@@ -360,6 +426,33 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setStoreCodeState(normalized)
     showToast('참여 코드를 변경했어요 — 이전 코드는 더 이상 사용할 수 없어요')
     return { ok: true }
+  }
+
+  // 21차 — 예상 급여 계산기. "정확한 급여"라고 주장하지 않기 위해 시급은
+  // 사용자가 직접 입력하고, 공휴수당/연장수당처럼 계산이 복잡해지는 항목은
+  // 자동 산출하지 않는 대신 시간을 직접 기록하면 배율(overtimeMultiplier)로
+  // 단순 가산한다.
+  const setHourlyWage: AppStateShape['setHourlyWage'] = (won) => {
+    const clamped = Math.max(0, Math.round(won) || 0)
+    setWageSettingsState((prev) => ({ ...prev, hourlyWage: clamped }))
+    showToast(clamped > 0 ? '시급을 저장했어요' : '시급을 초기화했어요')
+  }
+
+  const addExtraPayEntry: AppStateShape['addExtraPayEntry'] = ({ label, hours }) => {
+    if (!label.trim() || !hours || hours <= 0) return
+    const entry: ExtraPayEntry = {
+      id: `pay_${Date.now()}`,
+      label: label.trim(),
+      hours,
+      createdAt: new Date().toISOString(),
+    }
+    setExtraPayEntries((prev) => [entry, ...prev])
+    showToast('추가 수당을 기록했어요')
+  }
+
+  const removeExtraPayEntry = (id: string) => {
+    setExtraPayEntries((prev) => prev.filter((e) => e.id !== id))
+    showToast('기록을 삭제했어요')
   }
 
   const updateRosterEntry = (memberId: string, date: string, entry: RosterEntry) => {
@@ -526,14 +619,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       checklist,
       toggleChecklistItem,
       sheet,
-      openSheet: setSheet,
+      openSheet,
       closeSheet: () => setSheet({ kind: null }),
       toast,
       showToast,
       todayMood,
       moodCheckedIn,
+      moodPromptOpen,
       submitMood,
-      skipMoodCheckIn: () => setMoodCheckedIn(true),
+      skipMoodCheckIn,
       actions,
       addAction,
       completeAction,
@@ -541,6 +635,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       weeklyCompletionCount,
       currentStreakDays,
       actionEvents,
+      weeklyActionTrend,
+      wageSettings,
+      setHourlyWage,
+      extraPayEntries,
+      addExtraPayEntry,
+      removeExtraPayEntry,
       reminders,
       addReminder,
       toggleReminder,
@@ -575,8 +675,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       toast,
       todayMood,
       moodCheckedIn,
+      moodPromptOpen,
       actions,
       actionEvents,
+      weeklyActionTrend,
+      wageSettings,
+      extraPayEntries,
       reminders,
       handovers,
       announcements,
