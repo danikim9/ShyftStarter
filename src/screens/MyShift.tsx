@@ -1,4 +1,4 @@
-import { ChevronRight, MessageSquarePlus, ChevronDown, ChevronUp, CalendarPlus, CalendarDays, Lock, CalendarRange, List } from 'lucide-react'
+import { ChevronRight, MessageSquarePlus, ChevronDown, ChevronUp, CalendarPlus, CalendarDays, Lock, CalendarRange, List, Pencil } from 'lucide-react'
 import { useState } from 'react'
 import { useAppState } from '../lib/store'
 import { shifts, todayShift } from '../data/mockData'
@@ -41,6 +41,7 @@ function ShiftRow({ shift }: { shift: Shift }) {
 
 export function MyShift({ onNavigate }: { onNavigate: (t: TabId) => void }) {
   const { employee, todayMood, openSheet, handovers, membership, showToast } = useAppState()
+  // 26차 — 본인 프로필(이름/직함) 간단 편집 진입점.
   const [showAll, setShowAll] = useState(false)
   const [scheduleView, setScheduleView] = useState<'list' | 'calendar'>('list')
   // 22차 — 솔로 UX 피드백 #5: "최근 인수인계" 배너 전체를 접었다 폈다 할 수
@@ -63,7 +64,15 @@ export function MyShift({ onNavigate }: { onNavigate: (t: TabId) => void }) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="text-ink-950/40 text-xs mb-0.5">{fmtDate(todayShift.date)} · {todayShift.store}</div>
-          <h1 className="text-xl font-bold text-ink-950">{employee.name}님, 안녕하세요</h1>
+          <button
+            onClick={() => openSheet({ kind: 'profileEdit' })}
+            className="flex items-center gap-1.5 group"
+            aria-label="내 프로필 편집"
+          >
+            <h1 className="text-xl font-bold text-ink-950">{employee.name}님, 안녕하세요</h1>
+            <Pencil size={13} className="text-ink-950/25 group-hover:text-ink-950/50 transition mb-1" />
+          </button>
+          <div className="text-ink-950/35 text-[11px]">{employee.role}</div>
         </div>
         {todayMood && (
           <div className="shrink-0 flex items-center gap-1 rounded-full bg-ink-950/6 px-2.5 py-1.5 mt-0.5" title="오늘 컨디션 체크인">

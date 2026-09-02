@@ -13,6 +13,7 @@ import { JoinTeamForm } from '../../auth/JoinTeamForm'
 import { TeamScheduleView } from './TeamScheduleView'
 import { ReminderComposer } from './ReminderComposer'
 import { WageCalculatorView } from './WageCalculatorView'
+import { ProfileEditor } from './ProfileEditor'
 import type { TabId } from '../BottomNav'
 
 const TITLES: Record<string, string> = {
@@ -29,6 +30,7 @@ const TITLES: Record<string, string> = {
   teamSchedule: '근무 일정',
   reminderCompose: '리마인더 추가',
   wageCalculator: '예상 급여',
+  profileEdit: '내 프로필',
 }
 
 export function SheetHost({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
@@ -80,6 +82,8 @@ export function SheetHost({ onNavigate }: { onNavigate: (tab: TabId) => void }) 
     content = <ReminderComposer />
   } else if (sheet.kind === 'wageCalculator') {
     content = <WageCalculatorView />
+  } else if (sheet.kind === 'profileEdit') {
+    content = <ProfileEditor />
   }
 
   return (
