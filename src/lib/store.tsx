@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import type { Action, ActionEvent, Announcement, Comment, HandoverNote, MoodValue, Quest, Reaction, Reminder, SkillId, SwapRequest } from '../types'
+import type { Action, ActionEvent, Announcement, Comment, HandoverNote, MoodValue, Quest, Reaction, Reminder, SkillId, SwapRequest, TeamMembership } from '../types'
 import { employee, quests as initialQuests, checklistGroup as initialChecklist, todayShift, CURRENT_EMPLOYEE_ID } from '../data/mockData'
-import { INITIAL_ACTIONS, INITIAL_ANNOUNCEMENTS, INITIAL_HANDOVERS, INITIAL_REMINDERS, STORE_ID, STORE_NAME, STORE_CODE } from '../data/mvpData'
+import { INITIAL_ACTIONS, INITIAL_ANNOUNCEMENTS, INITIAL_HANDOVERS, INITIAL_REMINDERS, STORE_ID, STORE_NAME, STORE_CODE, CREW_DEMO_CODE, buildStoreJoinLink } from '../data/mvpData'
 import { INITIAL_ROSTER, INITIAL_SWAP_REQUESTS, ROSTER_MEMBERS, type RosterEntry } from '../data/roster'
 import { PROGRESS_SUMMARY } from '../data/progressData'
 
@@ -14,6 +14,7 @@ export type SheetKind =
   | 'rolePlay'
   | 'handoverCompose'
   | 'actionCompose'
+  | 'announcementCompose'
   | 'joinTeam'
   | 'teamSchedule'
   | 'reminderCompose'
@@ -68,11 +69,23 @@ interface AppStateShape {
   addHandover: (message: string) => void
   announcements: Announcement[]
   addAnnouncement: (message: string, pinned?: boolean) => void
+  addTeamPost: (message: string) => void
   toggleReaction: (announcementId: string, emoji: string) => void
   addComment: (announcementId: string, message: string) => void
   // v2 — team join (invite code / link, QR gated to Business tier — see manager side)
-  hasJoinedTeam: boolean
+  // §9-1: membership이 'crew'/'store' 두 갈래로 나뉜다 — 매니저 매장 코드로
+  // 참여하면 'store'(Team 티어, 공지·인수인계까지 전부), 직원이 스스로 만들거나
+  // 동료 코드로 참여하면 'crew'(Free, 일정 공유·근무 교대까지만).
+  membership: TeamMembership
+  crewCode: string | null
   joinTeam: (code: string) => boolean
+  createCrew: () => string
+  // 20차 — 매니저 PRO: 참여 코드 커스터마이즈. storeCode는 이제 mvpData.ts의
+  // 고정 상수가 아니라 공유 상태 — 매니저가 바꾸면 joinTeam()도 즉시 새 코드
+  // 기준으로 비교하고, 기존 코드는 그 순간부터 유효하지 않다.
+  storeCode: string
+  storeJoinLink: string
+  setStoreCode: (code: string) => { ok: true } | { ok: false; reason: string }
   // 팀 근무 일정 (Manager Dashboard 근무 일정 관리와 공유하는 단일 소스) + PRO — 근무 교대 요청
   roster: RosterState
   updateRosterEntry: (memberId: string, date: string, entry: RosterEntry) => void
@@ -97,7 +110,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [actionEvents, setActionEvents] = useState<ActionEvent[]>([])
   const [handovers, setHandovers] = useState<HandoverNote[]>(INITIAL_HANDOVERS)
   const [announcements, setAnnouncements] = useState<Announcement[]>(INITIAL_ANNOUNCEMENTS)
-  const [hasJoinedTeam, setHasJoinedTeam] = useState(false)
+  const [membership, setMembership] = useState<TeamMembership>('none')
+  const [crewCode, setCrewCode] = useState<string | null>(null)
+  const [storeCode, setStoreCodeState] = useState<string>(STORE_CODE)
   const [roster, setRoster] = useState<RosterState>(() => cloneRoster(INITIAL_ROSTER))
   const [swapRequests, setSwapRequests] = useState<SwapRequest[]>(INITIAL_SWAP_REQUESTS)
   const [reminders, setReminders] = useState<Reminder[]>(INITIAL_REMINDERS)
@@ -228,6 +243,27 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     showToast('공지를 등록했어요')
   }
 
+  // 19차 — 공지는 이제 매니저 전용이 아니다. 팀원 누구나 남길 수 있고,
+  // authorRole: 'employee'로 기록되어 피드 카드에서 매니저 공지("관리자 공지"
+  // 배지)와 시각적으로 구분된다. 상단 고정(pinned)은 여전히 매니저만 — 그건
+  // 권위 있는 행동이라 별도로 addAnnouncement에만 남겨뒀다.
+  const addTeamPost = (message: string) => {
+    if (!message.trim()) return
+    const post: Announcement = {
+      id: `an_${Date.now()}`,
+      storeId: STORE_ID,
+      authorName: employee.name,
+      authorRole: 'employee',
+      message: message.trim(),
+      pinned: false,
+      createdAt: new Date().toISOString(),
+      reactions: [],
+      comments: [],
+    }
+    setAnnouncements((prev) => [post, ...prev])
+    showToast('공지를 등록했어요')
+  }
+
   const toggleReaction = (announcementId: string, emoji: string) => {
     setAnnouncements((prev) =>
       prev.map((a) => {
@@ -270,13 +306,60 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     )
   }
 
+  // §9-1 — 매장 코드(매니저 발급)와 동료 그룹 코드를 같은 입력창에서 함께
+  // 받는다. 매장 코드면 'store'(Team 티어 전체 기능), 동료 그룹 코드면
+  // 'crew'(Free, 일정 공유·근무 교대까지만)로 참여 상태가 갈린다.
   const joinTeam = (code: string): boolean => {
-    const ok = code.trim().toUpperCase() === STORE_CODE
-    if (ok) {
-      setHasJoinedTeam(true)
+    const normalized = code.trim().toUpperCase()
+    if (normalized === storeCode) {
+      setMembership('store')
+      setCrewCode(null)
       showToast(`${STORE_NAME} 팀에 참여했어요`)
+      return true
     }
-    return ok
+    if (normalized === CREW_DEMO_CODE) {
+      setMembership('crew')
+      setCrewCode(CREW_DEMO_CODE)
+      showToast('동료 그룹에 참여했어요')
+      return true
+    }
+    return false
+  }
+
+  // 매니저가 아직 매장을 개설하지 않았어도, 직원이 스스로 동료 그룹을 만들 수
+  // 있다 — 코드를 발급하고 즉시 'crew'로 참여시킨다. 실제로는 매 호출마다
+  // 새 코드를 발급하지만(백엔드 붙으면 서버에서 유니크하게 발급), 데모에서는
+  // 매번 새로 만들어도 매번 같은 지은 계정 하나로만 확인 가능.
+  const createCrew = (): string => {
+    const code = `CREW-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
+    setMembership('crew')
+    setCrewCode(code)
+    showToast('동료 그룹을 만들었어요 — 코드를 동료에게 공유해보세요')
+    return code
+  }
+
+  // 20차 — 매니저 PRO: 참여 코드 커스터마이즈. 랜덤 발급 코드(GN-4821) 대신
+  // 매장 브랜드가 드러나는 코드(예: GANGNAM2026)를 직접 정할 수 있게 한다.
+  // 'CREW-' 접두사는 createCrew()가 발급하는 동료 그룹 코드 전용으로 예약돼
+  // 있어, 매장 코드가 그 접두사를 쓰면 joinTeam()에서 두 코드 종류가 뒤섞일
+  // 수 있으므로 거부한다. 코드를 바꾸면 그 순간부터 이전 코드는 더 이상
+  // 유효하지 않다 — 이미 참여한 직원의 membership에는 영향 없음(그건 별도
+  // 상태), 앞으로 "새로 참여하려는" 사람만 새 코드를 써야 한다.
+  const setStoreCode: AppStateShape['setStoreCode'] = (code) => {
+    const normalized = code.trim().toUpperCase()
+    if (!normalized) return { ok: false, reason: '코드를 입력해주세요' }
+    if (normalized.length < 3 || normalized.length > 20) {
+      return { ok: false, reason: '3~20자 사이로 입력해주세요' }
+    }
+    if (!/^[A-Z0-9-]+$/.test(normalized)) {
+      return { ok: false, reason: '영문 대문자·숫자·하이픈(-)만 사용할 수 있어요' }
+    }
+    if (normalized.startsWith('CREW-')) {
+      return { ok: false, reason: "'CREW-'로 시작하는 코드는 동료 그룹 전용이라 쓸 수 없어요" }
+    }
+    setStoreCodeState(normalized)
+    showToast('참여 코드를 변경했어요 — 이전 코드는 더 이상 사용할 수 없어요')
+    return { ok: true }
   }
 
   const updateRosterEntry = (memberId: string, date: string, entry: RosterEntry) => {
@@ -468,10 +551,16 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       addHandover,
       announcements,
       addAnnouncement,
+      addTeamPost,
       toggleReaction,
       addComment,
-      hasJoinedTeam,
+      membership,
+      crewCode,
       joinTeam,
+      createCrew,
+      storeCode,
+      storeJoinLink: buildStoreJoinLink(storeCode),
+      setStoreCode,
       roster,
       updateRosterEntry,
       swapRequests,
@@ -493,7 +582,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       announcements,
       weeklyCompletionCount,
       currentStreakDays,
-      hasJoinedTeam,
+      membership,
+      crewCode,
+      storeCode,
       roster,
       swapRequests,
     ]
