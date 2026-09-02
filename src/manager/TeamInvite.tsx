@@ -27,7 +27,12 @@ function CopyRow({ label, value }: { label: string; value: string }) {
   }
 
   return (
-    <div>
+    // 27차 — iPhone UI 대응 중 발견한 버그: 이 div에 min-w-0이 없으면
+    // "grid sm:grid-cols-2"의 암시적 트랙이 자식의 min-content(잘리지 않은
+    // 전체 URL 텍스트 폭)만큼 늘어나면서 복사 버튼이 화면 밖으로 밀려났다
+    // (390px 뷰포트에서 버튼이 x=404까지 벗어남). min-w-0을 줘서 그리드
+    // 셀 폭 안에서 정상적으로 truncate되도록 수정.
+    <div className="min-w-0">
       <div className="text-[11px] text-ink-950/40 mb-1">{label}</div>
       <div className="flex items-center gap-2">
         <div className="flex-1 min-w-0 rounded-xl bg-ink-950/6 border border-ink-950/10 px-3.5 py-2.5 text-sm text-ink-950/90 font-mono truncate">

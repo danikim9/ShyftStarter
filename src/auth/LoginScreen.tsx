@@ -8,9 +8,18 @@
 // real OAuth later is a drop-in replacement for `handleLogin` below; the
 // screen/UX itself does not need to change.
 
-import type { ReactElement } from 'react'
+import { useState, type ReactElement } from 'react'
 
 export type AuthProvider = 'naver' | 'kakao' | 'google' | 'apple'
+
+// 27차 — 직원+매니저 통합 앱(하나의 링크, 하나의 버튼으로 화면 전환) 요청에
+// 따라 로그인 시점에 역할(Role)을 함께 받는다. 실제 백엔드/인증이 없는
+// 프로토타입이라 "계정에 역할이 귀속된다"(26차에서 논의한 실서비스 설계
+// 방향)는 것을 로그인 화면에서 역할을 직접 고르는 것으로 시뮬레이션했다 —
+// 어떤 소셜 버튼을 누르든 그 순간 고른 역할로 로그인된다. 기본값은 'employee'
+// (안전한 쪽)로 두어, 명시적으로 '매니저'를 선택하지 않으면 매니저 대시보드
+// 진입점 자체가 생기지 않는다.
+export type UserRole = 'employee' | 'manager'
 
 function NaverMark() {
   // 네이버 브랜드 버튼(초록 배경)은 앱 전체 테마와 무관하게 항상 흰 글자를
@@ -66,7 +75,14 @@ const PROVIDERS: { id: AuthProvider; label: string; className: string; mark: () 
   { id: 'apple', label: 'Apple로 계속하기', className: 'bg-black text-white border border-black', mark: AppleMark },
 ]
 
-export function LoginScreen({ onLogin }: { onLogin: (provider: AuthProvider) => void }) {
+const ROLES: { id: UserRole; label: string }[] = [
+  { id: 'employee', label: '직원' },
+  { id: 'manager', label: '매니저' },
+]
+
+export function LoginScreen({ onLogin }: { onLogin: (provider: AuthProvider, role: UserRole) => void }) {
+  const [role, setRole] = useState<UserRole>('employee')
+
   return (
     <div className="min-h-screen w-full bg-[radial-gradient(circle_at_top,_#f3edff_0%,_#ffffff_55%)] flex items-center justify-center py-0 sm:py-8 px-0 sm:px-4">
       <div className="relative w-full max-w-[430px] h-[100dvh] sm:h-[880px] sm:rounded-[2.75rem] sm:border sm:border-ink-950/8 overflow-hidden flex flex-col bg-paper sm:shadow-[0_30px_80px_-20px_rgba(139,92,246,0.25)] px-7">
@@ -82,18 +98,43 @@ export function LoginScreen({ onLogin }: { onLogin: (provider: AuthProvider) => 
           </p>
         </div>
 
-        <div className="pb-10 space-y-2.5">
-          {PROVIDERS.map(({ id, label, className, mark: Mark }) => (
-            <button
-              key={id}
-              onClick={() => onLogin(id)}
-              className={`w-full flex items-center justify-center gap-2.5 rounded-xl py-3.5 text-sm font-semibold active:scale-[0.98] transition ${className}`}
-            >
-              <Mark />
-              {label}
-            </button>
-          ))}
-          <p className="text-center text-[11px] text-ink-950/25 pt-3 leading-relaxed">
+        <div className="pb-10 space-y-4">
+          {/* 27차 — 실제 인증/역할(Role) 검증이 붙기 전까지, 로그인 화면에서
+              역할을 직접 선택하는 것으로 "계정에 역할이 귀속된다"는 실서비스
+              설계를 시뮬레이션한다. 매니저를 선택해야만 로그인 후 매니저
+              대시보드로 가는 진입점(상단 전환 버튼)이 생긴다. */}
+          <div>
+            <p className="text-center text-[11px] text-ink-950/35 mb-2">
+              데모 로그인 — 체험할 역할을 선택해주세요
+            </p>
+            <div className="flex items-center gap-1 rounded-full bg-ink-900 border border-ink-950/8 p-1">
+              {ROLES.map(({ id, label }) => (
+                <button
+                  key={id}
+                  onClick={() => setRole(id)}
+                  className={`flex-1 rounded-full py-2 text-xs font-semibold transition ${
+                    role === id ? 'bg-white text-brand-600 shadow-sm' : 'text-ink-950/45 hover:text-ink-950/70'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2.5">
+            {PROVIDERS.map(({ id, label, className, mark: Mark }) => (
+              <button
+                key={id}
+                onClick={() => onLogin(id, role)}
+                className={`w-full flex items-center justify-center gap-2.5 rounded-xl py-3.5 text-sm font-semibold active:scale-[0.98] transition ${className}`}
+              >
+                <Mark />
+                {label}
+              </button>
+            ))}
+          </div>
+          <p className="text-center text-[11px] text-ink-950/25 leading-relaxed">
             계속 진행하면 ShyftStarter 이용약관 및
             <br />
             개인정보 처리방침에 동의하는 것으로 간주됩니다

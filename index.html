@@ -2,7 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- 28차 — viewport-fit=cover 없이는 iOS가 env(safe-area-inset-*) 값을
+         항상 0으로 취급해, 실기기(홈 화면 추가/전체화면 프리뷰)에서 앱이
+         노치·상태 표시줄 아래로 그대로 그려지면서 겹치는 문제가 있었다.
+         cover를 추가해야 App.tsx/ManagerDashboard.tsx/OnboardingScreen.tsx에
+         넣은 safe-area 패딩이 실제 값을 받아 동작한다. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>ShyftStarter</title>
     <meta name="theme-color" content="#ffffff" />
   </head>

@@ -35,9 +35,16 @@ function AnnouncementCard({
   const [showComments, setShowComments] = useState(false)
 
   return (
-    <Card className={a.pinned ? 'bg-brand-600/10 border-brand-400/25' : ''}>
+    // 32차 — 이 카드가 렌더되는 순간(매장 코드로 참여한 뒤 Team 피드)이
+    // 사용자가 실기기에서 "화면이 확대된다"고 짚어준 정확한 재현 지점이라,
+    // 실기기 폰트 렌더링이 이 카드 안 콘텐츠(배지+이름 줄)를 이 환경에서
+    // 테스트한 것보다 넓게 그리더라도 카드 밖으로 새어나가 화면을 밀어
+    // 넓히지 않도록 `overflow-hidden`을 추가하고, 이름+배지 줄에는
+    // `min-w-0`(플렉스 기본값인 min-width:auto를 풀어 필요시 줄어들 수 있게)과
+    // `flex-wrap`(공간이 부족하면 배지가 다음 줄로 넘어가게)을 함께 줬다.
+    <Card className={`overflow-hidden ${a.pinned ? 'bg-brand-600/10 border-brand-400/25' : ''}`}>
       <div className="flex items-start justify-between gap-2 mb-2">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0">
           <span
             className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0 ${
               isManager ? 'bg-amber-signal/80' : 'bg-brand-500'
@@ -45,8 +52,8 @@ function AnnouncementCard({
           >
             {isManager ? <Megaphone size={13} /> : a.authorName[0]}
           </span>
-          <div>
-            <div className="flex items-center gap-1.5">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
               <span className="text-xs font-semibold text-ink-950">{a.authorName}</span>
               {isManager && <Badge tone="amber">관리자 공지</Badge>}
             </div>
@@ -132,13 +139,13 @@ function HandoverCard({
 }) {
   const h = item.data
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <div className="flex items-start gap-2.5">
         <span className="w-7 h-7 rounded-full bg-emerald-signal flex items-center justify-center text-[11px] font-bold text-white shrink-0">
           {h.fromEmployeeName[0]}
         </span>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5 mb-0.5">
+          <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
             <span className="text-xs font-semibold text-ink-950">{h.fromEmployeeName}</span>
             <Badge tone="emerald">인수인계</Badge>
           </div>

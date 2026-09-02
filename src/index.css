@@ -57,6 +57,49 @@ html, body, #root {
   height: 100%;
 }
 
+/* 30차 — 실제 아이폰에서 로그인 후 화면들이 가로로 조금씩 넓어져 하단에
+   가로 스크롤이 생기고 콘텐츠가 밀리는 버그 리포트. Playwright/헤드리스
+   Chromium으로는 동일한 CSS 폭(393px 등)에서 전혀 재현되지 않았는데, 이는
+   이 문제가 iOS Safari(WebKit)에만 있는 "text-size-adjust: auto" 자동 폰트
+   확대 동작 때문일 가능성이 높다 — 특정 세로 텍스트 레이아웃에서 WebKit이
+   가독성을 위해 폰트 크기를 자동으로 키우는데, 이게 우리가 설계한 폭보다
+   콘텐츠를 넓게 만들어 문서 전체가 가로로 넘치게 된다(데스크톱 Chrome/
+   Chromium에는 이 동작 자체가 없어 지금까지 어떤 검증에서도 드러나지
+   않았다). 표준적인 대응인 text-size-adjust: 100%로 이 자동 확대를 끄고,
+   혹시 다른 요인으로 폭이 넘치는 경우에도 화면 전체가 옆으로 밀리는 대신
+   그냥 잘리기만 하도록 html/body에 overflow-x: hidden을 안전장치로 추가했다
+   (내부에서 의도적으로 가로 스크롤을 쓰는 곳 — 로스터 표, 스킬 트라젝토리
+   칩 등 — 은 각자 overflow-x-auto를 쓰는 자식 요소라 이 규칙과 무관하게
+   그대로 동작한다). */
+html, body {
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* 30차 — 29차에서 넣은 env(safe-area-inset-top) 기반 상단 여백이 실제
+   배포된 Artifact 링크에서는 효과가 없다는 게 이번 스크린샷으로 다시
+   확인됐다(가짜 상태 표시줄과 실기기 상태 표시줄이 여전히 겹쳐 있음).
+   원인은 이 링크가 claude.ai Artifact 뷰어의 iframe 안에서 열리는데,
+   env(safe-area-inset-*)는 "최상위 문서"의 viewport-fit=cover 설정을
+   따르고 — 그 최상위 문서는 우리 코드가 아니라 Artifact 플랫폼(또는 그걸
+   감싼 네이티브 앱)이 통제하기 때문에 우리 쪽에서 고칠 수 없는 영역이다.
+   대신 손을 댈 수 있는 안전한 절충안으로, 마우스가 아닌 터치 입력 기기
+   (`pointer: coarse` — 사실상 폰/태블릿)에서만 최소 여백을 실측 노치 높이에
+   맞춰 한 단계 더 확보한다. env()가 이 컨텍스트에서 정상적으로 값을
+   보고하면 그 값이 더 크므로 계속 그 값을 쓰고, 0으로 막혀 있는 지금
+   같은 경우에도 최소한 44px는 확보돼 상태 표시줄에 완전히 가려지진
+   않는다. 데스크톱/마우스 환경(대부분의 프리뷰)은 이 미디어 쿼리에
+   해당하지 않아 기존 여백 그대로 유지된다. */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+}
+@media (pointer: coarse) {
+  :root {
+    --safe-top: max(env(safe-area-inset-top, 0px), 2.75rem);
+  }
+}
+
 body {
   background: var(--color-paper);
   font-family: var(--font-sans);
