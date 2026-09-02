@@ -40,19 +40,19 @@ const SOURCE_BADGE: Record<Action['createdBy'], { label: string; tone: 'default'
 }
 
 function ActionRow({ action }: { action: Action }) {
-  const { completeAction } = useAppState()
+  const { completeAction, uncompleteAction } = useAppState()
   const done = !!action.completedAt
   const badge = SOURCE_BADGE[action.createdBy]
 
   return (
     <div className="flex items-center gap-3 py-3 border-b border-white/6 last:border-0">
       <button
-        onClick={() => !done && completeAction(action.id)}
-        disabled={done}
-        className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 border transition ${
-          done ? 'bg-emerald-signal border-emerald-signal' : 'border-white/20 active:scale-90'
+        onClick={() => (done ? uncompleteAction(action.id) : completeAction(action.id))}
+        className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 border transition active:scale-90 ${
+          done ? 'bg-emerald-signal border-emerald-signal hover:bg-emerald-signal/80' : 'border-white/20'
         }`}
-        aria-label={done ? '완료됨' : '완료하기'}
+        aria-label={done ? '완료 취소하기' : '완료하기'}
+        title={done ? '탭하면 완료를 취소해요' : undefined}
       >
         {done && <Check size={14} className="text-white" strokeWidth={3} />}
       </button>
