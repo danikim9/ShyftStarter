@@ -10,20 +10,20 @@ function QuestRow({ quest }: { quest: Quest }) {
   return (
     <button
       onClick={() => openSheet({ kind: 'questDetail', questId: quest.id })}
-      className="w-full text-left py-3 border-b border-white/6 last:border-0"
+      className="w-full text-left py-3 border-b border-ink-950/6 last:border-0"
     >
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-2">
           <Badge tone="brand">{meta.nameKo}</Badge>
-          <span className="text-sm text-white/85">{quest.title}</span>
+          <span className="text-sm text-ink-950/85">{quest.title}</span>
         </div>
-        <ChevronRight size={15} className="text-white/25 shrink-0" />
+        <ChevronRight size={15} className="text-ink-950/25 shrink-0" />
       </div>
       <div className="flex items-center gap-3">
         <div className="flex-1">
           <ProgressBar value={quest.progress} max={quest.target} />
         </div>
-        <span className="text-xs text-white/40 tabular-nums w-12 text-right">
+        <span className="text-xs text-ink-950/40 tabular-nums w-12 text-right">
           {quest.progress}/{quest.target}
         </span>
       </div>
@@ -39,7 +39,7 @@ export function Quests() {
   return (
     <div className="px-4 pt-5 pb-8 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-white">Quests</h1>
+        <h1 className="text-xl font-bold text-ink-950">Quests</h1>
         <Badge tone="brand">ACTIVE {active.length}</Badge>
       </div>
 
@@ -50,7 +50,7 @@ export function Quests() {
             <QuestRow key={q.id} quest={q} />
           ))}
           {active.length === 0 && (
-            <p className="text-sm text-white/40 py-4 text-center">진행 중인 퀘스트가 없어요. 오늘의 미션을 확인해보세요.</p>
+            <p className="text-sm text-ink-950/40 py-4 text-center">진행 중인 퀘스트가 없어요. 오늘의 미션을 확인해보세요.</p>
           )}
         </Card>
       </div>
@@ -61,9 +61,9 @@ export function Quests() {
           <Card className="space-y-2.5">
             {completed.map((q) => (
               <div key={q.id} className="flex items-center gap-2.5 text-sm">
-                <Sparkles size={15} className="text-amber-300 shrink-0" />
-                <span className="text-white/70">{q.title}</span>
-                <span className="ml-auto text-amber-300 font-semibold text-xs">+{q.rewardXp} XP</span>
+                <Sparkles size={15} className="text-amber-600 shrink-0" />
+                <span className="text-ink-950/70">{q.title}</span>
+                <span className="ml-auto text-amber-600 font-semibold text-xs">+{q.rewardXp} XP</span>
               </div>
             ))}
           </Card>

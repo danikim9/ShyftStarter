@@ -10,13 +10,13 @@ import { ProgressChart } from '../components/ProgressChart'
 
 function RangeToggle({ range, onChange }: { range: ProgressRange; onChange: (r: ProgressRange) => void }) {
   return (
-    <div className="inline-flex items-center gap-0.5 rounded-full bg-white/6 p-1">
+    <div className="inline-flex items-center gap-0.5 rounded-full bg-ink-950/6 p-1">
       {(['weekly', 'monthly'] as ProgressRange[]).map((r) => (
         <button
           key={r}
           onClick={() => onChange(r)}
           className={`px-3 py-1.5 rounded-full text-xs font-semibold transition ${
-            range === r ? 'bg-white text-ink-950' : 'text-white/50'
+            range === r ? 'bg-white text-ink-950' : 'text-ink-950/50'
           }`}
         >
           {r === 'weekly' ? '주간' : '월간'}
@@ -28,10 +28,10 @@ function RangeToggle({ range, onChange }: { range: ProgressRange; onChange: (r: 
 
 function StatTile({ icon, value, label }: { icon: ReactNode; value: string; label: string }) {
   return (
-    <div className="rounded-xl bg-white/4 border border-white/8 px-3 py-3 flex flex-col gap-1">
-      <div className="text-brand-300">{icon}</div>
-      <div className="text-lg font-bold text-white tabular-nums leading-none">{value}</div>
-      <div className="text-[10px] text-white/40">{label}</div>
+    <div className="rounded-xl bg-ink-950/4 border border-ink-950/8 px-3 py-3 flex flex-col gap-1">
+      <div className="text-brand-600">{icon}</div>
+      <div className="text-lg font-bold text-ink-950 tabular-nums leading-none">{value}</div>
+      <div className="text-[10px] text-ink-950/40">{label}</div>
     </div>
   )
 }
@@ -52,8 +52,8 @@ export function Progress() {
   return (
     <div className="px-4 pt-5 pb-8 space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-white mb-1">My Progress</h1>
-        <p className="text-xs text-white/40">
+        <h1 className="text-xl font-bold text-ink-950 mb-1">My Progress</h1>
+        <p className="text-xs text-ink-950/40">
           {employee.name}님이 시간에 따라 어떻게 성장하고 있는지 보여줘요 — 이번 시프트가 아니라, 지금까지의 여정이에요.
         </p>
       </div>
@@ -74,9 +74,9 @@ export function Progress() {
         </div>
         <Card>
           <ProgressChart points={trend} color="#5b5ff2" />
-          <div className="mt-3 pt-3 border-t border-white/8 flex items-start gap-2">
+          <div className="mt-3 pt-3 border-t border-ink-950/8 flex items-start gap-2">
             <span className="text-sm leading-none mt-0.5">🤖</span>
-            <p className="text-xs text-white/70 leading-relaxed">{insight}</p>
+            <p className="text-xs text-ink-950/70 leading-relaxed">{insight}</p>
           </div>
         </Card>
       </div>
@@ -91,12 +91,12 @@ export function Progress() {
               onClick={() => setSelectedSkill(id)}
               className={`px-2.5 py-1.5 rounded-full text-[11px] font-medium border transition ${
                 selectedSkill === id
-                  ? 'bg-brand-500/20 border-brand-400/40 text-brand-200'
-                  : 'bg-white/4 border-white/8 text-white/55'
+                  ? 'bg-brand-500/20 border-brand-400/40 text-brand-700'
+                  : 'bg-ink-950/4 border-ink-950/8 text-ink-950/55'
               }`}
             >
               {SKILLS[id].nameKo}{' '}
-              <span className={delta >= 0 ? 'text-emerald-300' : 'text-rose-300'}>
+              <span className={delta >= 0 ? 'text-emerald-600' : 'text-rose-600'}>
                 {delta >= 0 ? '+' : ''}
                 {delta}
               </span>
@@ -104,7 +104,7 @@ export function Progress() {
           ))}
         </div>
         <Card>
-          <div className="text-xs text-white/50 mb-1">
+          <div className="text-xs text-ink-950/50 mb-1">
             {SKILLS[selectedSkill].nameKo} · {range === 'weekly' ? '8주간' : '6개월간'} 변화
           </div>
           <ProgressChart points={selectedTrajectory} color="#22c55e" />
@@ -119,8 +119,8 @@ export function Progress() {
             <div key={m.id} className="flex items-start gap-2">
               <span className="text-xl leading-none">{m.emoji}</span>
               <div>
-                <div className="text-xs font-semibold text-white leading-tight">{m.title}</div>
-                <div className="text-[10px] text-white/40 leading-tight mt-0.5">{m.detail}</div>
+                <div className="text-xs font-semibold text-ink-950 leading-tight">{m.title}</div>
+                <div className="text-[10px] text-ink-950/40 leading-tight mt-0.5">{m.detail}</div>
                 <Badge tone="default">{m.achievedDate}</Badge>
               </div>
             </div>

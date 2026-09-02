@@ -16,17 +16,17 @@ function ShiftRow({ shift }: { shift: Shift }) {
   return (
     <button
       onClick={() => openSheet({ kind: 'shiftDetail', shiftId: shift.id })}
-      className="w-full flex items-center justify-between py-3 border-b border-white/6 last:border-0 text-left"
+      className="w-full flex items-center justify-between py-3 border-b border-ink-950/6 last:border-0 text-left"
     >
       <div>
-        <div className="text-sm font-medium text-white/90">{fmtDate(shift.date)}</div>
-        <div className="text-xs text-white/40">{shift.start}–{shift.end} · {shift.store}</div>
+        <div className="text-sm font-medium text-ink-950/90">{fmtDate(shift.date)}</div>
+        <div className="text-xs text-ink-950/40">{shift.start}–{shift.end} · {shift.store}</div>
       </div>
       <div className="flex items-center gap-2">
         <Badge tone={isToday ? 'brand' : shift.status === 'completed' ? 'default' : 'amber'}>
           {shift.status === 'completed' ? '완료' : isToday ? '진행 중' : '예정'}
         </Badge>
-        <ChevronRight size={15} className="text-white/25" />
+        <ChevronRight size={15} className="text-ink-950/25" />
       </div>
     </button>
   )
@@ -38,7 +38,7 @@ export function Schedule() {
 
   return (
     <div className="px-4 pt-5 pb-8 space-y-6">
-      <h1 className="text-xl font-bold text-white">Schedule</h1>
+      <h1 className="text-xl font-bold text-ink-950">Schedule</h1>
 
       <div>
         <SectionLabel>UPCOMING SHIFTS</SectionLabel>

@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { Action, ActionEvent, Announcement, Comment, ExtraPayEntry, HandoverNote, MoodValue, Quest, Reaction, Reminder, SkillId, SwapRequest, TeamMembership, WageSettings } from '../types'
 import { employee, quests as initialQuests, checklistGroup as initialChecklist, todayShift, CURRENT_EMPLOYEE_ID } from '../data/mockData'
+import { team } from '../data/team'
+import { getMoodInsight } from '../lib/moodInsight'
 import {
   INITIAL_ACTIONS,
   INITIAL_ANNOUNCEMENTS,
@@ -67,6 +69,12 @@ interface AppStateShape {
   moodPromptOpen: boolean
   submitMood: (v: MoodValue) => void
   skipMoodCheckIn: () => void
+  // 24차 — 이모지를 고르면 바로 닫는 대신, 오늘 값 + 최근 흐름을 반영한 짧은
+  // 웰니스/동기부여 메시지를 모달 안에 한 번 보여준 뒤 "계속하기"를 눌러야
+  // 원래 열려던 시트(오늘 근무 상세)로 넘어간다. null이면 아직 메시지 단계가
+  // 아님(이모지 선택 전이거나, 이미 넘어간 뒤).
+  moodInsightMessage: string | null
+  continueAfterMoodInsight: () => void
   // v2 — Shift Companion MVP
   actions: Action[]
   addAction: (a: Pick<Action, 'title' | 'kind' | 'target'> & Partial<Action>) => void
@@ -97,6 +105,12 @@ interface AppStateShape {
   addTeamPost: (message: string) => void
   toggleReaction: (announcementId: string, emoji: string) => void
   addComment: (announcementId: string, message: string) => void
+  // 22차 — Team 탭 공지/인수인계 "확인" 기능. 확인한 항목의 id는 여기 모아두고
+  // 화면에서는 이 목록에 없는 것만 메인 피드로, 있는 것만 히스토리로 나눠 보여준다.
+  // 탭을 오가도 유지돼야 하는 상태라 (화면은 탭 전환마다 새로 마운트됨) 전역
+  // store에 둔다.
+  readFeedIds: string[]
+  acknowledgeFeedItem: (id: string) => void
   // v2 — team join (invite code / link, QR gated to Business tier — see manager side)
   // §9-1: membership이 'crew'/'store' 두 갈래로 나뉜다 — 매니저 매장 코드로
   // 참여하면 'store'(Team 티어, 공지·인수인계까지 전부), 직원이 스스로 만들거나
@@ -134,6 +148,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   // 상세)를 이어서 열기 위한 대기열.
   const [moodPromptOpen, setMoodPromptOpen] = useState(false)
   const [pendingSheetAfterMood, setPendingSheetAfterMood] = useState<SheetState | null>(null)
+  const [moodInsightMessage, setMoodInsightMessage] = useState<string | null>(null)
 
   // v2 — Shift Companion MVP state
   const [actions, setActions] = useState<Action[]>(INITIAL_ACTIONS)
@@ -148,6 +163,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [reminders, setReminders] = useState<Reminder[]>(INITIAL_REMINDERS)
   const [wageSettings, setWageSettingsState] = useState<WageSettings>(INITIAL_WAGE_SETTINGS)
   const [extraPayEntries, setExtraPayEntries] = useState<ExtraPayEntry[]>(INITIAL_EXTRA_PAY)
+  const [readFeedIds, setReadFeedIds] = useState<string[]>([])
 
   const markQuestProgress = (questId: string) => {
     setQuests((prev) =>
@@ -198,10 +214,19 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // 24차 — 이모지를 고르면 바로 닫지 않고, 짧은 웰니스/동기부여 메시지를
+  // 모달 안에 먼저 보여준다(moodInsightMessage). 최근 흐름은 team.ts의 지은
+  // moodHistory(최근 4시프트)를 그대로 재사용 — 다른 화면(Manager의 WILL 근거
+  // 카드 등)과 같은 소스라 숫자가 서로 어긋나지 않는다.
   const submitMood = (v: MoodValue) => {
     setTodayMood(v)
     setMoodCheckedIn(true)
-    showToast('오늘 컨디션 체크인 완료')
+    const recentHistory = team.find((m) => m.id === CURRENT_EMPLOYEE_ID)?.moodHistory ?? []
+    setMoodInsightMessage(getMoodInsight(v, recentHistory))
+  }
+
+  const continueAfterMoodInsight = () => {
+    setMoodInsightMessage(null)
     proceedAfterMood()
   }
 
@@ -370,6 +395,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setAnnouncements((prev) =>
       prev.map((a) => (a.id === announcementId ? { ...a, comments: [...a.comments, comment] } : a))
     )
+  }
+
+  // 22차 — 솔로 UX 피드백 #4: Team 탭의 공지/인수인계를 "확인"하면 메인 피드에서
+  // 사라지고 히스토리로만 남는다. 이미 확인한 id는 중복으로 쌓이지 않게 방어.
+  const acknowledgeFeedItem = (id: string) => {
+    setReadFeedIds((prev) => (prev.includes(id) ? prev : [...prev, id]))
   }
 
   // §9-1 — 매장 코드(매니저 발급)와 동료 그룹 코드를 같은 입력창에서 함께
@@ -628,6 +659,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       moodPromptOpen,
       submitMood,
       skipMoodCheckIn,
+      moodInsightMessage,
+      continueAfterMoodInsight,
       actions,
       addAction,
       completeAction,
@@ -654,6 +687,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       addTeamPost,
       toggleReaction,
       addComment,
+      readFeedIds,
+      acknowledgeFeedItem,
       membership,
       crewCode,
       joinTeam,
@@ -676,6 +711,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       todayMood,
       moodCheckedIn,
       moodPromptOpen,
+      moodInsightMessage,
       actions,
       actionEvents,
       weeklyActionTrend,
@@ -684,6 +720,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       reminders,
       handovers,
       announcements,
+      readFeedIds,
       weeklyCompletionCount,
       currentStreakDays,
       membership,

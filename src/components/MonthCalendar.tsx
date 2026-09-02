@@ -18,7 +18,7 @@ function daysInMonth(year: number, month: number) {
 }
 
 const STATUS_DOT: Record<string, string> = {
-  completed: 'bg-white/25',
+  completed: 'bg-ink-950/25',
   in_progress: 'bg-brand-400',
   upcoming: 'bg-amber-signal',
 }
@@ -50,23 +50,23 @@ export function MonthCalendar({
   const byDate = new Map(shifts.map((s) => [s.date, s]))
 
   return (
-    <div className="rounded-2xl border border-white/8 bg-ink-800/70 backdrop-blur-sm p-4">
+    <div className="rounded-2xl border border-ink-950/8 bg-ink-800/70 backdrop-blur-sm p-4">
       <div className="flex items-center justify-between mb-3">
         <button
           onClick={() => setIdx((i) => Math.max(0, i - 1))}
           disabled={idx === 0}
-          className="w-7 h-7 flex items-center justify-center rounded-full text-white/50 hover:text-white/80 disabled:opacity-20 disabled:hover:text-white/50"
+          className="w-7 h-7 flex items-center justify-center rounded-full text-ink-950/50 hover:text-ink-950/80 disabled:opacity-20 disabled:hover:text-ink-950/50"
           aria-label="이전 달"
         >
           <ChevronLeft size={14} />
         </button>
-        <span className="text-sm font-semibold text-white/85">
+        <span className="text-sm font-semibold text-ink-950/85">
           {year}년 {month + 1}월
         </span>
         <button
           onClick={() => setIdx((i) => Math.min(months.length - 1, i + 1))}
           disabled={idx === months.length - 1}
-          className="w-7 h-7 flex items-center justify-center rounded-full text-white/50 hover:text-white/80 disabled:opacity-20 disabled:hover:text-white/50"
+          className="w-7 h-7 flex items-center justify-center rounded-full text-ink-950/50 hover:text-ink-950/80 disabled:opacity-20 disabled:hover:text-ink-950/50"
           aria-label="다음 달"
         >
           <ChevronRight size={14} />
@@ -75,7 +75,7 @@ export function MonthCalendar({
 
       <div className="grid grid-cols-7 gap-1 mb-1">
         {DOW.map((d) => (
-          <div key={d} className="text-center text-[10px] font-medium text-white/30 py-1">
+          <div key={d} className="text-center text-[10px] font-medium text-ink-950/30 py-1">
             {d}
           </div>
         ))}
@@ -94,12 +94,12 @@ export function MonthCalendar({
               disabled={isOff}
               className={`aspect-square rounded-lg flex flex-col items-center justify-center gap-0.5 text-xs transition ${
                 shift?.status === 'in_progress'
-                  ? 'bg-brand-500/25 text-white font-semibold'
+                  ? 'bg-brand-500/25 text-ink-950 font-semibold'
                   : isToday
-                    ? 'border border-white/15 text-white/80'
+                    ? 'border border-ink-950/15 text-ink-950/80'
                     : isOff
-                      ? 'text-white/20'
-                      : 'text-white/65 hover:bg-white/6'
+                      ? 'text-ink-950/20'
+                      : 'text-ink-950/65 hover:bg-ink-950/6'
               }`}
             >
               <span>{Number(date.slice(-2))}</span>
@@ -109,7 +109,7 @@ export function MonthCalendar({
         })}
       </div>
 
-      <div className="flex items-center gap-3 mt-3 pt-3 border-t border-white/8 text-[10px] text-white/35">
+      <div className="flex items-center gap-3 mt-3 pt-3 border-t border-ink-950/8 text-[10px] text-ink-950/35">
         <span className="flex items-center gap-1">
           <span className="w-1.5 h-1.5 rounded-full bg-brand-400" />
           진행 중
@@ -119,7 +119,7 @@ export function MonthCalendar({
           예정
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-white/25" />
+          <span className="w-1.5 h-1.5 rounded-full bg-ink-950/25" />
           완료
         </span>
       </div>
