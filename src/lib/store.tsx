@@ -53,6 +53,7 @@ interface AppStateShape {
   actions: Action[]
   addAction: (a: Pick<Action, 'title' | 'kind' | 'target'> & Partial<Action>) => void
   completeAction: (id: string) => void
+  uncompleteAction: (id: string) => void
   weeklyCompletionCount: number
   currentStreakDays: number
   actionEvents: ActionEvent[] // silent log — not rendered, see types.ts ActionEvent
@@ -162,6 +163,22 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         return { ...a, progress: nextProgress, completedAt: done ? now : a.completedAt }
       })
     )
+  }
+
+  // 실수로 탭했을 때를 대비한 되돌리기 — 완료 표시를 다시 탭하면 완료를
+  // 취소하고 목록 위쪽(진행 중)으로 되돌린다. progress를 1 되돌리고
+  // completedAt을 지우며, 완료 시 남겼던 실적 로그(actionEvents)도 함께
+  // 지워서 나중에 실제 통계를 낼 때 "취소된 완료"가 섞이지 않게 한다.
+  const uncompleteAction = (id: string) => {
+    setActions((prev) =>
+      prev.map((a) => (a.id === id && a.completedAt ? { ...a, progress: Math.max(a.progress - 1, 0), completedAt: undefined } : a))
+    )
+    setActionEvents((prev) => {
+      const lastIndex = [...prev].map((e) => e.actionId).lastIndexOf(id)
+      if (lastIndex === -1) return prev
+      return prev.filter((_, i) => i !== lastIndex)
+    })
+    showToast('완료를 취소했어요')
   }
 
   const weeklyCompletionCount = actions.filter((a) => {
@@ -437,6 +454,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       actions,
       addAction,
       completeAction,
+      uncompleteAction,
       weeklyCompletionCount,
       currentStreakDays,
       actionEvents,
