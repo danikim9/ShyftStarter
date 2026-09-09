@@ -1,4 +1,4 @@
-import { Plus, Check, Flame, User, Bell, X, BellRing, Wallet, ChevronRight } from 'lucide-react'
+import { Plus, Check, Flame, User, Bell, X, BellRing, Wallet, ChevronRight, MessageSquareText, HelpCircle, Crown } from 'lucide-react'
 import { useAppState } from '../lib/store'
 import { shifts } from '../data/mockData'
 import { Card, Badge, ProgressBar, Toggle, SectionLabel } from '../components/ui'
@@ -36,6 +36,60 @@ function WagePreviewCard() {
         <ChevronRight size={16} className="text-ink-950/30 shrink-0" />
       </Card>
     </button>
+  )
+}
+
+// v2 — PRO: Role-play/퀴즈 되살리기. 두 기능 다 코드는 계속 살아있었지만
+// (Coach 탭이 v2에서 내비게이션 진입점에서만 숨겨졌음), My Actions의 "오늘
+// 할 일" 바로 아래에 PRO 배지를 단 진입점으로 다시 연결했다. 매장 근무교대
+// PRO(TeamScheduleView.tsx)와 동일한 배지 스타일(Crown + PRO 필)을 그대로
+// 재사용 — "배지만 PRO, 데모에서는 실제로 동작"하는 기존 원칙을 그대로 따른다.
+function ProBadge() {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-amber-signal/15 text-amber-600 text-[10px] font-bold px-2 py-0.5 shrink-0">
+      <Crown size={10} /> PRO
+    </span>
+  )
+}
+
+function AiTrainingSection() {
+  const { openSheet } = useAppState()
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <SectionLabel>AI 트레이닝</SectionLabel>
+        <span className="text-[10px] text-ink-950/30">오늘의 약점 스킬 기준 추천</span>
+      </div>
+      <Card className="space-y-1">
+        <button onClick={() => openSheet({ kind: 'rolePlay' })} className="w-full flex items-center gap-3 py-2 text-left">
+          <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center shrink-0">
+            <MessageSquareText size={16} className="text-brand-600" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm font-medium text-ink-950/90">AI 롤플레이 연습</span>
+              <ProBadge />
+            </div>
+            <div className="text-[11px] text-ink-950/40 mt-0.5">텍스트 기반 · 음성 녹음 없음</div>
+          </div>
+          <ChevronRight size={15} className="text-ink-950/25 shrink-0" />
+        </button>
+        <div className="h-px bg-ink-950/6" />
+        <button onClick={() => openSheet({ kind: 'quiz' })} className="w-full flex items-center gap-3 py-2 text-left">
+          <div className="w-9 h-9 rounded-xl bg-amber-signal/15 flex items-center justify-center shrink-0">
+            <HelpCircle size={16} className="text-amber-600" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm font-medium text-ink-950/90">퀴즈로 스킬 체크</span>
+              <ProBadge />
+            </div>
+            <div className="text-[11px] text-ink-950/40 mt-0.5">객관식 3문제 · 2분</div>
+          </div>
+          <ChevronRight size={15} className="text-ink-950/25 shrink-0" />
+        </button>
+      </Card>
+    </div>
   )
 }
 
@@ -174,6 +228,8 @@ export function MyActions() {
           ))}
         </Card>
       </div>
+
+      <AiTrainingSection />
 
       <div>
         <div className="flex items-center justify-between mb-2">
