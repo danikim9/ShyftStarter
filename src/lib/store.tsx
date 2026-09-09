@@ -27,6 +27,7 @@ export type SheetKind =
   | 'shiftDetail'
   | 'learn'
   | 'rolePlay'
+  | 'quiz'
   | 'handoverCompose'
   | 'actionCompose'
   | 'announcementCompose'

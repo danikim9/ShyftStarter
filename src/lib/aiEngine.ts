@@ -9,9 +9,10 @@
 // Claude API call later requires no changes to the screens that consume it.
 // ---------------------------------------------------------------------------
 
-import type { CoachingCard, Employee, EmployeeSkillScore, ProgressPoint, ProgressRange, Quest, RolePlayResult, SkillId } from '../types'
+import type { CoachingCard, Employee, EmployeeSkillScore, ProgressPoint, ProgressRange, Quest, QuizQuestion, RolePlayResult, SkillId } from '../types'
 import { SKILLS } from '../data/skills'
 import { LEARNING_MODULES } from '../data/learningContent'
+import { QUIZ_QUESTIONS } from '../data/quizContent'
 
 // Layer B input — how much each skill matters to revenue outcomes today.
 // (In production this comes from Business Priority + KPI correlation data.)
@@ -144,6 +145,21 @@ export function getNextBestAction(employee: Employee, quests: Quest[]): NextBest
 export function recommendLearningModule(employee: Employee) {
   const skillId = pickFocusSkill(employee.skills)
   return LEARNING_MODULES[skillId]
+}
+
+// ---------------------------------------------------------------------------
+// v2 — PRO: Quest 객관식 퀴즈. Role-play와 동일하게 pickFocusSkill로 오늘
+// 가장 필요한 스킬을 고르고, 그 스킬의 3문제 세트를 반환한다.
+// ---------------------------------------------------------------------------
+
+export interface QuizSet {
+  skillId: SkillId
+  questions: QuizQuestion[]
+}
+
+export function recommendQuizSet(employee: Employee): QuizSet {
+  const skillId = pickFocusSkill(employee.skills)
+  return { skillId, questions: QUIZ_QUESTIONS[skillId] }
 }
 
 // ---------------------------------------------------------------------------

@@ -258,6 +258,23 @@ export interface RolePlayResult {
 }
 
 // ---------------------------------------------------------------------------
+// v2 — PRO: Quest 객관식 퀴즈 (skill quiz). Role-play와 함께 "Business 이상"
+// 코드였다가, v2에서 개인 유료 add-on(PRO) 형태로 MVP 진입점에 다시
+// 연결됐다 — Employee 앱 자체는 여전히 Free MVP지만, 이 두 기능만 PRO 배지를
+// 달고 노출된다(매장 PRO 근무교대와 동일한 패턴: 배지만 PRO, 데모에서는
+// 실제로 동작).
+// ---------------------------------------------------------------------------
+
+export interface QuizQuestion {
+  id: string
+  skillId: SkillId
+  question: string
+  options: string[]
+  correctIndex: number
+  explanation: string
+}
+
+// ---------------------------------------------------------------------------
 // P1 — Progress (Longitudinal Growth · Skill Trajectory)
 // ---------------------------------------------------------------------------
 
