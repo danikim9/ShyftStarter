@@ -7,7 +7,7 @@ import type { Action, Announcement, ExtraPayEntry, HandoverNote, Reminder, WageS
 import { CURRENT_EMPLOYEE_ID } from './mockData'
 
 export const STORE_ID = 'st_gangnam'
-export const STORE_NAME = '강남점'
+export const STORE_NAME = 'Gangnam Flagship'
 // 20차 — 참여 코드 커스터마이즈(매니저 PRO)로 이 값은 이제 "초기 시드"일 뿐이다.
 // 실제 유효한 매장 코드는 AppStateProvider의 storeCode 상태(src/lib/store.tsx)이고,
 // joinTeam()도 그 동적 값을 기준으로 비교한다 — 매니저가 코드를 바꾸면 이 상수값은

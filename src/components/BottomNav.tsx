@@ -1,21 +1,32 @@
-import { Home, CalendarDays, Target, Radar as RadarIcon, Sparkles, TrendingUp, Trophy, CalendarClock, Megaphone, ListChecks } from 'lucide-react'
+import { Home, CalendarDays, Target, Radar as RadarIcon, Sparkles, TrendingUp, Trophy, CalendarClock, Megaphone, ListChecks, Sun, User } from 'lucide-react'
 
-// v2 — Shift Companion MVP: only 3 tabs are wired into the bottom nav
-// (myShift / teamFeed / myActions). The older P0~P2 tab ids are kept in this
-// union — and their screens left compiling — purely so the hidden Business+
-// screens (Stats/Coach/Progress/old Team leaderboard, reachable via a future
-// tier gate) still type-check. See claude/shyftstarter-v2-strategy-b2c-pivot.md.
-export type TabId = 'home' | 'schedule' | 'quests' | 'stats' | 'coach' | 'progress' | 'team' | 'myShift' | 'teamFeed' | 'myActions'
+// Bellatrix MVP: Today → Actions → Growth → Profile. The legacy tab ids stay in
+// the union so the hidden Shift-Companion screens (team feed, schedule, wage
+// calculator, …) keep compiling and remain reachable from Profile → "팀 · 근무".
+export type TabId =
+  | 'today'
+  | 'actions'
+  | 'growth'
+  | 'profile'
+  | 'home'
+  | 'schedule'
+  | 'quests'
+  | 'stats'
+  | 'coach'
+  | 'progress'
+  | 'team'
+  | 'myShift'
+  | 'teamFeed'
+  | 'myActions'
 
-// 22차 — 솔로 UX 피드백: My Actions를 My Shift 바로 다음 순서로, 그리고
-// 하단 내비게이션 정중앙에 오도록 재배치했다(3탭 구조라 가운데 자리 = 정중앙).
 const TABS: { id: TabId; label: string; icon: typeof Home }[] = [
-  { id: 'myShift', label: 'My Shift', icon: CalendarClock },
-  { id: 'myActions', label: 'My Actions', icon: ListChecks },
-  { id: 'teamFeed', label: 'Team', icon: Megaphone },
+  { id: 'today', label: 'Today', icon: Sun },
+  { id: 'actions', label: 'Actions', icon: Target },
+  { id: 'growth', label: 'Growth', icon: TrendingUp },
+  { id: 'profile', label: 'Profile', icon: User },
 ]
 
-// Kept for reference by hidden Business+ screens — not rendered in MVP nav.
+// Kept for reference by hidden legacy screens — not rendered in the MVP nav.
 export const LEGACY_TABS: { id: TabId; label: string; icon: typeof Home }[] = [
   { id: 'home', label: 'Home', icon: Home },
   { id: 'schedule', label: 'Schedule', icon: CalendarDays },
@@ -24,6 +35,9 @@ export const LEGACY_TABS: { id: TabId; label: string; icon: typeof Home }[] = [
   { id: 'coach', label: 'Coach', icon: Sparkles },
   { id: 'progress', label: 'Progress', icon: TrendingUp },
   { id: 'team', label: 'Team', icon: Trophy },
+  { id: 'myShift', label: 'My Shift', icon: CalendarClock },
+  { id: 'myActions', label: 'My Actions', icon: ListChecks },
+  { id: 'teamFeed', label: 'Team', icon: Megaphone },
 ]
 
 export function BottomNav({ active, onChange }: { active: TabId; onChange: (id: TabId) => void }) {
@@ -33,11 +47,7 @@ export function BottomNav({ active, onChange }: { active: TabId; onChange: (id: 
         {TABS.map(({ id, label, icon: Icon }) => {
           const isActive = active === id
           return (
-            <button
-              key={id}
-              onClick={() => onChange(id)}
-              className="flex-1 flex flex-col items-center gap-1 py-1.5 rounded-xl transition min-w-0"
-            >
+            <button key={id} onClick={() => onChange(id)} className="flex-1 flex flex-col items-center gap-1 py-1.5 rounded-xl transition min-w-0" aria-current={isActive ? 'page' : undefined}>
               <Icon size={20} strokeWidth={isActive ? 2.4 : 1.8} className={isActive ? 'text-brand-600' : 'text-ink-950/40'} />
               <span className={`text-[10px] font-medium leading-none ${isActive ? 'text-brand-600' : 'text-ink-950/40'}`}>{label}</span>
             </button>
