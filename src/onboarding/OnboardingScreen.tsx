@@ -6,10 +6,10 @@
 // "건너뛰기"는 언제든 바로 로그인 화면으로 넘어갈 수 있게 한다.
 
 import { useState } from 'react'
-import { CalendarClock, ListChecks, Megaphone, ChevronRight } from 'lucide-react'
+import { Sun, Sparkles, TrendingUp, ChevronRight } from 'lucide-react'
 
 interface Slide {
-  icon: typeof CalendarClock
+  icon: typeof Sun
   tint: string
   title: string
   body: string
@@ -17,22 +17,22 @@ interface Slide {
 
 const SLIDES: Slide[] = [
   {
-    icon: CalendarClock,
+    icon: Sun,
     tint: 'from-brand-400 to-brand-700',
-    title: '내 근무, 한눈에 정리해요',
-    body: '오늘 근무부터 다음 스케줄, 예상 급여까지 — 근무 관련 정보를 이 앱 하나로 확인해요.',
+    title: '오늘, 하나의 행동에만 집중해요',
+    body: '근무 시작 전 오늘의 포커스와 10초 마이크로 코칭을 확인하고, 응대에서 딱 하나만 시도해요.',
   },
   {
-    icon: ListChecks,
+    icon: Sparkles,
     tint: 'from-emerald-signal to-emerald-700',
-    title: '오늘 할 일을 놓치지 않아요',
-    body: '내가 만든 할 일과 매니저가 보낸 할 일을 한 곳에서 체크하고, 나만의 리마인더로 챙겨요.',
+    title: '시도한 만큼 기록해요',
+    body: '시도할 때마다 +, 끝나면 20초 체크인. 잘한 척이 아니라 실제로 한 것을 남겨요.',
   },
   {
-    icon: Megaphone,
+    icon: TrendingUp,
     tint: 'from-amber-signal to-amber-700',
-    title: '팀과 매끄럽게 연결돼요',
-    body: '공지와 인수인계를 놓치지 않고, 동료와 근무를 편하게 맞바꿔요.',
+    title: '근거로 성장을 확인해요',
+    body: '내 행동 기록과 매니저 관찰이 쌓이면, 어떤 행동이 매장 성과와 함께 움직이는지 보여드려요.',
   },
 ]
 
