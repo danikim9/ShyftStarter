@@ -1,5 +1,5 @@
-import { Users, Grid3x3, Megaphone, CalendarDays, Construction, Crown } from 'lucide-react'
-import { ManagerStateProvider, useManagerState, type ManagerView } from '../lib/managerStore'
+import { Users, Grid3x3, Megaphone, CalendarDays, Construction, Crown, Sun, Lightbulb, BarChart3, MoreHorizontal, ChevronRight, ArrowLeft } from 'lucide-react'
+import { ManagerStateProvider, useManagerState, LEGACY_MANAGER_VIEWS, type ManagerView } from '../lib/managerStore'
 import { STORES } from '../data/stores'
 import { TeamActionsComposer } from './TeamActionsComposer'
 import { RosterView } from './RosterView'
@@ -9,7 +9,11 @@ import { MatrixView } from './MatrixView'
 import { EmployeeDetailPanel } from './EmployeeDetailPanel'
 import { QuestCreateModal } from './QuestCreateModal'
 import { CoachingGuideModal } from './CoachingGuideModal'
-import { SecondaryButton } from '../components/ui'
+import { SecondaryButton, Card, SectionLabel } from '../components/ui'
+import { ManagerHome } from './bellatrix/ManagerHome'
+import { InsightsView } from './bellatrix/InsightsView'
+import { KpiView } from './bellatrix/KpiView'
+import { useReadyData } from '../lib/bellatrixStore'
 
 // 26차 — "(고급)"이 사이드바 폭(224px)에서 한글 단어 단위로 줄바꿈되지 않고
 // 글자 중간에서 잘려 보이던 문제 수정: 라벨에서 괄호 표기를 떼어내고, 다른
@@ -20,16 +24,78 @@ import { SecondaryButton } from '../components/ui'
 // 폭이 훨씬 좁아서 "근무 일정 관리"/"Will × Capability" 같은 긴 라벨은
 // 그대로 못 쓰므로 shortLabel을 별도로 둔다.
 const NAV: { id: ManagerView; label: string; shortLabel: string; icon: typeof Users; pro?: boolean }[] = [
-  { id: 'actions', label: '팀 액션 · 공지', shortLabel: '공지', icon: Megaphone },
-  { id: 'roster', label: '근무 일정 관리', shortLabel: '일정', icon: CalendarDays },
-  { id: 'team', label: '팀 현황', shortLabel: '팀 현황', icon: Users },
-  { id: 'matrix', label: 'Will × Capability', shortLabel: '분석', icon: Grid3x3, pro: true },
+  { id: 'home', label: '오늘의 팀', shortLabel: '홈', icon: Sun },
+  { id: 'insights', label: '주간 인사이트', shortLabel: '인사이트', icon: Lightbulb },
+  { id: 'kpi', label: '매장 KPI', shortLabel: 'KPI', icon: BarChart3 },
+  { id: 'more', label: '더보기 (팀 운영)', shortLabel: '더보기', icon: MoreHorizontal },
 ]
+
+// Legacy Shift-Companion manager tools — deprioritised for the Bellatrix MVP
+// but kept working behind "더보기".
+const LEGACY_NAV: { id: ManagerView; label: string; icon: typeof Users; pro?: boolean }[] = [
+  { id: 'actions', label: '팀 공지 · 체크리스트', icon: Megaphone },
+  { id: 'roster', label: '근무 일정 관리', icon: CalendarDays },
+  { id: 'team', label: '팀 현황 (구버전)', icon: Users },
+  { id: 'matrix', label: 'Will × Capability', icon: Grid3x3, pro: true },
+]
+
+function MoreView() {
+  const { setView } = useManagerState()
+  return (
+    <div className="space-y-6 max-w-3xl">
+      <div>
+        <h1 className="text-2xl font-bold text-ink-950 mb-1">더보기</h1>
+        <p className="text-sm text-ink-950/45">팀 운영 도구예요. Bellatrix 파일럿의 핵심 흐름(관찰 → KPI → 인사이트)과는 별개로 유지돼요.</p>
+      </div>
+      <div>
+        <SectionLabel>팀 운영</SectionLabel>
+        <Card className="p-0 overflow-hidden">
+          {LEGACY_NAV.map(({ id, label, icon: Icon, pro }) => (
+            <button key={id} onClick={() => setView(id)} className="w-full flex items-center gap-3 px-4 py-3.5 border-b border-ink-950/6 last:border-0 text-left">
+              <Icon size={16} className="text-ink-950/45" />
+              <span className="flex-1 text-sm text-ink-950/85">{label}</span>
+              {pro && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-signal/15 text-amber-600 text-[10px] font-bold px-2 py-0.5">
+                  <Crown size={10} /> PRO
+                </span>
+              )}
+              <ChevronRight size={15} className="text-ink-950/25" />
+            </button>
+          ))}
+        </Card>
+      </div>
+    </div>
+  )
+}
+
+function LegacyBackBar() {
+  const { view, setView } = useManagerState()
+  if (!LEGACY_MANAGER_VIEWS.includes(view)) return null
+  return (
+    <button onClick={() => setView('more')} className="inline-flex items-center gap-1 text-xs font-medium text-brand-700 mb-4">
+      <ArrowLeft size={14} /> 더보기로 돌아가기
+    </button>
+  )
+}
 
 // 27차 — 데스크톱 전용 좌측 사이드바. md(768px) 미만에서는 완전히 숨기고
 // 대신 MobileTopBar + ManagerBottomNav 조합으로 대체한다 — 224px 고정
 // 사이드바가 iPhone 폭(390~430px)에서 콘텐츠 영역을 지나치게 잠식하는 문제라
 // "일부만 줄이는" 대신 아예 다른 레이아웃으로 분기했다.
+function ManagerIdentity({ storeName }: { storeName: string }) {
+  const ready = useReadyData()
+  const name = ready?.user.name ?? 'Manager'
+  return (
+    <>
+      <span className="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-xs font-bold text-white">{name[0]}</span>
+      <div>
+        <div className="text-xs font-medium text-ink-950/85">{name}</div>
+        <div className="text-[10px] text-ink-950/35">Store Manager · {ready?.data.store.name ?? storeName}</div>
+      </div>
+    </>
+  )
+}
+
 function Sidebar() {
   const { view, setView, selectedStoreId } = useManagerState()
   const currentStore = STORES.find((s) => s.id === selectedStoreId) ?? STORES[0]
@@ -42,7 +108,7 @@ function Sidebar() {
       <StoreSwitcher />
       <nav className="space-y-1">
         {NAV.map(({ id, label, icon: Icon, pro }) => {
-          const active = view === id
+          const active = view === id || (id === 'more' && LEGACY_MANAGER_VIEWS.includes(view))
           return (
             <button
               key={id}
@@ -66,11 +132,7 @@ function Sidebar() {
       </nav>
       <div className="mt-auto px-2 pt-4 border-t border-ink-950/8">
         <div className="flex items-center gap-2.5">
-          <span className="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-xs font-bold text-white">K</span>
-          <div>
-            <div className="text-xs font-medium text-ink-950/85">Kim M.</div>
-            <div className="text-[10px] text-ink-950/35">Store Manager · {currentStore.name}</div>
-          </div>
+          <ManagerIdentity storeName={currentStore.name} />
         </div>
       </div>
     </div>
@@ -83,6 +145,11 @@ function Sidebar() {
 // 다이나믹 아일랜드 상태 표시줄과 겹치는 게 확인돼, 위쪽 패딩을
 // `max(0.75rem, env(safe-area-inset-top))`로 바꿔 안전 영역만큼 자동으로
 // 내려가도록 했다(App.tsx의 StatusBar/LogoutButton과 동일한 패턴).
+function ManagerAvatar() {
+  const ready = useReadyData()
+  return <span className="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-xs font-bold text-white shrink-0">{ready?.user.name[0] ?? 'M'}</span>
+}
+
 function MobileTopBar() {
   return (
     <div
@@ -92,9 +159,7 @@ function MobileTopBar() {
       <div className="flex-1 min-w-0">
         <StoreSwitcher className="" />
       </div>
-      <span className="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-xs font-bold text-white shrink-0">
-        K
-      </span>
+      <ManagerAvatar />
     </div>
   )
 }
@@ -117,7 +182,7 @@ function ManagerBottomNav() {
     >
       <div className="grid grid-cols-4">
         {NAV.map(({ id, shortLabel, icon: Icon, pro }) => {
-          const active = view === id
+          const active = view === id || (id === 'more' && LEGACY_MANAGER_VIEWS.includes(view))
           return (
             <button
               key={id}
@@ -170,6 +235,11 @@ function ManagerContent() {
     // 27차 — 모바일에서는 고정 하단 탭바(ManagerBottomNav)에 콘텐츠 마지막
     // 줄이 가리지 않도록 pb-24, md 이상에서는 기존 여백(py-8) 그대로.
     <div className="flex-1 min-h-0 overflow-y-auto app-scroll px-4 pt-5 pb-24 md:px-8 md:py-8">
+      <LegacyBackBar />
+      {view === 'home' && <ManagerHome />}
+      {view === 'insights' && <InsightsView />}
+      {view === 'kpi' && <KpiView />}
+      {view === 'more' && <MoreView />}
       {view === 'actions' && <TeamActionsComposer />}
       {view === 'roster' && <RosterView />}
       {view === 'team' && <TeamOverview />}

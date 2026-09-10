@@ -1,7 +1,9 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
 import { STORE_ID } from '../data/mvpData'
 
-export type ManagerView = 'actions' | 'roster' | 'team' | 'matrix'
+// Bellatrix manager views first; legacy Shift-Companion views live under 'more'.
+export type ManagerView = 'home' | 'insights' | 'kpi' | 'more' | 'actions' | 'roster' | 'team' | 'matrix'
+export const LEGACY_MANAGER_VIEWS: ManagerView[] = ['actions', 'roster', 'team', 'matrix']
 
 interface ManagerStateShape {
   view: ManagerView
@@ -22,7 +24,7 @@ interface ManagerStateShape {
 const ManagerStateContext = createContext<ManagerStateShape | null>(null)
 
 export function ManagerStateProvider({ children }: { children: ReactNode }) {
-  const [view, setView] = useState<ManagerView>('actions')
+  const [view, setView] = useState<ManagerView>('home')
   const [selectedStoreId, setSelectedStoreId] = useState<string>(STORE_ID)
   const [detailMemberId, setDetailMemberId] = useState<string | null>(null)
   const [questModalMemberId, setQuestModalMemberId] = useState<string | null>(null)
