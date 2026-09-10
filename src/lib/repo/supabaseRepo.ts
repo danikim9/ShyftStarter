@@ -1,0 +1,196 @@
+// Supabase adapter. Activated when VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY
+// are set. Table/column names match src/types/bellatrix.ts and the migration in
+// supabase/migrations/. Privacy is enforced server-side by RLS; the filters here
+// only narrow the payload.
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type {
+  Action,
+  ActionAssignment,
+  ActionEvent,
+  BehaviourEvidence,
+  Company,
+  OutcomeEvent,
+  Pilot,
+  PilotParticipant,
+  ProductEvent,
+  Shift,
+  ShiftReflection,
+  Store,
+  StoreDataset,
+  User,
+} from '../../types/bellatrix'
+import { RepoError, type BellatrixRepo, type DatasetWindow, type NewRow, type SignInParams } from './types'
+
+// Interfaces are not assignable to Record<string, unknown>; a mapped type is.
+type Plain<T> = { [K in keyof T]: T[K] }
+type Tbl<T> = { Row: Plain<T>; Insert: Partial<Plain<T>>; Update: Partial<Plain<T>>; Relationships: [] }
+
+export interface Database {
+  public: {
+    Tables: {
+      companies: Tbl<Company>
+      stores: Tbl<Store>
+      users: Tbl<User>
+      shifts: Tbl<Shift>
+      actions: Tbl<Action>
+      action_assignments: Tbl<ActionAssignment>
+      action_events: Tbl<ActionEvent>
+      behaviour_evidence: Tbl<BehaviourEvidence>
+      outcome_events: Tbl<OutcomeEvent>
+      shift_reflections: Tbl<ShiftReflection>
+      pilots: Tbl<Pilot>
+      pilot_participants: Tbl<PilotParticipant>
+      product_events: Tbl<ProductEvent>
+    }
+    Views: Record<string, never>
+    Functions: Record<string, never>
+    Enums: Record<string, never>
+    CompositeTypes: Record<string, never>
+  }
+}
+
+function mapError(e: { message: string; code?: string } | null, fallback: string): RepoError {
+  if (!e) return new RepoError('unknown', fallback)
+  const msg = e.message || fallback
+  if (/JWT|auth|permission|policy|401|403/i.test(msg)) return new RepoError('auth', '권한이 없거나 로그인이 만료됐어요. 다시 로그인해주세요.')
+  if (/fetch|network|Failed to fetch|timeout/i.test(msg)) return new RepoError('network', '네트워크에 연결할 수 없어요. 연결 상태를 확인하고 다시 시도해주세요.')
+  return new RepoError('unknown', msg)
+}
+
+export class SupabaseRepo implements BellatrixRepo {
+  readonly mode = 'supabase' as const
+  private client: SupabaseClient<Database>
+
+  constructor(url: string, anonKey: string) {
+    this.client = createClient<Database>(url, anonKey, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
+    })
+  }
+
+  private async profile(id: string): Promise<User> {
+    const { data, error } = await this.client.from('users').select('*').eq('id', id).maybeSingle()
+    if (error) throw mapError(error, '사용자 정보를 불러올 수 없어요.')
+    if (!data) throw new RepoError('not_found', '계정은 있지만 매장 프로필이 아직 없어요. 매니저에게 초대를 요청해주세요.')
+    return data
+  }
+
+  async getCurrentUser(): Promise<User | null> {
+    const { data, error } = await this.client.auth.getSession()
+    if (error) throw mapError(error, '세션을 확인할 수 없어요.')
+    if (!data.session) return null
+    return this.profile(data.session.user.id)
+  }
+
+  async signIn({ email, password }: SignInParams): Promise<User> {
+    if (!password) throw new RepoError('validation', '비밀번호를 입력해주세요.')
+    const { data, error } = await this.client.auth.signInWithPassword({ email: email.trim(), password })
+    if (error) {
+      if (/invalid/i.test(error.message)) throw new RepoError('auth', '이메일 또는 비밀번호가 올바르지 않아요.')
+      throw mapError(error, '로그인에 실패했어요.')
+    }
+    return this.profile(data.user.id)
+  }
+
+  async signOut(): Promise<void> {
+    const { error } = await this.client.auth.signOut()
+    if (error) throw mapError(error, '로그아웃에 실패했어요.')
+  }
+
+  async listDemoAccounts(): Promise<User[]> {
+    return []
+  }
+
+  async loadDataset(storeId: string, viewer: User, window: DatasetWindow): Promise<StoreDataset> {
+    const from = `${window.from}T00:00:00`
+    const to = `${window.to}T23:59:59`
+    const c = this.client
+    const [store, users, shifts, actions, assignments, events, evidence, outcomes, reflections, pilots, participants] = await Promise.all([
+      c.from('stores').select('*').eq('id', storeId).single(),
+      c.from('users').select('*').eq('store_id', storeId),
+      c.from('shifts').select('*').eq('store_id', storeId).gte('start_at', from).lte('start_at', to),
+      c.from('actions').select('*').eq('active', true),
+      c.from('action_assignments').select('*').eq('store_id', storeId).gte('assigned_date', window.from).lte('assigned_date', window.to),
+      c.from('action_events').select('*').gte('event_at', from).lte('event_at', to),
+      c.from('behaviour_evidence').select('*').eq('store_id', storeId).gte('observed_at', from).lte('observed_at', to),
+      c.from('outcome_events').select('*').eq('store_id', storeId).gte('outcome_date', window.from).lte('outcome_date', window.to),
+      c.from('shift_reflections').select('*').gte('created_at', from).lte('created_at', to),
+      c.from('pilots').select('*'),
+      c.from('pilot_participants').select('*'),
+    ])
+    const results = [store, users, shifts, actions, assignments, events, evidence, outcomes, reflections, pilots, participants]
+    const failed = results.find((r) => r.error)
+    if (failed?.error) throw mapError(failed.error, '데이터를 불러올 수 없어요.')
+    if (!store.data) throw new RepoError('not_found', '매장 정보를 찾을 수 없어요.')
+
+    const companyRes = await c.from('companies').select('*').eq('id', store.data.company_id).maybeSingle()
+    void viewer
+
+    return {
+      company: companyRes.data ?? null,
+      store: store.data,
+      users: users.data ?? [],
+      shifts: shifts.data ?? [],
+      actions: actions.data ?? [],
+      assignments: assignments.data ?? [],
+      action_events: events.data ?? [],
+      evidence: evidence.data ?? [],
+      outcomes: outcomes.data ?? [],
+      reflections: reflections.data ?? [],
+      pilots: pilots.data ?? [],
+      pilot_participants: participants.data ?? [],
+    }
+  }
+
+  async createAssignments(rows: NewRow<ActionAssignment>[]): Promise<ActionAssignment[]> {
+    const { data, error } = await this.client.from('action_assignments').insert(rows).select('*')
+    if (error) throw mapError(error, '액션을 배정할 수 없어요.')
+    return data ?? []
+  }
+
+  async updateAssignmentStatus(id: string, status: ActionAssignment['status']): Promise<void> {
+    const { error } = await this.client.from('action_assignments').update({ status }).eq('id', id)
+    if (error) throw mapError(error, '액션 상태를 저장할 수 없어요.')
+  }
+
+  async createActionEvent(row: Omit<ActionEvent, 'id'>): Promise<ActionEvent> {
+    const { data, error } = await this.client.from('action_events').insert(row).select('*').single()
+    if (error) throw mapError(error, '진행 기록을 저장할 수 없어요.')
+    return data
+  }
+
+  async createEvidence(rows: NewRow<BehaviourEvidence>[]): Promise<BehaviourEvidence[]> {
+    const { data, error } = await this.client.from('behaviour_evidence').insert(rows).select('*')
+    if (error) throw mapError(error, '체크인을 저장할 수 없어요.')
+    return data ?? []
+  }
+
+  async upsertOutcome(row: NewRow<OutcomeEvent>): Promise<OutcomeEvent> {
+    let q = this.client.from('outcome_events').select('id').eq('store_id', row.store_id).eq('outcome_date', row.outcome_date)
+    q = row.user_id ? q.eq('user_id', row.user_id) : q.is('user_id', null)
+    const existing = await q.maybeSingle()
+    if (existing.error) throw mapError(existing.error, 'KPI를 저장할 수 없어요.')
+    if (existing.data) {
+      const { data, error } = await this.client.from('outcome_events').update(row).eq('id', existing.data.id).select('*').single()
+      if (error) throw mapError(error, 'KPI를 저장할 수 없어요.')
+      return data
+    }
+    const { data, error } = await this.client.from('outcome_events').insert(row).select('*').single()
+    if (error) throw mapError(error, 'KPI를 저장할 수 없어요.')
+    return data
+  }
+
+  async createReflection(row: NewRow<ShiftReflection>): Promise<ShiftReflection> {
+    const { data, error } = await this.client.from('shift_reflections').insert(row).select('*').single()
+    if (error) throw mapError(error, '회고를 저장할 수 없어요.')
+    return data
+  }
+
+  async trackEvent(row: Omit<ProductEvent, 'id'>): Promise<void> {
+    const { error } = await this.client.from('product_events').insert(row)
+    if (error) console.warn('[tracking] failed', error.message)
+  }
+
+  async resetDemoData(): Promise<void> {
+    throw new RepoError('validation', '실서버 모드에서는 데모 데이터를 초기화할 수 없어요.')
+  }
+}

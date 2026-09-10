@@ -1,3 +1,83 @@
+# ShyftStarter — Bellatrix Frontline Behavioral Intelligence (TestFlight MVP)
+
+> **ShyftStarter는 스케줄링 앱이 아닙니다.** Bellatrix(Frontline Behavioral Intelligence Platform)의
+> 프론트라인 인터페이스로, "특정 마이크로 코칭 개입이 매장 직원의 판매 행동을 바꾸고, 그 행동 변화가
+> 측정 가능한 매출 KPI 개선과 연관되는가"를 검증하기 위한 파일럿 데이터 수집 도구입니다.
+
+```
+Today → Micro Coaching → Action → Behaviour Evidence → KPI → Insight
+Employee → Shift → Intervention → ActionEvent → BehaviourEvidence → OutcomeEvent
+```
+
+## 실행
+
+```bash
+npm install
+npm run dev          # http://localhost:5173 — 온보딩 → 데모 계정 선택 → 앱
+npm run build        # tsc -b && vite build → dist/
+npm run cap:sync     # build + npx cap sync (ios/ android/ 는 로컬 Mac에만 존재)
+```
+
+백엔드 설정이 없으면(기본) **온디바이스 어댑터**로 동작합니다: 시드 데이터가 기기 저장소에 저장되고 모든
+기록이 영속화되어, TestFlight 테스터가 서버 없이 전체 플로우를 쓸 수 있습니다.
+Supabase를 연결하려면 `.env.example`을 `.env`로 복사해 `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`를
+채우고 `supabase/migrations/0001_bellatrix_core.sql` → `supabase/seed.sql`을 적용하세요. 코드 변경 없이
+`src/lib/repo/index.ts`가 어댑터를 전환합니다.
+
+## 데모 계정 (온디바이스 모드)
+
+| 계정 | 역할 | 비고 |
+|---|---|---|
+| Dani Kim | 직원 | 오늘 마이크로 코칭 1 + 액션 2 (3/5, 1/3 진행 중) |
+| Mina Lee · Joon Park | 직원 | Joon은 파일럿 **대조군**(크로스셀 개입 없음) |
+| Sora Kim | 매니저 | 오늘의 팀 · 관찰 · KPI · 인사이트 |
+
+## 화면 구조
+
+**직원** — 하단 탭 4개: **Today / Actions / Growth / Profile**
+- Today: 오늘 근무 · 오늘의 포커스(지표) · 마이크로 코칭 카드("오늘 이걸 써볼게요") · 오늘의 액션(최대 3) · 1분 회고
+- 액션 상세: +/− 진행 기록(ActionEvent `progress_updated`) → "완료하기 — 20초 체크인"(BehaviourEvidence, 자기 보고 = 신뢰도 낮음)
+- Growth: 이번 주(액션 완료 / 코칭 적용 / 매니저 관찰), 3주 행동 트렌드, 다음 근무 추천(규칙 기반). 점수 없음 — 데이터 부족/근거 쌓는 중/초기 신호 라벨만
+- Profile: 계정 · 저장 위치 · 데모 데이터 초기화 · 구버전 화면(팀 공지·인수인계, 근무 일정) 진입
+
+**매니저** — 홈 / 인사이트 / KPI / 더보기 (같은 앱, 계정 역할로 분기; 우하단 버튼으로 직원 화면 미리보기)
+- 홈: 오늘 근무 직원 + 액션 진행 + 오늘 관찰 여부, CTA **빠른 관찰**(10초, 샘플링 OK) · **오늘 성과 입력** · **액션 배정**(개인/팀 전체, 날짜, 목표 횟수, 연결 지표)
+- 인사이트: 규칙 기반 주간 인사이트 — "크로스셀 액션 완료된 날 ATV +x%" 등. 모든 문장에 `데이터 부족 / 근거 쌓는 중 / 초기 신호 / 상관관계` 라벨 + "상관관계는 인과관계를 증명하지 않아요"
+- KPI: 수동 입력(CVR/ATV/UPT/Attach 자동 계산, Attach Rate 정의는 매장 설정값) · CSV 가져오기(필수 컬럼·숫자·날짜·매장 ID 검증, 행 단위 오류 표시)
+- 더보기: 구버전 팀 운영 도구(공지·체크리스트, 근무 일정 관리, 팀 현황, Will×Capability) — 코드 유지, 우선순위 하향
+
+## 코드 구조 (Bellatrix)
+
+| 경로 | 역할 |
+|---|---|
+| `src/types/bellatrix.ts` | 도메인 타입 (DB 컬럼과 1:1, snake_case) |
+| `src/lib/repo/` | `BellatrixRepo` 인터페이스 · `localRepo`(온디바이스) · `supabaseRepo` · 팩토리 |
+| `src/lib/bellatrixStore.tsx` | 세션/데이터셋/쓰기 작업 React 컨텍스트 (로딩·에러·토스트·이벤트 트래킹) |
+| `src/lib/analytics/` | `metrics`(KPI 파생) · `analytics`(완료율·관찰률·그룹 비교·트렌드) · `insights`(주간 인사이트) · `recommendation`(다음 근무 추천) · `confidence`(근거 신뢰도) |
+| `src/lib/csvImport.ts` | KPI CSV 파서/검증 |
+| `src/lib/tracking.ts` | 제품 이벤트(app_opened … insight_viewed) → `product_events` |
+| `src/data/seed.ts` | Gangnam Flagship 3주 시드 (결정적 PRNG) |
+| `src/screens/bellatrix/` | Today · Actions · Growth · Profile |
+| `src/components/bellatrix/` | 코칭/체크인/액션 상세/회고 시트, 공용 UI |
+| `src/manager/bellatrix/` | 매니저 홈 · 배정 · 관찰 · KPI · CSV · 인사이트 |
+| `supabase/migrations/0001_bellatrix_core.sql` | 스키마 + RLS + 프로필 자동 생성 트리거 |
+
+## 근거 신뢰도 원칙
+
+- 본인 체크인 = `employee_self_report` → **낮음**(같은 근무에 매니저 관찰이 있으면 중간)
+- 매니저 관찰 = `manager_observation` → **높음**
+- 앱 기록(코칭 열람 등) = `digital_signal` → 디지털 행동에만 중간
+- "액션 완료"는 참여 기록이며 실제 행동을 의미하지 않습니다. UI는 **완료**와 **관찰됨**을 항상 구분합니다.
+
+## 제외/보류 (V1)
+
+마이크·오디오·위치, 채팅, 급여, GPS 출퇴근, 자동 스케줄링, 교대 승인 워크플로, LMS, 챗봇, 소셜 피드,
+배지/아바타, 임원 대시보드, POS 연동. 아래 구버전 문서의 기능들은 코드는 남아 있으나 nav에서 제외됐습니다.
+
+---
+
+# (아래는 v2 Shift Companion 시절 문서 — 참고용)
+
 # ShyftStarter — Prototype (v2: Shift Companion MVP)
 
 > **이 폴더는 ShyftStarter의 세 코드 폴더 중 Employee(팀원용) 전용입니다.**
@@ -174,3 +254,15 @@ Script, 제네릭 Before/After 피드백 문장, 체크리스트 문구 풀, 매
 ## 기술 스택
 
 Vite + React 19 + TypeScript + Tailwind CSS v4 + Recharts + lucide-react
+
+---
+
+## TestFlight 체크리스트 (이 저장소 기준)
+
+- [x] `npm install && npm run build` 통과 (TypeScript strict, `any` 없음)
+- [x] 마이크/오디오/위치 권한 요청 없음 — `Info.plist`에 `NSMicrophoneUsageDescription` 등을 추가하지 마세요
+- [x] `capacitor.config.ts`: appId `com.bellatrix.shyftstarter`, appName `ShyftStarter`, webDir `dist`
+- [x] localhost / 개발 시크릿 참조 없음 (`grep -rn localhost src` → 0)
+- [ ] 로컬 Mac에서 `npm run cap:sync` → `npx cap open ios` → 실기기 Run → 로그인·Today·체크인·회고·매니저 플로우 확인
+- [ ] Xcode: Signing Team, 버전/빌드 번호 증가, 앱 아이콘, Archive → Distribute → TestFlight
+- [ ] (선택) Supabase 연결 시 `.env`에 URL/anon key만 — service role 키는 절대 클라이언트에 넣지 않기
