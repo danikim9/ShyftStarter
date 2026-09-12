@@ -1,11 +1,30 @@
-import { useEffect, useMemo } from 'react'
-import { CalendarPlus, ChevronRight, Sparkles, MoonStar, Check } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { CalendarPlus, ChevronRight, Sparkles, MoonStar, Check, CalendarRange, List, Share, Repeat, ArrowLeftRight, Lock } from 'lucide-react'
 import { useBellatrix, useReadyData } from '../../lib/bellatrixStore'
+import { useAppState } from '../../lib/store'
 import { prepForShift, reflectionForShift, nextShiftFor } from '../../lib/selectors'
 import { fmtDateKo, fmtShortDate, fmtTimeHM, dateOf } from '../../lib/dates'
 import type { Shift } from '../../types/bellatrix'
-import { Card, SectionLabel, Badge, PrimaryButton } from '../../components/ui'
+import type { Shift as LegacyShift } from '../../types'
+import { Card, SectionLabel, Badge, PrimaryButton, SecondaryButton } from '../../components/ui'
 import { EmptyState, ErrorState, LoadingState } from '../../components/bellatrix/shared'
+import { MonthCalendar } from '../../components/MonthCalendar'
+import { exportShifts } from '../../lib/shiftExport'
+
+/** Adapter so the legacy month calendar can draw Bellatrix shifts. */
+function toLegacy(s: Shift, storeName: string): LegacyShift {
+  return {
+    id: s.id,
+    employeeId: s.user_id,
+    date: dateOf(s.start_at),
+    start: fmtTimeHM(s.start_at),
+    end: fmtTimeHM(s.end_at),
+    store: storeName,
+    role: '',
+    managerName: '',
+    status: s.status === 'scheduled' ? 'upcoming' : s.status === 'cancelled' ? 'off' : s.status,
+  }
+}
 
 function ShiftRow({ shift, hasPrep, hasReflection, isToday }: { shift: Shift; hasPrep: boolean; hasReflection: boolean; isToday: boolean }) {
   const { openSheet } = useBellatrix()
@@ -38,7 +57,9 @@ function ShiftRow({ shift, hasPrep, hasReflection, isToday }: { shift: Shift; ha
 
 export function MyShift() {
   const ready = useReadyData()
-  const { dataset, reload, openSheet, today, trackEvent } = useBellatrix()
+  const { dataset, reload, openSheet, today, trackEvent, showToast } = useBellatrix()
+  const legacy = useAppState()
+  const [view, setView] = useState<'list' | 'calendar'>('list')
 
   useEffect(() => {
     if (ready) trackEvent('my_shift_viewed')
@@ -56,12 +77,19 @@ export function MyShift() {
     const flags = (s: Shift) => ({ hasPrep: !!prepForShift(data, user.id, s.id), hasReflection: !!reflectionForShift(data, s.id) })
     const prepped = past.filter((s) => flags(s).hasPrep).length
     const reflected = past.filter((s) => flags(s).hasReflection).length
-    return { next, upcoming, past, flags, prepped, reflected }
+    return { next, upcoming, past, mine, flags, prepped, reflected, inTeam: user.team_id !== null, storeName: data.store?.name ?? '근무' }
   }, [ready, today])
 
   if (dataset.status === 'error') return <ErrorState message={dataset.message} onRetry={dataset.retryable ? reload : undefined} />
   if (!model) return <LoadingState />
-  const { next, upcoming, past, flags, prepped, reflected } = model
+  const { next, upcoming, past, mine, flags, prepped, reflected, inTeam, storeName } = model
+
+  const handleExport = async () => {
+    const result = await exportShifts(upcoming, storeName)
+    if (result === 'empty') showToast('내보낼 예정 근무가 없어요')
+    else if (result === 'downloaded') showToast('캘린더 파일(.ics)을 내려받았어요')
+    else if (result === 'unsupported') showToast('이 환경에서는 내보내기를 지원하지 않아요')
+  }
 
   return (
     <div className="px-4 pt-4 pb-8 space-y-6">
@@ -101,17 +129,63 @@ export function MyShift() {
         </Card>
       )}
 
-      <div>
-        <SectionLabel>예정된 근무</SectionLabel>
-        <Card>
-          {upcoming.length === 0 ? (
-            <p className="text-xs text-ink-950/35 py-2">예정된 근무가 없어요.</p>
-          ) : (
-            upcoming.map((s) => <ShiftRow key={s.id} shift={s} {...flags(s)} isToday={dateOf(s.start_at) === today} />)
-          )}
-        </Card>
+      <div className="grid grid-cols-2 gap-2">
+        <SecondaryButton onClick={() => openSheet({ kind: 'shiftComposer' })} className="flex items-center justify-center gap-1.5 !py-2.5">
+          <Repeat size={14} /> 반복 근무 편집
+        </SecondaryButton>
+        <SecondaryButton onClick={() => void handleExport()} className="flex items-center justify-center gap-1.5 !py-2.5">
+          <Share size={14} /> 캘린더로 내보내기
+        </SecondaryButton>
       </div>
 
+      {inTeam ? (
+        <button onClick={() => legacy.openSheet({ kind: 'teamSchedule' })} className="w-full text-left">
+          <Card className="flex items-center gap-3 active:scale-[0.99] transition">
+            <div className="w-9 h-9 rounded-xl bg-amber-signal/15 text-amber-600 flex items-center justify-center shrink-0">
+              <ArrowLeftRight size={16} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-semibold text-ink-950">팀 근무표 · 근무 교대</div>
+              <div className="text-[11px] text-ink-950/45">팀원 근무 확인, 교대 요청 보내기 · 받은 요청 승인</div>
+            </div>
+            <ChevronRight size={16} className="text-ink-950/25 shrink-0" />
+          </Card>
+        </button>
+      ) : (
+        <p className="text-[11px] text-ink-950/35 inline-flex items-center gap-1">
+          <Lock size={11} /> 팀에 참여하면 팀원과 근무 교대를 요청할 수 있어요.
+        </p>
+      )}
+
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <SectionLabel>{view === 'list' ? '예정된 근무' : '월별 보기'}</SectionLabel>
+          <button onClick={() => setView((v) => (v === 'list' ? 'calendar' : 'list'))} className="text-xs text-brand-700 font-medium inline-flex items-center gap-1 -mt-2">
+            {view === 'list' ? (
+              <>
+                <CalendarRange size={13} /> 월별로 보기
+              </>
+            ) : (
+              <>
+                <List size={13} /> 목록으로 보기
+              </>
+            )}
+          </button>
+        </div>
+        {view === 'calendar' ? (
+          <MonthCalendar shifts={mine.map((s) => toLegacy(s, storeName))} todayDate={today} onSelectShift={(id) => openSheet({ kind: 'shiftDetail', shiftId: id })} />
+        ) : (
+          <Card>
+            {upcoming.length === 0 ? (
+              <p className="text-xs text-ink-950/35 py-2">예정된 근무가 없어요.</p>
+            ) : (
+              upcoming.map((s) => <ShiftRow key={s.id} shift={s} {...flags(s)} isToday={dateOf(s.start_at) === today} />)
+            )}
+          </Card>
+        )}
+      </div>
+
+      {view === 'list' && (
       <div>
         <div className="flex items-center justify-between mb-2">
           <SectionLabel>지난 근무</SectionLabel>
@@ -125,6 +199,7 @@ export function MyShift() {
           {past.length === 0 ? <p className="text-xs text-ink-950/35 py-2">아직 지난 근무 기록이 없어요.</p> : past.map((s) => <ShiftRow key={s.id} shift={s} {...flags(s)} isToday={false} />)}
         </Card>
       </div>
+      )}
     </div>
   )
 }

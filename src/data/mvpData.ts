@@ -105,6 +105,12 @@ export const INITIAL_HANDOVERS: HandoverNote[] = [
     fromEmployeeId: 'emp_junseo',
     fromEmployeeName: '박준서',
     message: '재고 입고 3시 예정입니다 — 입고되면 진열대 B부터 채워주세요.',
+    photos: [],
+    reactions: [{ emoji: '👍', employeeIds: ['emp_somi'] }],
+    acks: [
+      { employeeId: 'emp_somi', employeeName: '한소미', at: '2026-08-29T14:10:00.000Z' },
+      { employeeId: 'emp_seoyeon', employeeName: '이서연', at: '2026-08-29T15:02:00.000Z' },
+    ],
     createdAt: '2026-08-29T13:55:00.000Z',
   },
   {
@@ -114,6 +120,9 @@ export const INITIAL_HANDOVERS: HandoverNote[] = [
     fromEmployeeId: CURRENT_EMPLOYEE_ID,
     fromEmployeeName: '지은',
     message: 'POS 2번기 영수증 프린터 용지 부족해요. 여분 창고 하단 서랍에 있습니다.',
+    photos: [],
+    reactions: [],
+    acks: [{ employeeId: 'emp_junseo', employeeName: '박준서', at: '2026-08-28T09:40:00.000Z' }],
     createdAt: '2026-08-27T21:50:00.000Z',
   },
 ]
@@ -141,6 +150,11 @@ export const INITIAL_ANNOUNCEMENTS: Announcement[] = [
     comments: [
       { id: 'c_1', employeeId: 'emp_somi', employeeName: '한소미', message: '넵 확인했습니다!', createdAt: '2026-08-30T09:05:00.000Z' },
     ],
+    acks: [
+      { employeeId: 'emp_somi', employeeName: '한소미', at: '2026-08-30T09:05:00.000Z' },
+      { employeeId: 'emp_junseo', employeeName: '박준서', at: '2026-08-30T09:20:00.000Z' },
+      { employeeId: 'emp_seoyeon', employeeName: '이서연', at: '2026-08-30T10:01:00.000Z' },
+    ],
   },
   {
     id: 'an_2',
@@ -152,5 +166,6 @@ export const INITIAL_ANNOUNCEMENTS: Announcement[] = [
     createdAt: '2026-08-28T08:30:00.000Z',
     reactions: [{ emoji: '🙌', employeeIds: [CURRENT_EMPLOYEE_ID] }],
     comments: [],
+    acks: [{ employeeId: 'emp_mingyeong', employeeName: '최민경', at: '2026-08-28T12:00:00.000Z' }],
   },
 ]

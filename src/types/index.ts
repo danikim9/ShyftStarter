@@ -402,6 +402,13 @@ export interface ActionEvent {
   completedAt: string
 }
 
+/** Who confirmed they read a feed item — shown as "확인 N명" on the card. */
+export interface Ack {
+  employeeId: string
+  employeeName: string
+  at: string
+}
+
 export interface HandoverNote {
   id: string
   shiftId: string
@@ -409,6 +416,10 @@ export interface HandoverNote {
   fromEmployeeId: string
   fromEmployeeName: string
   message: string
+  /** Data-URL JPEGs (compressed client-side). Optional camera/photo attachments. */
+  photos: string[]
+  reactions: Reaction[]
+  acks: Ack[]
   createdAt: string
 }
 
@@ -439,6 +450,7 @@ export interface Announcement {
   createdAt: string
   reactions: Reaction[]
   comments: Comment[]
+  acks: Ack[]
 }
 
 /** A feed item is either an Announcement or a HandoverNote, merged and sorted

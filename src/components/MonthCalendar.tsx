@@ -21,6 +21,7 @@ const STATUS_DOT: Record<string, string> = {
   completed: 'bg-ink-950/25',
   in_progress: 'bg-brand-400',
   upcoming: 'bg-amber-signal',
+  scheduled: 'bg-amber-signal',
 }
 
 export function MonthCalendar({
@@ -32,11 +33,10 @@ export function MonthCalendar({
   todayDate: string
   onSelectShift: (shiftId: string) => void
 }) {
-  const months = Array.from(new Set(shifts.map((s) => ymKey(s.date)))).sort()
+  const months = Array.from(new Set([...shifts.map((s) => ymKey(s.date)), ymKey(todayDate)])).sort()
   const initialIdx = Math.max(0, months.indexOf(ymKey(todayDate)))
   const [idx, setIdx] = useState(initialIdx)
 
-  if (months.length === 0) return null
   const [year, monthNum] = months[idx].split('-').map(Number)
   const month = monthNum - 1
 
