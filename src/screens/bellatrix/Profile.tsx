@@ -5,6 +5,7 @@ import { JOB_LABEL } from '../../types/bellatrix'
 import { Card, SectionLabel, SecondaryButton, Badge, Toggle } from '../../components/ui'
 import { LoadingState } from '../../components/bellatrix/shared'
 import { DemoBadge } from '../../components/bellatrix/DemoBadge'
+import { CameraPermissionStatus } from '../../components/CameraPermissionStatus'
 
 export function Profile() {
   const ready = useReadyData()
@@ -138,9 +139,12 @@ export function Profile() {
           <div className="flex items-start gap-2.5">
             <Shield size={14} className="text-ink-950/40 mt-0.5 shrink-0" />
             <p className="text-[11px] text-ink-950/55 leading-relaxed">
-              마이크 · 녹음 · 위치 · 얼굴 인식을 쓰지 않아요. 기록되는 건 내가 직접 탭한 것과 매니저가 남긴 관찰뿐이에요. 매장 매출 KPI는 매니저 화면에만 있어요.
+              마이크 · 녹음 · 위치 · 얼굴 인식을 쓰지 않아요. 카메라는 인수인계 사진을 붙일 때만, 내가 직접 누를 때 열려요. 기록되는 건 내가 직접 탭한 것과 매니저가 남긴 관찰뿐이에요. 매장 매출 KPI는 매니저 화면에만 있어요.
             </p>
           </div>
+          <div className="h-px bg-ink-950/6" />
+          <CameraPermissionStatus />
+          <div className="h-px bg-ink-950/6" />
           <div className="flex items-center justify-between text-xs text-ink-950/50">
             <span className="inline-flex items-center gap-1.5">
               <Database size={12} /> 저장 위치
