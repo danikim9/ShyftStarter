@@ -58,7 +58,7 @@ export type BxSheet =
   | { kind: 'reflection'; shiftId: string }
   | { kind: 'goalComposer' }
   | { kind: 'goalDetail'; goalId: string }
-  | { kind: 'shiftComposer'; presetDate?: ISODate }
+  | { kind: 'shiftComposer'; presetDate?: ISODate; editShiftId?: string }
   | { kind: 'shiftDetail'; shiftId: string }
   | { kind: 'joinTeam' }
   | { kind: 'assign'; presetUserId?: string }
@@ -122,6 +122,16 @@ export interface NewShiftInput {
   endMinute: number
 }
 
+export interface RepeatShiftInput {
+  /** 0=Sun … 6=Sat */
+  weekdays: number[]
+  weeks: number
+  startHour: number
+  startMinute: number
+  endHour: number
+  endMinute: number
+}
+
 export interface NewGoalInput {
   title: string
   behaviour_type: BehaviourType
@@ -154,6 +164,8 @@ interface BellatrixShape {
   trackEvent: (name: ProductEventName, props?: Record<string, string | number | boolean | null>) => void
   // employee writes
   createShift: (input: NewShiftInput) => Promise<Shift>
+  createRepeatShifts: (input: RepeatShiftInput) => Promise<number>
+  updateShift: (id: string, input: NewShiftInput) => Promise<void>
   deleteShift: (id: string) => Promise<void>
   createGoal: (input: NewGoalInput) => Promise<PersonalGoal>
   setGoalActive: (id: string, active: boolean) => Promise<void>
@@ -392,6 +404,48 @@ export function BellatrixProvider({ children }: { children: ReactNode }) {
         return created
       }, '근무를 저장하지 못했어요'),
     [guard, requireCtx, repo, patch, trackEvent, showToast, today]
+  )
+
+  const createRepeatShifts = useCallback(
+    (input: RepeatShiftInput) =>
+      guard(async () => {
+        const { user: u } = requireCtx()
+        if (input.weekdays.length === 0) throw new RepoError('validation', '요일을 하나 이상 골라주세요.')
+        const rows: NewRow<Shift>[] = []
+        for (let i = 0; i < input.weeks * 7; i++) {
+          const date = addDaysISO(today, i)
+          const dow = new Date(`${date}T12:00:00`).getDay()
+          if (!input.weekdays.includes(dow)) continue
+          rows.push({
+            user_id: u.id,
+            store_id: u.store_id,
+            start_at: atTime(date, input.startHour, input.startMinute),
+            end_at: atTime(date, input.endHour, input.endMinute),
+            status: date === today ? 'in_progress' : 'scheduled',
+            source: 'self',
+          })
+        }
+        const created = await repo.createShifts(rows)
+        patch((cur) => {
+          const ids = new Set(created.map((c) => c.id))
+          return { ...cur, shifts: [...cur.shifts.filter((s) => !ids.has(s.id)), ...created] }
+        })
+        trackEvent('shift_created', { repeat: true, count: created.length })
+        showToast(`근무 ${created.length}개를 등록했어요`)
+        return created.length
+      }, '반복 근무를 저장하지 못했어요'),
+    [guard, requireCtx, repo, patch, trackEvent, showToast, today]
+  )
+
+  const updateShift = useCallback(
+    (id: string, input: NewShiftInput) =>
+      guard(async () => {
+        const { user: u } = requireCtx()
+        const updated = await repo.updateShift(id, u.id, { start_at: atTime(input.date, input.startHour, input.startMinute), end_at: atTime(input.date, input.endHour, input.endMinute) })
+        patch((cur) => ({ ...cur, shifts: cur.shifts.map((s) => (s.id === id ? updated : s)) }))
+        showToast('근무 시간을 수정했어요')
+      }, '근무를 수정하지 못했어요'),
+    [guard, requireCtx, repo, patch, showToast]
   )
 
   const deleteShift = useCallback(
@@ -786,6 +840,8 @@ export function BellatrixProvider({ children }: { children: ReactNode }) {
       showToast,
       trackEvent,
       createShift,
+      createRepeatShifts,
+      updateShift,
       deleteShift,
       createGoal,
       setGoalActive,
@@ -817,6 +873,8 @@ export function BellatrixProvider({ children }: { children: ReactNode }) {
       showToast,
       trackEvent,
       createShift,
+      createRepeatShifts,
+      updateShift,
       deleteShift,
       createGoal,
       setGoalActive,

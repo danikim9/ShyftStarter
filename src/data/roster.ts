@@ -24,59 +24,39 @@ export function fmtRosterDate(d: string) {
   return { md: `${dt.getMonth() + 1}.${dt.getDate()}`, dow: dow[dt.getDay()] }
 }
 
-// "오늘" in the app's narrative is 2026-08-30 (Sun) — see mockData.ts todayShift.
-export const TODAY = '2026-08-30'
+// Roster weeks are generated relative to the real current date (this week +
+// next week, Monday-first) so the team schedule / swap demo never goes stale.
+import { addDays, toISODate, todayISO, weekKey, parseISODate } from '../lib/dates'
+export const TODAY = todayISO()
+const thisMonday = parseISODate(weekKey(TODAY))
+const weekDates = (offsetWeeks: number) => Array.from({ length: 7 }, (_, i) => toISODate(addDays(thisMonday, offsetWeeks * 7 + i)))
 
 export const ROSTER_WEEKS: RosterWeek[] = [
-  { id: 'wk_a', label: '이번 주', dates: ['2026-08-24', '2026-08-25', '2026-08-26', '2026-08-27', '2026-08-28', '2026-08-29', '2026-08-30'] },
-  { id: 'wk_b', label: '다음 주', dates: ['2026-08-31', '2026-09-01', '2026-09-02', '2026-09-03', '2026-09-04', '2026-09-05', '2026-09-06'] },
+  { id: 'wk_a', label: '이번 주', dates: weekDates(0) },
+  { id: 'wk_b', label: '다음 주', dates: weekDates(1) },
 ]
 
 const OFF: RosterEntry = 'off'
 const OPEN: RosterEntry = { start: '10:00', end: '18:00' }
 const CLOSE: RosterEntry = { start: '14:00', end: '22:00' }
 
+// Weekly patterns Mon→Sun for two weeks, per member. 0=off 1=open 2=close.
+const PATTERNS: Record<string, number[]> = {
+  emp_jieun: [2, 0, 1, 0, 2, 0, 2, 0, 1, 0, 2, 0, 2, 0],
+  emp_junseo: [1, 1, 0, 2, 1, 2, 0, 1, 0, 2, 1, 2, 0, 1],
+  emp_mingyeong: [2, 0, 2, 2, 0, 1, 2, 2, 2, 0, 2, 0, 2, 2],
+  emp_dohyun: [0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0],
+  emp_seoyeon: [2, 2, 0, 1, 0, 2, 1, 0, 2, 1, 0, 2, 1, 0],
+  emp_somi: [0, 0, 2, 1, 0, 0, 2, 0, 0, 2, 1, 0, 0, 2],
+}
+const ENTRY = [OFF, OPEN, CLOSE]
+const ALL_DATES = ROSTER_WEEKS.flatMap((w) => w.dates)
+
 // memberId -> date -> entry. Every date in ROSTER_WEEKS is defined for every
 // team member (either a shift or 'off') so the grid never has empty cells.
-export const INITIAL_ROSTER: Record<string, Record<string, RosterEntry>> = {
-  // 지은 — matches mockData.ts `shifts` exactly for 8/24~9/3 (완료/진행중/휴무/예정 그대로)
-  emp_jieun: {
-    '2026-08-24': CLOSE, '2026-08-25': OFF, '2026-08-26': OPEN, '2026-08-27': OFF,
-    '2026-08-28': CLOSE, '2026-08-29': OFF, '2026-08-30': CLOSE,
-    '2026-08-31': OFF, '2026-09-01': OPEN, '2026-09-02': OFF, '2026-09-03': CLOSE,
-    '2026-09-04': OFF, '2026-09-05': CLOSE, '2026-09-06': OFF,
-  },
-  emp_junseo: {
-    '2026-08-24': OPEN, '2026-08-25': OPEN, '2026-08-26': OFF, '2026-08-27': CLOSE,
-    '2026-08-28': OPEN, '2026-08-29': CLOSE, '2026-08-30': OFF,
-    '2026-08-31': OPEN, '2026-09-01': OFF, '2026-09-02': CLOSE, '2026-09-03': OPEN,
-    '2026-09-04': CLOSE, '2026-09-05': OFF, '2026-09-06': OPEN,
-  },
-  emp_mingyeong: {
-    '2026-08-24': CLOSE, '2026-08-25': OFF, '2026-08-26': CLOSE, '2026-08-27': CLOSE,
-    '2026-08-28': OFF, '2026-08-29': OPEN, '2026-08-30': CLOSE,
-    '2026-08-31': CLOSE, '2026-09-01': CLOSE, '2026-09-02': OFF, '2026-09-03': CLOSE,
-    '2026-09-04': OFF, '2026-09-05': CLOSE, '2026-09-06': CLOSE,
-  },
-  emp_dohyun: {
-    '2026-08-24': OFF, '2026-08-25': OPEN, '2026-08-26': OPEN, '2026-08-27': OFF,
-    '2026-08-28': OPEN, '2026-08-29': OPEN, '2026-08-30': OFF,
-    '2026-08-31': OPEN, '2026-09-01': OFF, '2026-09-02': OPEN, '2026-09-03': OFF,
-    '2026-09-04': OPEN, '2026-09-05': OPEN, '2026-09-06': OFF,
-  },
-  emp_seoyeon: {
-    '2026-08-24': CLOSE, '2026-08-25': CLOSE, '2026-08-26': OFF, '2026-08-27': OPEN,
-    '2026-08-28': OFF, '2026-08-29': CLOSE, '2026-08-30': OPEN,
-    '2026-08-31': OFF, '2026-09-01': CLOSE, '2026-09-02': OPEN, '2026-09-03': OFF,
-    '2026-09-04': CLOSE, '2026-09-05': OPEN, '2026-09-06': OFF,
-  },
-  emp_somi: {
-    '2026-08-24': OFF, '2026-08-25': OFF, '2026-08-26': CLOSE, '2026-08-27': OPEN,
-    '2026-08-28': OFF, '2026-08-29': OFF, '2026-08-30': CLOSE,
-    '2026-08-31': OFF, '2026-09-01': OFF, '2026-09-02': CLOSE, '2026-09-03': OPEN,
-    '2026-09-04': OFF, '2026-09-05': OFF, '2026-09-06': CLOSE,
-  },
-}
+export const INITIAL_ROSTER: Record<string, Record<string, RosterEntry>> = Object.fromEntries(
+  Object.entries(PATTERNS).map(([memberId, pattern]) => [memberId, Object.fromEntries(ALL_DATES.map((d, i) => [d, ENTRY[pattern[i]]]))])
+)
 
 export const ROSTER_MEMBERS = team.map((m) => ({ id: m.id, name: m.name, role: m.role, avatarColor: m.avatarColor, tenure: m.tenure }))
 
@@ -89,12 +69,12 @@ export const INITIAL_SWAP_REQUESTS: SwapRequest[] = [
     id: 'swap_seed_1',
     requesterId: 'emp_junseo',
     requesterName: '박준서',
-    requesterShiftDate: '2026-08-31',
+    requesterShiftDate: ALL_DATES[7],
     targetMemberId: 'emp_jieun',
     targetMemberName: '지은',
-    targetShiftDate: '2026-09-01',
+    targetShiftDate: ALL_DATES[8],
     note: '그날 가족 행사가 있어서 근무를 바꿀 수 있을까요?',
     status: 'pending',
-    createdAt: '2026-08-29T14:20:00.000Z',
+    createdAt: new Date(Date.now() - 36 * 3600 * 1000).toISOString(),
   },
 ]

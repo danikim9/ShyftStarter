@@ -189,6 +189,39 @@ export class LocalRepo implements BellatrixRepo {
     return created
   }
 
+  async createShifts(rows: NewRow<Shift>[]): Promise<Shift[]> {
+    const out: Shift[] = []
+    const now = new Date().toISOString()
+    for (const row of rows) {
+      if (new Date(row.end_at) <= new Date(row.start_at)) continue
+      const existing = this.db.shifts.find((s) => s.user_id === row.user_id && dateOf(s.start_at) === dateOf(row.start_at) && s.status !== 'cancelled')
+      if (existing) {
+        if (existing.source === 'self') {
+          existing.start_at = row.start_at
+          existing.end_at = row.end_at
+          out.push(existing)
+        }
+        continue
+      }
+      const created: Shift = { ...row, id: newId('sh'), created_at: now }
+      this.db.shifts.push(created)
+      out.push(created)
+    }
+    this.persist()
+    return out
+  }
+
+  async updateShift(id: string, userId: string, patch: Pick<Shift, 'start_at' | 'end_at'>): Promise<Shift> {
+    const s = this.db.shifts.find((x) => x.id === id)
+    if (!s) throw new RepoError('not_found', '근무를 찾을 수 없어요.')
+    if (s.user_id !== userId || s.source !== 'self') throw new RepoError('auth', '직접 등록한 근무만 수정할 수 있어요.')
+    if (new Date(patch.end_at) <= new Date(patch.start_at)) throw new RepoError('validation', '종료 시각은 시작 시각보다 뒤여야 해요.')
+    s.start_at = patch.start_at
+    s.end_at = patch.end_at
+    this.persist()
+    return s
+  }
+
   async deleteShift(id: string, userId: string): Promise<void> {
     const s = this.db.shifts.find((x) => x.id === id)
     if (!s) throw new RepoError('not_found', '근무를 찾을 수 없어요.')

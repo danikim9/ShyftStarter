@@ -217,6 +217,18 @@ export class SupabaseRepo implements BellatrixRepo {
     return data
   }
 
+  async createShifts(rows: NewRow<Shift>[]): Promise<Shift[]> {
+    const out: Shift[] = []
+    for (const row of rows) out.push(await this.createShift(row))
+    return out
+  }
+
+  async updateShift(id: string, userId: string, patch: Pick<Shift, 'start_at' | 'end_at'>): Promise<Shift> {
+    const { data, error } = await this.client.from('shifts').update(patch).eq('id', id).eq('user_id', userId).select('*').single()
+    if (error) throw mapError(error, '근무를 수정할 수 없어요.')
+    return data
+  }
+
   async deleteShift(id: string, userId: string): Promise<void> {
     const { error } = await this.client.from('shifts').delete().eq('id', id).eq('user_id', userId)
     if (error) throw mapError(error, '근무를 삭제할 수 없어요.')

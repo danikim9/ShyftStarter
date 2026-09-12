@@ -58,6 +58,8 @@ interface AppStateShape {
   // 26차 — Employee 프로필 간단 편집(이름/직함만). mockData()의 나머지 필드
   // (스킬/레벨/경력 등)는 그대로 두고 이름·직함만 편집 가능한 상태로 승격.
   updateProfile: (name: string, role: string) => void
+  /** Silent identity sync from the Bellatrix session (no toast). */
+  setIdentity: (name: string) => void
   quests: Quest[]
   markQuestProgress: (questId: string) => void
   checklist: typeof initialChecklist
@@ -104,7 +106,7 @@ interface AppStateShape {
   setShiftReminderOffset: (offsetMinutes: number) => void
   fireReminderNow: (id: string) => void
   handovers: HandoverNote[]
-  addHandover: (message: string) => void
+  addHandover: (message: string, photos?: string[]) => void
   announcements: Announcement[]
   addAnnouncement: (message: string, pinned?: boolean) => void
   addTeamPost: (message: string) => void
@@ -313,8 +315,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   // 항목이 바로 반영되게 한다.
   const weeklyActionTrend = [...ACTION_TREND_HISTORY, weeklyCompletionCount]
 
-  const addHandover = (message: string) => {
-    if (!message.trim()) return
+  const addHandover = (message: string, photos: string[] = []) => {
+    if (!message.trim() && photos.length === 0) return
     const note: HandoverNote = {
       id: `ho_${Date.now()}`,
       shiftId: todayShift.id,
@@ -322,6 +324,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       fromEmployeeId: CURRENT_EMPLOYEE_ID,
       fromEmployeeName: profileName,
       message: message.trim(),
+      photos,
+      reactions: [],
+      acks: [],
       createdAt: new Date().toISOString(),
     }
     setHandovers((prev) => [note, ...prev])
@@ -340,6 +345,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       createdAt: new Date().toISOString(),
       reactions: [],
       comments: [],
+      acks: [],
     }
     setAnnouncements((prev) => [post, ...prev])
     showToast('공지를 등록했어요')
@@ -361,37 +367,29 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       createdAt: new Date().toISOString(),
       reactions: [],
       comments: [],
+      acks: [],
     }
     setAnnouncements((prev) => [post, ...prev])
     showToast('공지를 등록했어요')
   }
 
-  const toggleReaction = (announcementId: string, emoji: string) => {
-    setAnnouncements((prev) =>
-      prev.map((a) => {
-        if (a.id !== announcementId) return a
-        const existing = a.reactions.find((r) => r.emoji === emoji)
-        const already = existing?.employeeIds.includes(CURRENT_EMPLOYEE_ID)
-        let reactions: Reaction[]
-        if (existing) {
-          reactions = a.reactions
-            .map((r) =>
-              r.emoji === emoji
-                ? {
-                    ...r,
-                    employeeIds: already
-                      ? r.employeeIds.filter((id) => id !== CURRENT_EMPLOYEE_ID)
-                      : [...r.employeeIds, CURRENT_EMPLOYEE_ID],
-                  }
-                : r
-            )
-            .filter((r) => r.employeeIds.length > 0)
-        } else {
-          reactions = [...a.reactions, { emoji, employeeIds: [CURRENT_EMPLOYEE_ID] }]
-        }
-        return { ...a, reactions }
-      })
-    )
+  // Reactions work on both announcements and handover notes (same Reaction shape).
+  const toggleReactionOn = (reactions: Reaction[], emoji: string): Reaction[] => {
+    const existing = reactions.find((r) => r.emoji === emoji)
+    const already = existing?.employeeIds.includes(CURRENT_EMPLOYEE_ID)
+    if (!existing) return [...reactions, { emoji, employeeIds: [CURRENT_EMPLOYEE_ID] }]
+    return reactions
+      .map((r) =>
+        r.emoji === emoji
+          ? { ...r, employeeIds: already ? r.employeeIds.filter((id) => id !== CURRENT_EMPLOYEE_ID) : [...r.employeeIds, CURRENT_EMPLOYEE_ID] }
+          : r
+      )
+      .filter((r) => r.employeeIds.length > 0)
+  }
+
+  const toggleReaction = (itemId: string, emoji: string) => {
+    setAnnouncements((prev) => prev.map((a) => (a.id === itemId ? { ...a, reactions: toggleReactionOn(a.reactions, emoji) } : a)))
+    setHandovers((prev) => prev.map((h) => (h.id === itemId ? { ...h, reactions: toggleReactionOn(h.reactions, emoji) } : h)))
   }
 
   const addComment = (announcementId: string, message: string) => {
@@ -410,8 +408,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   // 22차 — 솔로 UX 피드백 #4: Team 탭의 공지/인수인계를 "확인"하면 메인 피드에서
   // 사라지고 히스토리로만 남는다. 이미 확인한 id는 중복으로 쌓이지 않게 방어.
+  // "확인했어요" now also records WHO confirmed (name + time) so the author
+  // can see read receipts on the card — not just hide it from the reader's feed.
   const acknowledgeFeedItem = (id: string) => {
     setReadFeedIds((prev) => (prev.includes(id) ? prev : [...prev, id]))
+    const ack = { employeeId: CURRENT_EMPLOYEE_ID, employeeName: profileName, at: new Date().toISOString() }
+    const addAck = <T extends { id: string; acks: { employeeId: string }[] }>(rows: T[]) =>
+      rows.map((r) => (r.id === id && !r.acks.some((a) => a.employeeId === CURRENT_EMPLOYEE_ID) ? { ...r, acks: [...r.acks, ack] } : r))
+    setAnnouncements((prev) => addAck(prev))
+    setHandovers((prev) => addAck(prev))
   }
 
   // §9-1 — 매장 코드(매니저 발급)와 동료 그룹 코드를 같은 입력창에서 함께
@@ -473,6 +478,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   // 26차 — 프로필 편집(이름/직함만). 둘 다 빈 값이면 저장하지 않고, 하나만
   // 비었으면 그 항목은 기존 값을 유지한다(예: 이름만 입력하고 직함을
   // 지웠다면 직함은 이전 값 그대로).
+  const setIdentity = (name: string) => {
+    const trimmed = name.trim()
+    if (trimmed) setProfileName(trimmed)
+  }
+
   const updateProfile = (name: string, role: string) => {
     const trimmedName = name.trim()
     const trimmedRole = role.trim()
@@ -679,6 +689,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     () => ({
       employee: currentEmployee,
       updateProfile,
+      setIdentity,
       quests,
       markQuestProgress,
       checklist,
