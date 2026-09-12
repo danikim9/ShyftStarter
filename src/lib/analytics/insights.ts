@@ -94,7 +94,7 @@ export function generateWeeklyInsights(ds: StoreDataset, today: ISODate, lookbac
   }
 
   // 3) Weekly co-movement for the store focus behaviour
-  const focusMetric = ds.store.focus_metric
+  const focusMetric = ds.store?.focus_metric ?? 'cvr'
   const focusBehaviour = (Object.entries(BEHAVIOUR_METRIC).find(([, m]) => m === focusMetric)?.[0] ?? 'cross_sell') as BehaviourType
   const co = getWeeklyCoMovement(ds, focusBehaviour, focusMetric, today, 3)
   if (co.comparableWeeks > 0) {

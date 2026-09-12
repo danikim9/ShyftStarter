@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Users, Check } from 'lucide-react'
-import { useBellatrix, useReadyData } from '../../lib/bellatrixStore'
+import { useBellatrix, useManagerData } from '../../lib/bellatrixStore'
 import type { TargetMetric } from '../../types/bellatrix'
 import { BEHAVIOUR_LABEL, INTERVENTION_LABEL, METRIC_SHORT } from '../../types/bellatrix'
 import { addDaysISO, fmtShortDate } from '../../lib/dates'
@@ -11,13 +11,14 @@ import { ChoiceChips, Question, inputClass } from '../../components/bellatrix/sh
 const METRICS: TargetMetric[] = ['attach_rate', 'atv', 'cvr', 'upt', 'revenue']
 
 export function AssignActionSheet({ presetUserId }: { presetUserId?: string }) {
-  const ready = useReadyData()
+  const ready = useManagerData()
   const { assignAction, closeSheet, today } = useBellatrix()
   const [actionId, setActionId] = useState<string | null>(null)
   const [userIds, setUserIds] = useState<string[]>(presetUserId ? [presetUserId] : [])
   const [date, setDate] = useState(today)
   const [target, setTarget] = useState('')
   const [metric, setMetric] = useState<TargetMetric | null>(null)
+  const [campaignId, setCampaignId] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -47,6 +48,7 @@ export function AssignActionSheet({ presetUserId }: { presetUserId?: string }) {
         date,
         targetCount: action.intervention_type === 'micro_coaching' ? null : effectiveTarget,
         targetMetric: effectiveMetric,
+        campaignId,
       })
       closeSheet()
     } catch (e) {
@@ -143,6 +145,25 @@ export function AssignActionSheet({ presetUserId }: { presetUserId?: string }) {
       {action && (
         <Question text="연결 지표">
           <ChoiceChips options={METRICS.map((m) => ({ value: m, label: METRIC_SHORT[m] }))} value={effectiveMetric === 'none' ? null : effectiveMetric} onChange={setMetric} />
+        </Question>
+      )}
+
+      {action && data.campaigns.filter((c) => c.active).length > 0 && (
+        <Question text="캠페인 연결 (선택)">
+          <div className="flex flex-wrap gap-2">
+            {data.campaigns
+              .filter((c) => c.active)
+              .map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setCampaignId(campaignId === c.id ? null : c.id)}
+                  className={`rounded-xl border px-3 py-2 text-sm font-medium ${campaignId === c.id ? 'bg-ink-950 border-ink-950 text-white' : 'bg-white border-ink-950/10 text-ink-950/75'}`}
+                >
+                  {c.name}
+                </button>
+              ))}
+          </div>
         </Question>
       )}
 

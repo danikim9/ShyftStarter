@@ -37,10 +37,12 @@ export const storage: KeyValueStorage = {
         window.localStorage.setItem(key, value)
         return true
       } catch {
+        // quota exceeded / restricted context — caller surfaces this to the user
         return false
       }
     }
-    return false
+    // No web storage at all (tests, some embedded contexts): in-memory is the store.
+    return true
   },
   remove(key) {
     memory.delete(key)

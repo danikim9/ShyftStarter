@@ -1,12 +1,12 @@
 import { useRef, useState } from 'react'
 import { Upload, FileText, AlertTriangle, Check } from 'lucide-react'
-import { useBellatrix, useReadyData } from '../../lib/bellatrixStore'
+import { useBellatrix, useManagerData } from '../../lib/bellatrixStore'
 import { CSV_TEMPLATE, parseKpiCsv, REQUIRED_COLUMNS, type CsvParseResult } from '../../lib/csvImport'
 import { PrimaryButton, SecondaryButton } from '../../components/ui'
 import { inputClass } from '../../components/bellatrix/shared'
 
 export function CsvImportSheet() {
-  const ready = useReadyData()
+  const ready = useManagerData()
   const { importOutcomes, closeSheet } = useBellatrix()
   const fileRef = useRef<HTMLInputElement>(null)
   const [text, setText] = useState('')
@@ -15,17 +15,17 @@ export function CsvImportSheet() {
   const [readError, setReadError] = useState<string | null>(null)
 
   if (!ready) return null
-  const { data } = ready
+  const { data, store } = ready
 
   const parse = (raw: string) => {
     setText(raw)
     if (!raw.trim()) return setResult(null)
     setResult(
       parseKpiCsv(raw, {
-        knownStoreIds: [data.store.id],
+        knownStoreIds: [store.id],
         knownEmployeeIds: data.users.map((u) => u.id),
         companyId: data.company?.id ?? null,
-        attachRateDefinition: data.store.attach_rate_definition,
+        attachRateDefinition: store.attach_rate_definition,
       })
     )
   }

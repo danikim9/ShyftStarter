@@ -1,11 +1,13 @@
-import { Home, CalendarDays, Target, Radar as RadarIcon, Sparkles, TrendingUp, Trophy, CalendarClock, Megaphone, ListChecks, Sun, User } from 'lucide-react'
+import { Home, CalendarDays, Target, Radar as RadarIcon, Sparkles, TrendingUp, Trophy, CalendarClock, Megaphone, ListChecks, Sun, Users } from 'lucide-react'
 
-// Bellatrix MVP: Today → Actions → Growth → Profile. The legacy tab ids stay in
-// the union so the hidden Shift-Companion screens (team feed, schedule, wage
-// calculator, …) keep compiling and remain reachable from Profile → "팀 · 근무".
+// Shift Companion nav: Today · My Shift · Actions · Team · Growth.
+// Profile is reached from the avatar on Today (not a tab). Legacy ids stay in
+// the union so hidden screens keep compiling.
 export type TabId =
   | 'today'
+  | 'myShift'
   | 'actions'
+  | 'team'
   | 'growth'
   | 'profile'
   | 'home'
@@ -14,19 +16,17 @@ export type TabId =
   | 'stats'
   | 'coach'
   | 'progress'
-  | 'team'
-  | 'myShift'
   | 'teamFeed'
   | 'myActions'
 
 const TABS: { id: TabId; label: string; icon: typeof Home }[] = [
   { id: 'today', label: 'Today', icon: Sun },
+  { id: 'myShift', label: 'My Shift', icon: CalendarClock },
   { id: 'actions', label: 'Actions', icon: Target },
+  { id: 'team', label: 'Team', icon: Users },
   { id: 'growth', label: 'Growth', icon: TrendingUp },
-  { id: 'profile', label: 'Profile', icon: User },
 ]
 
-// Kept for reference by hidden legacy screens — not rendered in the MVP nav.
 export const LEGACY_TABS: { id: TabId; label: string; icon: typeof Home }[] = [
   { id: 'home', label: 'Home', icon: Home },
   { id: 'schedule', label: 'Schedule', icon: CalendarDays },
@@ -34,10 +34,9 @@ export const LEGACY_TABS: { id: TabId; label: string; icon: typeof Home }[] = [
   { id: 'stats', label: 'Stats', icon: RadarIcon },
   { id: 'coach', label: 'Coach', icon: Sparkles },
   { id: 'progress', label: 'Progress', icon: TrendingUp },
-  { id: 'team', label: 'Team', icon: Trophy },
-  { id: 'myShift', label: 'My Shift', icon: CalendarClock },
-  { id: 'myActions', label: 'My Actions', icon: ListChecks },
   { id: 'teamFeed', label: 'Team', icon: Megaphone },
+  { id: 'myActions', label: 'My Actions', icon: ListChecks },
+  { id: 'team', label: 'Team', icon: Trophy },
 ]
 
 export function BottomNav({ active, onChange }: { active: TabId; onChange: (id: TabId) => void }) {

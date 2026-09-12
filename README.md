@@ -1,78 +1,97 @@
-# ShyftStarter — Bellatrix Frontline Behavioral Intelligence (TestFlight MVP)
+# ShyftStarter — Shift Companion by Bellatrix
 
-> **ShyftStarter는 스케줄링 앱이 아닙니다.** Bellatrix(Frontline Behavioral Intelligence Platform)의
-> 프론트라인 인터페이스로, "특정 마이크로 코칭 개입이 매장 직원의 판매 행동을 바꾸고, 그 행동 변화가
-> 측정 가능한 매출 KPI 개선과 연관되는가"를 검증하기 위한 파일럿 데이터 수집 도구입니다.
+> **ShyftStarter는 스케줄링 앱도, HR 관리 도구도 아닙니다.** 고관여 리테일(초기: 전자제품 전문판매)
+> 직원이 **근무 전 30초에 오늘 시도할 행동 하나를 준비하고, 현장에서 실행하고, 근무 후 5초 회고로
+> 자신의 성장을 기록**하는 직원 중심 Shift Companion입니다. Bellatrix는 이 앱이 쌓는
+> Intervention → Behaviour → Outcome 데이터를 바탕으로 Frontline Performance Intelligence로 확장합니다.
 
 ```
-Today → Micro Coaching → Action → Behaviour Evidence → KPI → Insight
-Employee → Shift → Intervention → ActionEvent → BehaviourEvidence → OutcomeEvent
+Shift → Signal → Action → Evidence → Behaviour → Outcome → Learning
+Personal → Team → Paid Store → Brand/HQ → Bellatrix Intelligence
 ```
+
+**Mandated distribution, voluntary engagement** — 회사가 배포해도, 직원은 자기 성장을 위해 계속 씁니다.
 
 ## 실행
 
 ```bash
 npm install
-npm run dev          # http://localhost:5173 — 온보딩 → 데모 계정 선택 → 앱
-npm run build        # tsc -b && vite build → dist/
+npm run dev          # http://localhost:5173
+npm run typecheck    # tsc -b --noEmit
+npm run lint         # oxlint
+npm test             # vitest — 개인정보(visibility)·개인모드·KPI·CSV·인사이트 단위 테스트
+npm run build        # production build → dist/
 npm run cap:sync     # build + npx cap sync (ios/ android/ 는 로컬 Mac에만 존재)
 ```
 
-백엔드 설정이 없으면(기본) **온디바이스 어댑터**로 동작합니다: 시드 데이터가 기기 저장소에 저장되고 모든
-기록이 영속화되어, TestFlight 테스터가 서버 없이 전체 플로우를 쓸 수 있습니다.
-Supabase를 연결하려면 `.env.example`을 `.env`로 복사해 `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`를
-채우고 `supabase/migrations/0001_bellatrix_core.sql` → `supabase/seed.sql`을 적용하세요. 코드 변경 없이
-`src/lib/repo/index.ts`가 어댑터를 전환합니다.
+백엔드 설정이 없으면(기본) **온디바이스 어댑터**로 동작합니다. Supabase를 연결하려면 `.env.example` →
+`.env`에 URL/anon key를 채우고 `supabase/migrations/0001_*.sql`, `0002_*.sql`, `supabase/seed.sql`을
+순서대로 적용합니다. 코드 변경 없이 `src/lib/repo/index.ts`가 어댑터를 전환합니다.
 
-## 데모 계정 (온디바이스 모드)
+## 세 개의 가치 레이어
 
-| 계정 | 역할 | 비고 |
+| 레이어 | 누가 | 무엇 |
 |---|---|---|
-| Dani Kim | 직원 | 오늘 마이크로 코칭 1 + 액션 2 (3/5, 1/3 진행 중) |
-| Mina Lee · Joon Park | 직원 | Joon은 파일럿 **대조군**(크로스셀 개입 없음) |
-| Sora Kim | 매니저 | 오늘의 팀 · 관찰 · KPI · 인사이트 |
+| **Personal** | 팀 없이도 누구나 | My Shift(근무 등록) · My Goals(개인 목표) · Shift Prep(30초) · Reflection(5초) · Growth(My Wins) |
+| **Team** | 초대 코드로 참여 | 팀 공지 · 인수인계 · Team Actions(매니저 배정) · 팀 미션 · 리액션/확인. 채팅 아님 |
+| **Business** | 매니저/HQ | 액션 배정(캠페인 연결) · 빠른 관찰 · KPI 입력/CSV · 규칙 기반 주간 인사이트(가설 라벨) |
 
 ## 화면 구조
 
-**직원** — 하단 탭 4개: **Today / Actions / Growth / Profile**
-- Today: 오늘 근무 · 오늘의 포커스(지표) · 마이크로 코칭 카드("오늘 이걸 써볼게요") · 오늘의 액션(최대 3) · 1분 회고
-- 액션 상세: +/− 진행 기록(ActionEvent `progress_updated`) → "완료하기 — 20초 체크인"(BehaviourEvidence, 자기 보고 = 신뢰도 낮음)
-- Growth: 이번 주(액션 완료 / 코칭 적용 / 매니저 관찰), 3주 행동 트렌드, 다음 근무 추천(규칙 기반). 점수 없음 — 데이터 부족/근거 쌓는 중/초기 신호 라벨만
-- Profile: 계정 · 저장 위치 · 데모 데이터 초기화 · 구버전 화면(팀 공지·인수인계, 근무 일정) 진입
+**직원** — 하단 탭 5개: **Today · My Shift · Actions · Team · Growth** (Profile은 Today 상단 아바타)
+- **Today**: 오늘/다음 근무 → Shift Prep CTA(준비 전) 또는 오늘 해볼 행동(준비 후) → 근무 후 5초 회고 → 오늘의 내 목표(+로 시도 기록) → 팀에서 받은 행동 → 긴급 공지/인수인계
+- **Shift Prep** 시트: 행동 1개 · 스크립트 · 제품 포인트 · 예상 반론+대응 · 한 번 더 제안 팁 · "오늘 해볼게요"
+- **Reflection** 시트: 시도했나 / 고객 반응 / 다시 할까 (탭 3번) + 선택(팁 도움·자신감·잘한 점 한 줄). 기본 비공개
+- **My Shift**: 다음 근무 히어로, 근무 등록(프리셋 3개 + 직접 입력), 근무별 준비/회고 상태, 상세
+- **Actions**: 세그먼트 **My Goals**(추천 템플릿/직접 작성, 시도 +, 보관) | **Team Actions**(매니저 배정, "완료 여부는 매니저에게 보여요")
+- **Team**: 팀 미션 요약 + 공지·인수인계 피드(구버전 컴포넌트 재사용). 팀 없으면 참여 안내(선택)
+- **Growth**: 이번 주 시도/해낸 근무/팁 도움 비율 · My Wins · 행동별 시도 3주 · 자신감 흐름 · 주간 요약 · 다음 근무 추천(규칙 기반, 가설 표기). 순위·점수 없음, 비공개
+- **Profile**: 팀 참여/떠나기, **누가 무엇을 볼 수 있나요** 표, 동의 토글(회고 공유 / 목표 집계 포함, 기본 OFF), 데이터 위치
 
-**매니저** — 홈 / 인사이트 / KPI / 더보기 (같은 앱, 계정 역할로 분기; 우하단 버튼으로 직원 화면 미리보기)
-- 홈: 오늘 근무 직원 + 액션 진행 + 오늘 관찰 여부, CTA **빠른 관찰**(10초, 샘플링 OK) · **오늘 성과 입력** · **액션 배정**(개인/팀 전체, 날짜, 목표 횟수, 연결 지표)
-- 인사이트: 규칙 기반 주간 인사이트 — "크로스셀 액션 완료된 날 ATV +x%" 등. 모든 문장에 `데이터 부족 / 근거 쌓는 중 / 초기 신호 / 상관관계` 라벨 + "상관관계는 인과관계를 증명하지 않아요"
-- KPI: 수동 입력(CVR/ATV/UPT/Attach 자동 계산, Attach Rate 정의는 매장 설정값) · CSV 가져오기(필수 컬럼·숫자·날짜·매장 ID 검증, 행 단위 오류 표시)
-- 더보기: 구버전 팀 운영 도구(공지·체크리스트, 근무 일정 관리, 팀 현황, Will×Capability) — 코드 유지, 우선순위 하향
+**신규 사용자 흐름**: 로그인 화면 "새로 시작하기" → 이름·이메일·직군·관심 행동 → 팀 코드(건너뛰기) → 다음 근무(건너뛰기) → 목표 1개 → Today
 
-## 코드 구조 (Bellatrix)
+**매니저** — 홈 / 인사이트 / KPI / 더보기. 홈·인사이트에 "직원의 개인 목표·회고는 보이지 않아요" 표시. 데모 계정에는 "데모 데이터" 배지.
+
+## 개인 데이터 vs 팀 데이터 (visibility)
+
+모든 기록 엔티티에 `visibility: 'private' | 'team' | 'manager_visible' | 'aggregated'`가 있고 기본값은 최소 공개입니다.
+
+| 나만 보기 (private) | 매니저에게 보임 (manager_visible) | 팀에 공개 (team) |
+|---|---|---|
+| PersonalGoal · 시도 기록(ActionEvent personal_goal) · ShiftPrep · ShiftReflection · My Wins · 자신감 | Team Action 실행 상태·체크인 · ManagerObservation | 공지 · 인수인계 · 댓글 |
+
+- 강제 지점 2곳: `src/lib/repo/visibility.ts`(`applyVisibility`, 로컬·Supabase 어댑터 공통) + Supabase RLS(`0002` 마이그레이션). 매니저 데이터셋에는 `private` 행이 아예 포함되지 않습니다 (단위 테스트로 검증).
+- 직원이 Profile에서 회고 공유를 켜면 **이후** 회고만 `manager_visible`로 저장됩니다. 지난 회고는 그대로 비공개.
+- 매니저 화면은 개인 목표 목록을 받을 수 없고, 인사이트는 팀/매장 단위 집계만 사용합니다.
+
+## 데이터 모델 (`src/types/bellatrix.ts`, DB 컬럼과 1:1)
+
+User(store/team nullable, job_category, interests, consent, is_demo) · Team · TeamMembership · Store · Company · Shift(source self|roster) ·
+**PersonalGoal** · **CoachingCard** · **ShiftPrep** · Action · ActionAssignment(campaign_id) · **Campaign** ·
+**ActionEvent**(action_kind, source personal|team|manager|ai|system, event_type viewed…attempted…helpful, store/team/campaign 문맥, self_report, visibility) ·
+BehaviourEvidence(visibility) · OutcomeEvent · **ShiftReflection**(tried, customer_reaction, try_again, tip_helpful, confidence, win_note, visibility) · Pilot · ProductEvent
+
+## 코드 구조
 
 | 경로 | 역할 |
 |---|---|
-| `src/types/bellatrix.ts` | 도메인 타입 (DB 컬럼과 1:1, snake_case) |
-| `src/lib/repo/` | `BellatrixRepo` 인터페이스 · `localRepo`(온디바이스) · `supabaseRepo` · 팩토리 |
-| `src/lib/bellatrixStore.tsx` | 세션/데이터셋/쓰기 작업 React 컨텍스트 (로딩·에러·토스트·이벤트 트래킹) |
-| `src/lib/analytics/` | `metrics`(KPI 파생) · `analytics`(완료율·관찰률·그룹 비교·트렌드) · `insights`(주간 인사이트) · `recommendation`(다음 근무 추천) · `confidence`(근거 신뢰도) |
-| `src/lib/csvImport.ts` | KPI CSV 파서/검증 |
-| `src/lib/tracking.ts` | 제품 이벤트(app_opened … insight_viewed) → `product_events` |
-| `src/data/seed.ts` | Gangnam Flagship 3주 시드 (결정적 PRNG) |
-| `src/screens/bellatrix/` | Today · Actions · Growth · Profile |
-| `src/components/bellatrix/` | 코칭/체크인/액션 상세/회고 시트, 공용 UI |
-| `src/manager/bellatrix/` | 매니저 홈 · 배정 · 관찰 · KPI · CSV · 인사이트 |
-| `supabase/migrations/0001_bellatrix_core.sql` | 스키마 + RLS + 프로필 자동 생성 트리거 |
+| `src/lib/repo/` | `BellatrixRepo` 인터페이스 · `localRepo`(온디바이스) · `supabaseRepo` · `visibility.ts`(권한 필터) |
+| `src/lib/bellatrixStore.tsx` | 세션/데이터셋/쓰기 작업(개인 목표·근무·준비·회고·팀 참여·동의) |
+| `src/lib/analytics/` | KPI 파생 · 완료/시도율 · 그룹 비교 · 트렌드 · 주간 인사이트 · 다음 근무 추천(규칙) · 근거 신뢰도 |
+| `src/lib/selectors.ts` | 다음 근무, 오늘 목표, Shift Prep 카드 선택 규칙 등 |
+| `src/data/coachingCards.ts` | Shift Prep 콘텐츠(전자제품·뷰티 예시) + 추천 목표 템플릿 |
+| `src/data/seed.ts` | 데모 매장 시드(`is_demo` 계정, 3주 샘플) |
+| `src/screens/bellatrix/` | Today · MyShift · Actions · Team · Growth · Profile |
+| `src/components/bellatrix/sheets/` | ShiftPrep · Reflection · GoalComposer · GoalDetail · ShiftComposer · ShiftDetail · JoinTeam · 팀 액션 시트 |
+| `src/auth/`, `src/onboarding/` | LoginScreen(데모/새로 시작) · SignUpScreen · OnboardingScreen · SetupFlow |
+| `src/manager/bellatrix/` | 매니저 홈 · 배정(캠페인) · 관찰 · KPI · CSV · 인사이트 |
+| `src/__tests__/` | vitest 단위 테스트 |
+| `supabase/migrations/` | `0001` 코어 스키마+RLS, `0002` 개인모드·팀·visibility·회고 재설계 |
 
-## 근거 신뢰도 원칙
+## 금지 기능 (구현하지 않음)
 
-- 본인 체크인 = `employee_self_report` → **낮음**(같은 근무에 매니저 관찰이 있으면 중간)
-- 매니저 관찰 = `manager_observation` → **높음**
-- 앱 기록(코칭 열람 등) = `digital_signal` → 디지털 행동에만 중간
-- "액션 완료"는 참여 기록이며 실제 행동을 의미하지 않습니다. UI는 **완료**와 **관찰됨**을 항상 구분합니다.
-
-## 제외/보류 (V1)
-
-마이크·오디오·위치, 채팅, 급여, GPS 출퇴근, 자동 스케줄링, 교대 승인 워크플로, LMS, 챗봇, 소셜 피드,
-배지/아바타, 임원 대시보드, POS 연동. 아래 구버전 문서의 기능들은 코드는 남아 있으나 nav에서 제외됐습니다.
+마이크·녹음·전사, 고객 대화 수집, 얼굴 인식, GPS/지오펜싱, 상시 감시, 비밀 추적, 동의 없는 개인 기록 노출, 공개 순위표, 근거 없는 AI 평가.
+KPI 개선은 UI 어디에서도 확인된 성과로 표현하지 않고 **검증할 가설**로 라벨링합니다.
 
 ---
 

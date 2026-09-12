@@ -14,7 +14,7 @@ export type UserRole = 'employee' | 'manager'
 
 const ROLE_LABEL: Record<User['role'], string> = { employee: '직원', manager: '매니저', admin: '관리자' }
 
-export function LoginScreen() {
+export function LoginScreen({ onSignUp }: { onSignUp: () => void }) {
   const { repoMode, signIn, listDemoAccounts } = useBellatrix()
   const [accounts, setAccounts] = useState<User[] | null>(null)
   const [email, setEmail] = useState('')
@@ -54,7 +54,7 @@ export function LoginScreen() {
         <div className="pb-10 space-y-4 overflow-y-auto app-scroll">
           {repoMode === 'local' ? (
             <>
-              <p className="text-center text-[11px] text-ink-950/35">파일럿 데모 — 계정을 선택하면 바로 로그인돼요</p>
+              <p className="text-center text-[11px] text-ink-950/35">데모 계정 (샘플 데이터) — 선택하면 바로 로그인돼요</p>
               <div className="space-y-2">
                 {accounts === null && <div className="h-14 rounded-xl shimmer bg-ink-950/6" />}
                 {accounts?.map((u) => (
@@ -97,6 +97,9 @@ export function LoginScreen() {
             </form>
           )}
           {error && <p className="text-xs text-rose-600 text-center">{error}</p>}
+          <button onClick={onSignUp} className="w-full rounded-xl border border-brand-300 bg-white text-brand-700 font-semibold py-3 text-sm active:scale-[0.98] transition">
+            새로 시작하기 — 팀 없이 개인으로
+          </button>
           <p className="text-center text-[11px] text-ink-950/25 leading-relaxed">
             마이크·녹음·위치 추적 없음 · 기록은 코칭과 성장 근거로만 쓰여요
           </p>
