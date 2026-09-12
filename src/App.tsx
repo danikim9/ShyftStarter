@@ -167,9 +167,11 @@ function Root() {
   const [setupDoneFor, setSetupDoneFor] = useState<string | null>(null)
   const [managerView, setManagerView] = useState<'employee' | 'manager'>('manager')
 
-  // Reset to the manager's own home whenever a new session starts.
+  // Reset to the manager's own home whenever a new session starts, and re-read
+  // the onboarding flag on sign-out so "앱 소개 다시 보기" actually replays it.
   useEffect(() => {
     if (session.status === 'signed_in') setManagerView('manager')
+    if (session.status === 'signed_out') setOnboarded(storage.get(ONBOARDED_KEY) === '1')
   }, [session.status])
 
   if (session.status === 'loading') return <Splash />
@@ -186,7 +188,15 @@ function Root() {
       )
     }
     if (authView === 'signup') return <SignUpScreen onBack={() => setAuthView('login')} />
-    return <LoginScreen onSignUp={() => setAuthView('signup')} />
+    return (
+      <LoginScreen
+        onSignUp={() => setAuthView('signup')}
+        onShowIntro={() => {
+          storage.remove(ONBOARDED_KEY)
+          setOnboarded(false)
+        }}
+      />
+    )
   }
 
   const u = session.user
