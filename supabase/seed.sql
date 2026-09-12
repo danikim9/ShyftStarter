@@ -22,3 +22,10 @@ on conflict (id) do nothing;
 insert into pilots (id, company_id, store_id, name, start_date, end_date, target_behaviour, target_metric, status)
 values ('pl_gangnam_attach', 'co_bellatrix_demo', 'st_gangnam', 'Gangnam Attach Rate Pilot', current_date - 21, current_date + 21, 'cross_sell', 'attach_rate', 'active')
 on conflict (id) do nothing;
+
+-- 0002 additions
+insert into teams (id, store_id, name, join_code) values ('tm_gangnam', 'st_gangnam', 'Gangnam Flagship 팀', 'GN-4821') on conflict (id) do nothing;
+insert into campaigns (id, store_id, name, behaviour_type, target_metric, start_date, end_date, active)
+values ('cp_launch_week', 'st_gangnam', '신제품 런칭 주간 — 액세서리 부착', 'cross_sell', 'attach_rate', current_date - 14, current_date + 14, true)
+on conflict (id) do nothing;
+-- coaching_cards: mirror src/data/coachingCards.ts (insert via the app admin or a one-off script)

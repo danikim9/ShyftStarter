@@ -58,11 +58,26 @@ export function filterAssignments(ds: StoreDataset, f: AssignmentFilter): Action
   })
 }
 
-/** completed ÷ (all assignments that reached a terminal or active state). */
+/** completed ÷ all team assignments, plus (for a single user) personal-goal
+ * shifts where an attempt was logged ÷ shifts with an active goal of that
+ * behaviour. Both are "did the person try" signals, never verified behaviour. */
 export function getActionCompletionRate(ds: StoreDataset, f: AssignmentFilter = {}): RateResult {
   const rows = filterAssignments(ds, f)
-  const completed = rows.filter((a) => a.status === 'completed').length
-  return rate(completed, rows.length)
+  let num = rows.filter((a) => a.status === 'completed').length
+  let den = rows.length
+  if (f.userId) {
+    const goals = ds.personal_goals.filter((g) => g.user_id === f.userId && (!f.behaviourType || g.behaviour_type === f.behaviourType))
+    if (goals.length > 0) {
+      const goalIds = new Set(goals.map((g) => g.id))
+      const shifts = ds.shifts.filter((s) => s.user_id === f.userId && s.status !== 'cancelled' && inRange(dateOf(s.start_at), f.range))
+      const attemptedShiftIds = new Set(
+        ds.action_events.filter((e) => e.personal_goal_id && goalIds.has(e.personal_goal_id) && e.event_type === 'attempted' && e.shift_id).map((e) => e.shift_id as string)
+      )
+      den += shifts.length
+      num += shifts.filter((s) => attemptedShiftIds.has(s.id)).length
+    }
+  }
+  return rate(num, den)
 }
 
 export interface EvidenceFilter {
@@ -206,7 +221,16 @@ function behaviourTrend(ds: StoreDataset, userId: string | undefined, weeks: num
       if (isObserved(e)) weekly[i].observed++
       else if (e.evidence_source === 'employee_self_report' && e.evidence_value !== '0') weekly[i].selfReported++
     }
-    const series = weekly.map((w) => w.completed + w.observed)
+    // Personal-goal attempts (private self-report) count as "tried" for the owner's own trend.
+    if (userId) {
+      const goalIds = new Set(ds.personal_goals.filter((g) => g.user_id === userId && g.behaviour_type === b).map((g) => g.id))
+      for (const e of ds.action_events) {
+        if (e.user_id !== userId || e.event_type !== 'attempted' || !e.personal_goal_id || !goalIds.has(e.personal_goal_id)) continue
+        const i = idx.get(weekKey(dateOf(e.event_at)))
+        if (i !== undefined) weekly[i].selfReported++
+      }
+    }
+    const series = weekly.map((w) => w.completed + w.observed + (userId ? w.selfReported : 0))
     // The current week is partial — project it to a full week for the direction
     // only, so a Tuesday never reads as "down" against complete weeks.
     const elapsed = Math.max(1, daysBetween(thisWeek, today) + 1)

@@ -1,15 +1,17 @@
 import { useEffect, useMemo } from 'react'
 import { Lightbulb, Info } from 'lucide-react'
-import { useBellatrix, useReadyData } from '../../lib/bellatrixStore'
+import { useBellatrix, useManagerData } from '../../lib/bellatrixStore'
 import { generateWeeklyInsights } from '../../lib/analytics/insights'
 import { getStoreBehaviourTrend, getActionCompletionRate, getBehaviourObservationRate } from '../../lib/analytics/analytics'
 import { BEHAVIOUR_LABEL } from '../../types/bellatrix'
 import { Card, SectionLabel, Badge } from '../../components/ui'
 import { ErrorState, LoadingState, StrengthBadge } from '../../components/bellatrix/shared'
+import { DemoBadge } from '../../components/bellatrix/DemoBadge'
+import { Lock } from 'lucide-react'
 import { addDaysISO } from '../../lib/dates'
 
 export function InsightsView() {
-  const ready = useReadyData()
+  const ready = useManagerData()
   const { dataset, reload, today, trackEvent } = useBellatrix()
 
   useEffect(() => {
@@ -31,14 +33,20 @@ export function InsightsView() {
   }, [ready, today])
 
   if (dataset.status === 'error') return <ErrorState message={dataset.message} onRetry={dataset.retryable ? reload : undefined} />
-  if (!model) return <LoadingState />
+  if (!model || !ready) return <LoadingState />
   const pct = (r: number | null) => (r === null ? '—' : `${Math.round(r * 100)}%`)
 
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
         <h1 className="text-2xl font-bold text-ink-950 mb-1">주간 인사이트</h1>
-        <p className="text-sm text-ink-950/45 leading-relaxed">규칙 기반 비교예요. 인과 AI가 아니라, 개입 → 행동 → 결과가 같은 방향으로 움직이는지 보는 초기 신호 탐지기예요.</p>
+        <p className="text-sm text-ink-950/45 leading-relaxed">규칙 기반 비교예요. 인과 AI가 아니라, 개입 → 행동 → 결과가 같은 방향으로 움직이는지 보는 초기 신호 탐지기예요. KPI 개선은 검증해야 할 가설이지 확인된 성과가 아니에요.</p>
+        <div className="flex items-center gap-2 mt-2 flex-wrap">
+          {ready.user.is_demo && <DemoBadge label="데모 데이터 — 실제 성과가 아니에요" />}
+          <Badge>
+            <Lock size={10} /> 직원 개인 회고·목표는 포함되지 않아요
+          </Badge>
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-2">
