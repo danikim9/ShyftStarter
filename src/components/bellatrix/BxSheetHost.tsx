@@ -43,7 +43,7 @@ export function BxSheetHost() {
   else if (sheet?.kind === 'reflection') content = <ReflectionSheet shiftId={sheet.shiftId} />
   else if (sheet?.kind === 'goalComposer') content = <GoalComposerSheet />
   else if (sheet?.kind === 'goalDetail') content = <GoalDetailSheet goalId={sheet.goalId} />
-  else if (sheet?.kind === 'shiftComposer') content = <ShiftComposerSheet presetDate={sheet.presetDate} />
+  else if (sheet?.kind === 'shiftComposer') content = <ShiftComposerSheet presetDate={sheet.presetDate} editShiftId={sheet.editShiftId} />
   else if (sheet?.kind === 'shiftDetail') content = <ShiftDetailSheet shiftId={sheet.shiftId} />
   else if (sheet?.kind === 'joinTeam') content = <JoinTeamSheet />
   else if (sheet?.kind === 'assign') content = <AssignActionSheet presetUserId={sheet.presetUserId} />
@@ -51,7 +51,7 @@ export function BxSheetHost() {
   else if (sheet?.kind === 'kpi') content = <KpiSheet presetDate={sheet.presetDate} />
   else if (sheet?.kind === 'csvImport') content = <CsvImportSheet />
 
-  const key = sheet ? `${sheet.kind}:${'assignmentId' in sheet ? sheet.assignmentId : 'shiftId' in sheet ? sheet.shiftId : 'goalId' in sheet ? sheet.goalId : ''}` : 'none'
+  const key = sheet ? `${sheet.kind}:${'assignmentId' in sheet ? sheet.assignmentId : 'shiftId' in sheet ? sheet.shiftId : 'goalId' in sheet ? sheet.goalId : 'editShiftId' in sheet ? sheet.editShiftId ?? '' : ''}` : 'none'
   return (
     <Sheet open={open} title={sheet ? TITLES[sheet.kind] : ''} onClose={closeSheet}>
       <div key={key}>{content}</div>

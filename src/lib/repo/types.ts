@@ -67,6 +67,9 @@ export interface BellatrixRepo {
 
   // employee writes ---------------------------------------------------------
   createShift(row: NewRow<Shift>): Promise<Shift>
+  /** Bulk create for repeat patterns; existing same-day shifts are updated instead of duplicated. */
+  createShifts(rows: NewRow<Shift>[]): Promise<Shift[]>
+  updateShift(id: string, userId: string, patch: Pick<Shift, 'start_at' | 'end_at'>): Promise<Shift>
   deleteShift(id: string, userId: string): Promise<void>
   createPersonalGoal(row: NewRow<PersonalGoal>): Promise<PersonalGoal>
   updatePersonalGoal(id: string, patch: Partial<Pick<PersonalGoal, 'active' | 'title' | 'target_count'>>): Promise<PersonalGoal>

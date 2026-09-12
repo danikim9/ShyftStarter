@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ChevronRight, Sparkles, Target, MoonStar, CalendarPlus, Check, Plus, Users, Megaphone, Lock } from 'lucide-react'
 import { useBellatrix, useReadyData } from '../../lib/bellatrixStore'
 import { useAppState } from '../../lib/store'
@@ -6,7 +6,9 @@ import { activeGoals, assignmentsFor, cardById, goalAttemptsOn, nextShiftFor, pr
 import { fmtDateKo, fmtShortDate, fmtTimeHM } from '../../lib/dates'
 import { BEHAVIOUR_LABEL } from '../../types/bellatrix'
 import type { PersonalGoal, Shift } from '../../types/bellatrix'
-import { Card, SectionLabel, Badge, ProgressBar, PrimaryButton, SecondaryButton } from '../../components/ui'
+import { Card, SectionLabel, Badge, ProgressBar, PrimaryButton } from '../../components/ui'
+import { inputClass } from '../../components/bellatrix/shared'
+import type { BehaviourType } from '../../types/bellatrix'
 import { EmptyState, ErrorState, LoadingState } from '../../components/bellatrix/shared'
 import { DemoBadge } from '../../components/bellatrix/DemoBadge'
 import type { TabId } from '../../components/BottomNav'
@@ -41,6 +43,58 @@ function GoalRow({ goal, count }: { goal: PersonalGoal; count: number }) {
         aria-label={`${goal.title} 한 번 더 시도`}
       >
         {done ? <Check size={18} strokeWidth={3} /> : <Plus size={18} />}
+      </button>
+    </div>
+  )
+}
+
+const QUICK_BEHAVIOURS: BehaviourType[] = ['discovery', 'demo', 'recommendation', 'cross_sell', 'closing']
+
+/** Inline goal entry on Today: one line + a behaviour chip, or open the template picker. */
+function QuickGoalEntry() {
+  const { createGoal, openSheet } = useBellatrix()
+  const [title, setTitle] = useState('')
+  const [behaviour, setBehaviour] = useState<BehaviourType | null>(null)
+  const [busy, setBusy] = useState(false)
+  const submit = async () => {
+    if (!title.trim() || busy) return
+    setBusy(true)
+    try {
+      await createGoal({ title, behaviour_type: behaviour ?? 'other', target_count: null, source: 'self', coaching_card_id: null })
+      setTitle('')
+      setBehaviour(null)
+    } catch {
+      // toast shown
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <div className="pt-3 border-t border-ink-950/6 space-y-2">
+      <div className="flex items-center gap-2">
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && void submit()}
+          placeholder="오늘 시도할 행동 한 줄 기입"
+          className={`${inputClass} !py-2.5`}
+          aria-label="오늘의 내 목표 기입"
+        />
+        <button onClick={() => void submit()} disabled={!title.trim() || busy} className="shrink-0 rounded-xl bg-brand-500 text-white text-sm font-semibold px-3.5 py-2.5 disabled:opacity-40">
+          추가
+        </button>
+      </div>
+      {title.trim() && (
+        <div className="flex gap-1.5 flex-wrap">
+          {QUICK_BEHAVIOURS.map((b) => (
+            <button key={b} type="button" onClick={() => setBehaviour(behaviour === b ? null : b)} className={`rounded-full border px-2.5 py-1 text-[11px] font-medium ${behaviour === b ? 'bg-brand-500 border-brand-500 text-white' : 'bg-white border-ink-950/10 text-ink-950/60'}`}>
+              {BEHAVIOUR_LABEL[b]}
+            </button>
+          ))}
+        </div>
+      )}
+      <button onClick={() => openSheet({ kind: 'goalComposer' })} className="text-[11px] text-brand-700 font-medium">
+        추천 목표에서 고르기
       </button>
     </div>
   )
@@ -230,15 +284,42 @@ export function Today({ onNavigate }: { onNavigate: (t: TabId) => void }) {
         </div>
         <Card>
           {goals.length === 0 ? (
-            <div className="space-y-3">
-              <EmptyState icon={<Target size={18} />} title="아직 목표가 없어요" body="오늘 고객에게 시도할 행동을 하나만 골라보세요. 추천 목표에서 고르면 10초예요." />
-              <SecondaryButton onClick={() => openSheet({ kind: 'goalComposer' })}>목표 1개 고르기</SecondaryButton>
-            </div>
+            <EmptyState icon={<Target size={18} />} title="아직 목표가 없어요" body="오늘 고객에게 시도할 행동을 아래에 한 줄로 적거나, 추천 목표에서 골라보세요." />
           ) : (
             goals.map((g, i) => <GoalRow key={g.id} goal={g} count={goalCounts[i]} />)
           )}
+          <QuickGoalEntry />
         </Card>
       </div>
+
+      {/* Team news — right under my goals so it's checked in the same glance */}
+      {(urgentHandover || pinned) && (
+        <div>
+          <SectionLabel>팀 소식</SectionLabel>
+          <button onClick={() => onNavigate('team')} className="w-full text-left">
+            <Card className="flex items-start gap-3 active:scale-[0.99] transition border-amber-signal/30 bg-amber-signal/5">
+              <div className="w-9 h-9 rounded-xl bg-amber-signal/15 flex items-center justify-center text-amber-600 shrink-0">
+                <Megaphone size={16} />
+              </div>
+              <div className="min-w-0 flex-1">
+                {pinned && <div className="text-sm text-ink-950/85 leading-snug line-clamp-2">{pinned.message}</div>}
+                {urgentHandover && (
+                  <div className="text-xs text-ink-950/55 mt-1 line-clamp-2">
+                    <span className="font-semibold">{urgentHandover.fromEmployeeName}</span> · {urgentHandover.message}
+                    {urgentHandover.photos.length > 0 && <span className="ml-1 text-ink-950/40">📷 {urgentHandover.photos.length}</span>}
+                  </div>
+                )}
+                <div className="text-[10px] text-ink-950/35 mt-1">
+                  {pinned ? `확인 ${pinned.acks.length}명` : ''}
+                  {pinned && urgentHandover ? ' · ' : ''}
+                  {urgentHandover ? `인수인계 확인 ${urgentHandover.acks.length}명` : ''}
+                </div>
+              </div>
+              <ChevronRight size={16} className="text-ink-950/25 shrink-0 mt-2" />
+            </Card>
+          </button>
+        </div>
+      )}
 
       {/* Team actions */}
       {inTeam && (
@@ -250,29 +331,6 @@ export function Today({ onNavigate }: { onNavigate: (t: TabId) => void }) {
           <Card>
             {team.length === 0 ? <p className="text-xs text-ink-950/35 py-1">오늘 팀에서 받은 행동이 없어요.</p> : team.map((v) => <TeamActionRow key={v.assignment.id} v={v} />)}
           </Card>
-        </div>
-      )}
-
-      {/* Urgent handover / pinned notice */}
-      {(urgentHandover || pinned) && (
-        <div>
-          <SectionLabel>팀 소식</SectionLabel>
-          <button onClick={() => onNavigate('team')} className="w-full text-left">
-            <Card className="flex items-start gap-3 active:scale-[0.99] transition">
-              <div className="w-9 h-9 rounded-xl bg-amber-signal/15 flex items-center justify-center text-amber-600 shrink-0">
-                <Megaphone size={16} />
-              </div>
-              <div className="min-w-0 flex-1">
-                {pinned && <div className="text-sm text-ink-950/85 leading-snug line-clamp-2">{pinned.message}</div>}
-                {urgentHandover && (
-                  <div className="text-xs text-ink-950/55 mt-1 line-clamp-2">
-                    <span className="font-semibold">{urgentHandover.fromEmployeeName}</span> · {urgentHandover.message}
-                  </div>
-                )}
-              </div>
-              <ChevronRight size={16} className="text-ink-950/25 shrink-0 mt-2" />
-            </Card>
-          </button>
         </div>
       )}
 
