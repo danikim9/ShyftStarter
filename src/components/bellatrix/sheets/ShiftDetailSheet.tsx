@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Sparkles, MoonStar, Trash2, Lock, Check } from 'lucide-react'
+import { Sparkles, MoonStar, Trash2, Lock, Check, Pencil } from 'lucide-react'
 import { useBellatrix, useReadyData } from '../../../lib/bellatrixStore'
 import { cardById, prepForShift, reflectionForShift } from '../../../lib/selectors'
 import { fmtDateKo, fmtTimeHM, dateOf } from '../../../lib/dates'
@@ -83,6 +83,11 @@ export function ShiftDetailSheet({ shiftId }: { shiftId: string }) {
         </div>
       )}
 
+      {shift.source === 'self' && !isPast && (
+        <SecondaryButton onClick={() => openSheet({ kind: 'shiftComposer', editShiftId: shift.id })} className="flex items-center justify-center gap-1.5">
+          <Pencil size={14} /> 시간 수정
+        </SecondaryButton>
+      )}
       {shift.source === 'self' &&
         !isPast &&
         (confirm ? (

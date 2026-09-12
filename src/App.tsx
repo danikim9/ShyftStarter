@@ -84,6 +84,8 @@ function EmployeeScreen({ tab, onNavigate }: { tab: TabId; onNavigate: (t: TabId
       return <Growth />
     case 'profile':
       return <Profile />
+    case 'teamFeed':
+      return <Team onNavigate={onNavigate} />
     default:
       return <Today onNavigate={onNavigate} />
   }
@@ -145,10 +147,16 @@ function LegacyMembershipSync() {
   const { session } = useBellatrix()
   const legacy = useAppState()
   const inTeam = session.status === 'signed_in' && session.user.team_id !== null
+  const name = session.status === 'signed_in' ? session.user.name : null
   useEffect(() => {
     if (inTeam && legacy.membership !== 'store') legacy.joinTeam(legacy.storeCode)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inTeam])
+  // Legacy feed (announcements/handover/acks) should sign posts with the real user's name.
+  useEffect(() => {
+    if (name) legacy.setIdentity(name)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name])
   return null
 }
 

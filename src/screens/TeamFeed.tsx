@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Pin, MessageCircle, Plus, Megaphone, Users, Copy, Check, Share2, ChevronDown, ChevronUp, History } from 'lucide-react'
+import { Pin, MessageCircle, Plus, Megaphone, Users, Copy, Check, Share2, ChevronDown, ChevronUp, History, Eye } from 'lucide-react'
+import type { Ack, Reaction } from '../types'
 import { useAppState } from '../lib/store'
 import type { FeedItem } from '../types'
 import { Card, Badge, PrimaryButton } from '../components/ui'
@@ -17,6 +18,81 @@ function fmtTime(iso: string) {
   return `${dt.getMonth() + 1}.${dt.getDate()}`
 }
 
+/** "확인 N명" read receipts. Tap to expand the names. */
+function AckRow({ acks }: { acks: Ack[] }) {
+  const [open, setOpen] = useState(false)
+  if (acks.length === 0) return <span className="text-[10px] text-ink-950/30 inline-flex items-center gap-1"><Eye size={11} /> 아직 확인한 사람이 없어요</span>
+  return (
+    <div className="min-w-0">
+      <button onClick={() => setOpen((v) => !v)} className="inline-flex items-center gap-1.5 text-[11px] text-ink-950/55">
+        <span className="flex -space-x-1.5">
+          {acks.slice(0, 4).map((a) => (
+            <span key={a.employeeId} className="w-5 h-5 rounded-full bg-emerald-signal/80 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white" title={a.employeeName}>
+              {a.employeeName[0]}
+            </span>
+          ))}
+        </span>
+        <span className="inline-flex items-center gap-0.5">
+          <Eye size={11} /> 확인 {acks.length}명
+        </span>
+        {open ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+      </button>
+      {open && (
+        <div className="mt-1.5 flex flex-wrap gap-1">
+          {acks.map((a) => (
+            <span key={a.employeeId} className="text-[10px] text-ink-950/60 bg-ink-950/5 rounded-full px-2 py-0.5">
+              {a.employeeName} · {fmtTime(a.at)}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ReactionRow({ itemId, reactions }: { itemId: string; reactions: Reaction[] }) {
+  const { toggleReaction, employee } = useAppState()
+  return (
+    <>
+      {QUICK_REACTIONS.map((emoji) => {
+        const r = reactions.find((x) => x.emoji === emoji)
+        const mine = r?.employeeIds.includes(employee.id)
+        return (
+          <button
+            key={emoji}
+            onClick={() => toggleReaction(itemId, emoji)}
+            className={`text-xs px-2 py-1 rounded-full border transition ${mine ? 'bg-brand-500/20 border-brand-400/40' : 'bg-ink-950/4 border-ink-950/8'}`}
+            aria-label={`${emoji} 리액션`}
+          >
+            {emoji} {r?.employeeIds.length ?? ''}
+          </button>
+        )
+      })}
+    </>
+  )
+}
+
+function PhotoStrip({ photos }: { photos: string[] }) {
+  const [openIdx, setOpenIdx] = useState<number | null>(null)
+  if (photos.length === 0) return null
+  return (
+    <>
+      <div className="flex gap-2 mt-2 overflow-x-auto -mx-1 px-1 pb-1">
+        {photos.map((src, i) => (
+          <button key={i} onClick={() => setOpenIdx(i)} className="shrink-0 w-24 h-24 rounded-xl overflow-hidden border border-ink-950/10 bg-ink-950/4">
+            <img src={src} alt={`인수인계 사진 ${i + 1}`} className="w-full h-full object-cover" />
+          </button>
+        ))}
+      </div>
+      {openIdx !== null && (
+        <div className="fixed inset-0 z-[80] bg-black/90 flex items-center justify-center p-4" onClick={() => setOpenIdx(null)}>
+          <img src={photos[openIdx]} alt="인수인계 사진 크게 보기" className="max-w-full max-h-full object-contain rounded-lg" />
+        </div>
+      )}
+    </>
+  )
+}
+
 // 19차 — 공지 작성 권한이 팀원 전체로 열리면서, 매니저가 남긴 공지와 동료가
 // 남긴 공지를 시각적으로 구분해야 한다. 매니저 공지는 앰버 톤 + 확성기
 // 아이콘 + "관리자 공지" 배지로, 동료 공지는 기존 브랜드 톤 아바타(이니셜)로
@@ -28,7 +104,7 @@ function AnnouncementCard({
   item: Extract<FeedItem, { type: 'announcement' }>
   onAck?: () => void
 }) {
-  const { toggleReaction, addComment, employee } = useAppState()
+  const { addComment } = useAppState()
   const a = item.data
   const isManager = a.authorRole === 'manager'
   const [commentText, setCommentText] = useState('')
@@ -67,21 +143,7 @@ function AnnouncementCard({
       <p className="text-sm text-ink-950/85 leading-relaxed mb-3">{a.message}</p>
 
       <div className="flex items-center gap-1.5 flex-wrap">
-        {QUICK_REACTIONS.map((emoji) => {
-          const r = a.reactions.find((x) => x.emoji === emoji)
-          const mine = r?.employeeIds.includes(employee.id)
-          return (
-            <button
-              key={emoji}
-              onClick={() => toggleReaction(a.id, emoji)}
-              className={`text-xs px-2 py-1 rounded-full border transition ${
-                mine ? 'bg-brand-500/20 border-brand-400/40' : 'bg-ink-950/4 border-ink-950/8'
-              }`}
-            >
-              {emoji} {r?.employeeIds.length ?? ''}
-            </button>
-          )
-        })}
+        <ReactionRow itemId={a.id} reactions={a.reactions} />
         <button
           onClick={() => setShowComments((v) => !v)}
           className="text-xs px-2 py-1 rounded-full bg-ink-950/4 border border-ink-950/8 text-ink-950/50 flex items-center gap-1"
@@ -96,6 +158,9 @@ function AnnouncementCard({
             <Check size={12} /> 확인했어요
           </button>
         )}
+      </div>
+      <div className="mt-2.5 pt-2.5 border-t border-ink-950/6">
+        <AckRow acks={a.acks} />
       </div>
 
       {showComments && (
@@ -149,17 +214,22 @@ function HandoverCard({
             <span className="text-xs font-semibold text-ink-950">{h.fromEmployeeName}</span>
             <Badge tone="emerald">인수인계</Badge>
           </div>
-          <p className="text-sm text-ink-950/80 leading-relaxed">{h.message}</p>
-          <div className="flex items-center justify-between mt-1.5">
-            <div className="text-[10px] text-ink-950/35">{fmtTime(h.createdAt)}</div>
+          {h.message && <p className="text-sm text-ink-950/80 leading-relaxed">{h.message}</p>}
+          <PhotoStrip photos={h.photos} />
+          <div className="flex items-center gap-1.5 flex-wrap mt-2">
+            <ReactionRow itemId={h.id} reactions={h.reactions} />
+            <span className="text-[10px] text-ink-950/35 ml-1">{fmtTime(h.createdAt)}</span>
             {onAck && (
               <button
                 onClick={onAck}
-                className="text-[11px] px-2.5 py-1 rounded-full bg-emerald-signal/12 border border-emerald-signal/25 text-emerald-600 font-medium flex items-center gap-1"
+                className="ml-auto text-[11px] px-2.5 py-1 rounded-full bg-emerald-signal/12 border border-emerald-signal/25 text-emerald-600 font-medium flex items-center gap-1"
               >
                 <Check size={12} /> 확인했어요
               </button>
             )}
+          </div>
+          <div className="mt-2.5 pt-2.5 border-t border-ink-950/6">
+            <AckRow acks={h.acks} />
           </div>
         </div>
       </div>
@@ -336,7 +406,7 @@ export function TeamFeed() {
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-ink-950 mb-1">Team</h1>
-          <p className="text-xs text-ink-950/40">공지 + 인수인계만 모아둔 곳이에요 — 자유 채팅방은 아니에요.</p>
+          <p className="text-xs text-ink-950/40">공지 + 인수인계만 모아둔 곳이에요 — 누가 확인했는지, 어떤 반응인지 한눈에. 자유 채팅방은 아니에요.</p>
         </div>
         {membership === 'store' && (
           <div className="flex items-center gap-2 shrink-0">
