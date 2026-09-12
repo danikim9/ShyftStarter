@@ -9,11 +9,13 @@
 // ---------------------------------------------------------------------------
 import { useEffect, useState } from 'react'
 import { Smartphone, LayoutDashboard, ArrowLeft } from 'lucide-react'
-import { AppStateProvider } from './lib/store'
+import { AppStateProvider, useAppState } from './lib/store'
 import { BellatrixProvider, useBellatrix } from './lib/bellatrixStore'
 import { storage } from './lib/storage'
 import { LoginScreen } from './auth/LoginScreen'
+import { SignUpScreen } from './auth/SignUpScreen'
 import { OnboardingScreen } from './onboarding/OnboardingScreen'
+import { SetupFlow } from './onboarding/SetupFlow'
 import { BottomNav, type TabId } from './components/BottomNav'
 import { SheetHost } from './components/sheets/SheetHost'
 import { BxSheetHost } from './components/bellatrix/BxSheetHost'
@@ -21,14 +23,15 @@ import { BxToast } from './components/bellatrix/BxToast'
 import { Toast } from './components/Toast'
 import { MoodCheckIn } from './components/MoodCheckIn'
 import { Today } from './screens/bellatrix/Today'
+import { MyShift } from './screens/bellatrix/MyShift'
 import { Actions } from './screens/bellatrix/Actions'
+import { Team } from './screens/bellatrix/Team'
 import { Growth } from './screens/bellatrix/Growth'
 import { Profile } from './screens/bellatrix/Profile'
-import { MyShift } from './screens/MyShift'
-import { TeamFeed } from './screens/TeamFeed'
 import { ManagerDashboard } from './manager/ManagerDashboard'
 
 const ONBOARDED_KEY = 'bellatrix.onboarded'
+const setupKey = (userId: string) => `bellatrix.setupDone.${userId}`
 
 // Everything "fixed" inside the phone frame must be contained by a transformed
 // ancestor, otherwise WKWebView positions it against the layout viewport
@@ -67,44 +70,40 @@ function StatusBar() {
   )
 }
 
-type LegacyTab = Extract<TabId, 'teamFeed' | 'myShift'>
-
 function EmployeeScreen({ tab, onNavigate }: { tab: TabId; onNavigate: (t: TabId) => void }) {
   switch (tab) {
     case 'today':
-      return <Today />
+      return <Today onNavigate={onNavigate} />
+    case 'myShift':
+      return <MyShift />
     case 'actions':
       return <Actions />
+    case 'team':
+      return <Team onNavigate={onNavigate} />
     case 'growth':
       return <Growth />
     case 'profile':
-      return <Profile onOpenLegacy={(s) => onNavigate(s)} />
-    case 'teamFeed':
-      return <TeamFeed />
-    case 'myShift':
-      return <MyShift onNavigate={onNavigate} />
+      return <Profile />
     default:
-      return <Today />
+      return <Today onNavigate={onNavigate} />
   }
 }
 
-const LEGACY_TITLES: Record<LegacyTab, string> = { teamFeed: '팀 공지 · 인수인계', myShift: '근무 일정' }
-
 function EmployeeAppShell() {
   const [tab, setTab] = useState<TabId>('today')
-  const isLegacy = tab === 'teamFeed' || tab === 'myShift'
-  const navActive: TabId = isLegacy ? 'profile' : tab
+  const isProfile = tab === 'profile'
+  const navActive: TabId = isProfile ? 'today' : tab
 
   return (
     <div className={`min-h-screen w-full ${APP_BACKDROP} flex items-center justify-center py-0 sm:py-8 px-0 sm:px-4`}>
       <div className={`relative w-full max-w-[430px] h-[100dvh] sm:h-[880px] sm:rounded-[2.75rem] sm:border sm:border-ink-950/8 overflow-hidden flex flex-col bg-paper ${PHONE_SHADOW}`} style={FIXED_CONTAINMENT}>
         <StatusBar />
-        {isLegacy && (
+        {isProfile && (
           <div className="shrink-0 flex items-center gap-2 px-4 pb-2">
-            <button onClick={() => setTab('profile')} className="inline-flex items-center gap-1 text-xs font-medium text-brand-700">
-              <ArrowLeft size={14} /> Profile
+            <button onClick={() => setTab('today')} className="inline-flex items-center gap-1 text-xs font-medium text-brand-700">
+              <ArrowLeft size={14} /> Today
             </button>
-            <span className="text-xs text-ink-950/40">/ {LEGACY_TITLES[tab as LegacyTab]}</span>
+            <span className="text-xs text-ink-950/40">/ Profile</span>
           </div>
         )}
         <div className="relative grow overflow-y-auto app-scroll">
@@ -140,9 +139,24 @@ function Splash() {
   )
 }
 
+/** Keeps the legacy feed membership (announcements/handover) in step with the
+ * Bellatrix team membership so joining a team is one action, not two. */
+function LegacyMembershipSync() {
+  const { session } = useBellatrix()
+  const legacy = useAppState()
+  const inTeam = session.status === 'signed_in' && session.user.team_id !== null
+  useEffect(() => {
+    if (inTeam && legacy.membership !== 'store') legacy.joinTeam(legacy.storeCode)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inTeam])
+  return null
+}
+
 function Root() {
   const { session, sheet } = useBellatrix()
   const [onboarded, setOnboarded] = useState<boolean>(() => storage.get(ONBOARDED_KEY) === '1')
+  const [authView, setAuthView] = useState<'login' | 'signup'>('login')
+  const [setupDoneFor, setSetupDoneFor] = useState<string | null>(null)
   const [managerView, setManagerView] = useState<'employee' | 'manager'>('manager')
 
   // Reset to the manager's own home whenever a new session starts.
@@ -163,7 +177,21 @@ function Root() {
         />
       )
     }
-    return <LoginScreen />
+    if (authView === 'signup') return <SignUpScreen onBack={() => setAuthView('login')} />
+    return <LoginScreen onSignUp={() => setAuthView('signup')} />
+  }
+
+  const u = session.user
+  const needsSetup = !u.is_demo && u.role === 'employee' && setupDoneFor !== u.id && storage.get(setupKey(u.id)) !== '1'
+  if (needsSetup) {
+    return (
+      <SetupFlow
+        onDone={() => {
+          storage.set(setupKey(u.id), '1')
+          setSetupDoneFor(u.id)
+        }}
+      />
+    )
   }
 
   const isManager = session.user.role === 'manager' || session.user.role === 'admin'
@@ -181,6 +209,7 @@ export default function App() {
       {/* Legacy Shift-Companion state (announcements, handover, roster…) — still
           powers the de-emphasised screens; will be folded into Bellatrix later. */}
       <AppStateProvider>
+        <LegacyMembershipSync />
         <Root />
       </AppStateProvider>
     </BellatrixProvider>

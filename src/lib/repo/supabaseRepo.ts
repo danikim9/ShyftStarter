@@ -8,18 +8,26 @@ import type {
   ActionAssignment,
   ActionEvent,
   BehaviourEvidence,
+  Campaign,
+  CoachingCard,
   Company,
+  ConsentSetting,
   OutcomeEvent,
+  PersonalGoal,
   Pilot,
   PilotParticipant,
   ProductEvent,
   Shift,
+  ShiftPrep,
   ShiftReflection,
   Store,
   StoreDataset,
+  Team,
+  TeamMembership,
   User,
 } from '../../types/bellatrix'
-import { RepoError, type BellatrixRepo, type DatasetWindow, type NewRow, type SignInParams } from './types'
+import { RepoError, type BellatrixRepo, type DatasetWindow, type NewRow, type SignInParams, type SignUpParams } from './types'
+import { applyVisibility } from './visibility'
 
 // Interfaces are not assignable to Record<string, unknown>; a mapped type is.
 type Plain<T> = { [K in keyof T]: T[K] }
@@ -31,8 +39,14 @@ export interface Database {
       companies: Tbl<Company>
       stores: Tbl<Store>
       users: Tbl<User>
+      teams: Tbl<Team>
+      team_memberships: Tbl<TeamMembership>
       shifts: Tbl<Shift>
       actions: Tbl<Action>
+      coaching_cards: Tbl<CoachingCard>
+      personal_goals: Tbl<PersonalGoal>
+      shift_preps: Tbl<ShiftPrep>
+      campaigns: Tbl<Campaign>
       action_assignments: Tbl<ActionAssignment>
       action_events: Tbl<ActionEvent>
       behaviour_evidence: Tbl<BehaviourEvidence>
@@ -43,7 +57,10 @@ export interface Database {
       product_events: Tbl<ProductEvent>
     }
     Views: Record<string, never>
-    Functions: Record<string, never>
+    Functions: {
+      bx_join_team: { Args: { p_code: string }; Returns: Plain<Team> }
+      bx_leave_team: { Args: Record<string, never>; Returns: undefined }
+    }
     Enums: Record<string, never>
     CompositeTypes: Record<string, never>
   }
@@ -91,6 +108,21 @@ export class SupabaseRepo implements BellatrixRepo {
     return this.profile(data.user.id)
   }
 
+  async signUp(params: SignUpParams): Promise<User> {
+    if (!params.password || params.password.length < 8) throw new RepoError('validation', '비밀번호는 8자 이상이어야 해요.')
+    const { data, error } = await this.client.auth.signUp({
+      email: params.email.trim(),
+      password: params.password,
+      options: { data: { name: params.name.trim(), role: 'employee', job_category: params.job_category } },
+    })
+    if (error) throw mapError(error, '가입에 실패했어요.')
+    if (!data.user) throw new RepoError('unknown', '가입 확인 메일을 보냈어요. 메일의 링크를 누른 뒤 로그인해주세요.')
+    // profile row is created by the auth trigger; interests are stored afterwards
+    const { error: upErr } = await this.client.from('users').update({ interests: params.interests }).eq('id', data.user.id)
+    if (upErr) console.warn('[signUp] interests not saved', upErr.message)
+    return this.profile(data.user.id)
+  }
+
   async signOut(): Promise<void> {
     const { error } = await this.client.auth.signOut()
     if (error) throw mapError(error, '로그아웃에 실패했어요.')
@@ -100,37 +132,73 @@ export class SupabaseRepo implements BellatrixRepo {
     return []
   }
 
-  async loadDataset(storeId: string, viewer: User, window: DatasetWindow): Promise<StoreDataset> {
+  async updateConsent(userId: string, consent: ConsentSetting): Promise<User> {
+    const { data, error } = await this.client.from('users').update({ consent }).eq('id', userId).select('*').single()
+    if (error) throw mapError(error, '설정을 저장할 수 없어요.')
+    return data
+  }
+
+  async joinTeam(userId: string, code: string): Promise<{ user: User; team: Team }> {
+    const { data, error } = await this.client.rpc('bx_join_team', { p_code: code.trim() })
+    if (error) {
+      if (/invalid_code/.test(error.message)) throw new RepoError('not_found', '코드가 올바르지 않아요. 매니저에게 받은 초대 코드를 확인해주세요.')
+      throw mapError(error, '팀에 참여할 수 없어요.')
+    }
+    return { user: await this.profile(userId), team: data }
+  }
+
+  async leaveTeam(userId: string): Promise<User> {
+    const { error } = await this.client.rpc('bx_leave_team', {})
+    if (error) throw mapError(error, '팀을 떠날 수 없어요.')
+    return this.profile(userId)
+  }
+
+  async loadDataset(viewer: User, window: DatasetWindow): Promise<StoreDataset> {
     const from = `${window.from}T00:00:00`
     const to = `${window.to}T23:59:59`
     const c = this.client
-    const [store, users, shifts, actions, assignments, events, evidence, outcomes, reflections, pilots, participants] = await Promise.all([
-      c.from('stores').select('*').eq('id', storeId).single(),
-      c.from('users').select('*').eq('store_id', storeId),
-      c.from('shifts').select('*').eq('store_id', storeId).gte('start_at', from).lte('start_at', to),
-      c.from('actions').select('*').eq('active', true),
-      c.from('action_assignments').select('*').eq('store_id', storeId).gte('assigned_date', window.from).lte('assigned_date', window.to),
-      c.from('action_events').select('*').gte('event_at', from).lte('event_at', to),
-      c.from('behaviour_evidence').select('*').eq('store_id', storeId).gte('observed_at', from).lte('observed_at', to),
-      c.from('outcome_events').select('*').eq('store_id', storeId).gte('outcome_date', window.from).lte('outcome_date', window.to),
-      c.from('shift_reflections').select('*').gte('created_at', from).lte('created_at', to),
-      c.from('pilots').select('*'),
-      c.from('pilot_participants').select('*'),
-    ])
-    const results = [store, users, shifts, actions, assignments, events, evidence, outcomes, reflections, pilots, participants]
+    const storeId = viewer.store_id
+    const byStore = <Q extends { eq: (col: string, v: string) => Q }>(q: Q, col = 'store_id') => (storeId ? q.eq(col, storeId) : q)
+
+    const [store, team, memberships, users, shifts, actions, cards, goals, preps, campaigns, assignments, events, evidence, outcomes, reflections, pilots, participants] =
+      await Promise.all([
+        storeId ? c.from('stores').select('*').eq('id', storeId).maybeSingle() : Promise.resolve({ data: null, error: null }),
+        viewer.team_id ? c.from('teams').select('*').eq('id', viewer.team_id).maybeSingle() : Promise.resolve({ data: null, error: null }),
+        c.from('team_memberships').select('*'),
+        storeId ? c.from('users').select('*').eq('store_id', storeId) : c.from('users').select('*').eq('id', viewer.id),
+        c.from('shifts').select('*').gte('start_at', from).lte('start_at', to),
+        c.from('actions').select('*').eq('active', true),
+        c.from('coaching_cards').select('*').eq('active', true),
+        c.from('personal_goals').select('*'),
+        c.from('shift_preps').select('*').gte('shift_date', window.from).lte('shift_date', window.to),
+        storeId ? c.from('campaigns').select('*').eq('store_id', storeId) : Promise.resolve({ data: [], error: null }),
+        c.from('action_assignments').select('*').gte('assigned_date', window.from).lte('assigned_date', window.to),
+        c.from('action_events').select('*').gte('event_at', from).lte('event_at', to),
+        c.from('behaviour_evidence').select('*').gte('observed_at', from).lte('observed_at', to),
+        storeId ? byStore(c.from('outcome_events').select('*')).gte('outcome_date', window.from).lte('outcome_date', window.to) : Promise.resolve({ data: [], error: null }),
+        c.from('shift_reflections').select('*').gte('shift_date', window.from).lte('shift_date', window.to),
+        c.from('pilots').select('*'),
+        c.from('pilot_participants').select('*'),
+      ])
+    const results = [store, team, memberships, users, shifts, actions, cards, goals, preps, campaigns, assignments, events, evidence, outcomes, reflections, pilots, participants]
     const failed = results.find((r) => r.error)
     if (failed?.error) throw mapError(failed.error, '데이터를 불러올 수 없어요.')
-    if (!store.data) throw new RepoError('not_found', '매장 정보를 찾을 수 없어요.')
+    if (storeId && !store.data) throw new RepoError('not_found', '매장 정보를 찾을 수 없어요.')
 
-    const companyRes = await c.from('companies').select('*').eq('id', store.data.company_id).maybeSingle()
-    void viewer
+    const companyRes = store.data ? await c.from('companies').select('*').eq('id', store.data.company_id).maybeSingle() : { data: null }
 
-    return {
+    const full: StoreDataset = {
       company: companyRes.data ?? null,
-      store: store.data,
+      store: store.data ?? null,
+      team: team.data ?? null,
+      memberships: memberships.data ?? [],
       users: users.data ?? [],
       shifts: shifts.data ?? [],
       actions: actions.data ?? [],
+      coaching_cards: cards.data ?? [],
+      personal_goals: goals.data ?? [],
+      shift_preps: preps.data ?? [],
+      campaigns: campaigns.data ?? [],
       assignments: assignments.data ?? [],
       action_events: events.data ?? [],
       evidence: evidence.data ?? [],
@@ -139,6 +207,42 @@ export class SupabaseRepo implements BellatrixRepo {
       pilots: pilots.data ?? [],
       pilot_participants: participants.data ?? [],
     }
+    // RLS already limits rows; applyVisibility is defence in depth.
+    return applyVisibility(full, viewer)
+  }
+
+  async createShift(row: NewRow<Shift>): Promise<Shift> {
+    const { data, error } = await this.client.from('shifts').insert(row).select('*').single()
+    if (error) throw mapError(error, '근무를 저장할 수 없어요.')
+    return data
+  }
+
+  async deleteShift(id: string, userId: string): Promise<void> {
+    const { error } = await this.client.from('shifts').delete().eq('id', id).eq('user_id', userId)
+    if (error) throw mapError(error, '근무를 삭제할 수 없어요.')
+  }
+
+  async createPersonalGoal(row: NewRow<PersonalGoal>): Promise<PersonalGoal> {
+    const { data, error } = await this.client.from('personal_goals').insert(row).select('*').single()
+    if (error) throw mapError(error, '목표를 저장할 수 없어요.')
+    return data
+  }
+
+  async updatePersonalGoal(id: string, patch: Partial<Pick<PersonalGoal, 'active' | 'title' | 'target_count'>>): Promise<PersonalGoal> {
+    const { data, error } = await this.client.from('personal_goals').update(patch).eq('id', id).select('*').single()
+    if (error) throw mapError(error, '목표를 저장할 수 없어요.')
+    return data
+  }
+
+  async createShiftPrep(row: Omit<ShiftPrep, 'id'>): Promise<ShiftPrep> {
+    const existing = await this.client.from('shift_preps').select('id').eq('user_id', row.user_id).eq('shift_id', row.shift_id).maybeSingle()
+    if (existing.error) throw mapError(existing.error, '준비 기록을 저장할 수 없어요.')
+    const q = existing.data
+      ? this.client.from('shift_preps').update(row).eq('id', existing.data.id).select('*').single()
+      : this.client.from('shift_preps').insert(row).select('*').single()
+    const { data, error } = await q
+    if (error) throw mapError(error, '준비 기록을 저장할 수 없어요.')
+    return data
   }
 
   async createAssignments(rows: NewRow<ActionAssignment>[]): Promise<ActionAssignment[]> {

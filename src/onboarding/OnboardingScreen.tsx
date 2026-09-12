@@ -19,20 +19,20 @@ const SLIDES: Slide[] = [
   {
     icon: Sun,
     tint: 'from-brand-400 to-brand-700',
-    title: '오늘, 하나의 행동에만 집중해요',
-    body: '근무 시작 전 오늘의 포커스와 10초 마이크로 코칭을 확인하고, 응대에서 딱 하나만 시도해요.',
+    title: '근무 전 30초, 오늘 해볼 행동 하나',
+    body: '킬러 질문 · 제품 포인트 · 반론 대응 · 한 번 더 제안. 딱 필요한 것만 보고 매장에 들어가요.',
   },
   {
     icon: Sparkles,
     tint: 'from-emerald-signal to-emerald-700',
-    title: '시도한 만큼 기록해요',
-    body: '시도할 때마다 +, 끝나면 20초 체크인. 잘한 척이 아니라 실제로 한 것을 남겨요.',
+    title: '근무 후 5초, 탭 세 번',
+    body: '시도했나 · 고객 반응 · 다시 할까. 보고서가 아니라 나만 보는 기록이에요.',
   },
   {
     icon: TrendingUp,
     tint: 'from-amber-signal to-amber-700',
-    title: '근거로 성장을 확인해요',
-    body: '내 행동 기록과 매니저 관찰이 쌓이면, 어떤 행동이 매장 성과와 함께 움직이는지 보여드려요.',
+    title: '내 성장은 내 것',
+    body: 'My Wins, 자신감 흐름, 다음 근무 추천. 순위도 점수도 없고, 팀에 가입하지 않아도 전부 쓸 수 있어요.',
   },
 ]
 

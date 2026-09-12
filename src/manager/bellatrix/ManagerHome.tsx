@@ -1,12 +1,14 @@
 import { useMemo } from 'react'
 import { Eye, BarChart3, ListPlus, Users, Check, Sparkles, UserCheck } from 'lucide-react'
-import { useBellatrix, useReadyData } from '../../lib/bellatrixStore'
+import { useBellatrix, useManagerData } from '../../lib/bellatrixStore'
 import { shiftsOn, viewAssignments } from '../../lib/selectors'
 import { fmtDateKo, fmtTimeHM, dateOf } from '../../lib/dates'
 import { BEHAVIOUR_LABEL, METRIC_LABEL } from '../../types/bellatrix'
 import { formatMetric } from '../../lib/analytics/metrics'
 import { Card, SectionLabel, Badge } from '../../components/ui'
 import { EmptyState, ErrorState, LoadingState } from '../../components/bellatrix/shared'
+import { DemoBadge } from '../../components/bellatrix/DemoBadge'
+import { Lock } from 'lucide-react'
 
 function Cta({ icon, title, sub, onClick, primary = false }: { icon: React.ReactNode; title: string; sub: string; onClick: () => void; primary?: boolean }) {
   return (
@@ -22,7 +24,7 @@ function Cta({ icon, title, sub, onClick, primary = false }: { icon: React.React
 }
 
 export function ManagerHome() {
-  const ready = useReadyData()
+  const ready = useManagerData()
   const { dataset, reload, openSheet, today } = useBellatrix()
 
   const model = useMemo(() => {
@@ -41,11 +43,11 @@ export function ManagerHome() {
     const views = viewAssignments(data, todayAssign)
     const kpiToday = data.outcomes.find((o) => o.outcome_date === today && o.user_id === null) ?? null
     const kpiYesterday = data.outcomes.filter((o) => o.user_id === null && o.outcome_date < today).sort((a, b) => b.outcome_date.localeCompare(a.outcome_date))[0] ?? null
-    return { team, views, kpiToday, kpiYesterday, store: data.store }
+    return { team, views, kpiToday, kpiYesterday, store: ready.store }
   }, [ready, today])
 
   if (dataset.status === 'error') return <ErrorState message={dataset.message} onRetry={dataset.retryable ? reload : undefined} />
-  if (!model) return <LoadingState />
+  if (!model || !ready) return <LoadingState />
   const { team, views, kpiToday, kpiYesterday, store } = model
   const completed = views.filter((v) => v.isDone).length
   const coaching = views.filter((v) => v.action.intervention_type === 'micro_coaching')
@@ -58,6 +60,12 @@ export function ManagerHome() {
         <p className="text-sm text-ink-950/45 mt-0.5">
           포커스 지표 <span className="font-semibold text-ink-950/70">{METRIC_LABEL[store.focus_metric]}</span>
         </p>
+        <div className="flex items-center gap-2 mt-2 flex-wrap">
+          {ready.user.is_demo && <DemoBadge />}
+          <Badge>
+            <Lock size={10} /> 직원의 개인 목표·회고는 보이지 않아요
+          </Badge>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">

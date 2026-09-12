@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "cap:sync": "tsc -b && vite build && npx cap sync"
+    "cap:sync": "tsc -b && vite build && npx cap sync",
+    "test": "vitest run",
+    "typecheck": "tsc -b --noEmit"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.1",
@@ -34,6 +36,7 @@
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
     "vite": "^8.2.2",
-    "vite-plugin-singlefile": "^2.3.3"
+    "vite-plugin-singlefile": "^2.3.3",
+    "vitest": "^3.2.7"
   }
 }

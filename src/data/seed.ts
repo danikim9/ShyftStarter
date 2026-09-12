@@ -14,27 +14,41 @@ import type {
   ActionAssignment,
   ActionEvent,
   BehaviourEvidence,
+  Campaign,
+  CoachingCard,
   Company,
   ISODate,
   OutcomeEvent,
+  PersonalGoal,
   Pilot,
   PilotParticipant,
   ProductEvent,
   Shift,
+  ShiftPrep,
   ShiftReflection,
   Store,
+  Team,
+  TeamMembership,
   User,
 } from '../types/bellatrix'
+import { DEFAULT_CONSENT } from '../types/bellatrix'
 import { addDaysISO, atTime, toISODate } from '../lib/dates'
 import { deriveKpis } from '../lib/analytics/metrics'
+import { COACHING_CARDS } from './coachingCards'
 
 export interface SeedDatabase {
   seed_version: number
   companies: Company[]
   stores: Store[]
+  teams: Team[]
+  memberships: TeamMembership[]
   users: User[]
   shifts: Shift[]
   actions: Action[]
+  coaching_cards: CoachingCard[]
+  personal_goals: PersonalGoal[]
+  shift_preps: ShiftPrep[]
+  campaigns: Campaign[]
   assignments: ActionAssignment[]
   action_events: ActionEvent[]
   evidence: BehaviourEvidence[]
@@ -45,7 +59,7 @@ export interface SeedDatabase {
   product_events: ProductEvent[]
 }
 
-export const SEED_VERSION = 3
+export const SEED_VERSION = 4
 
 export const COMPANY_ID = 'co_bellatrix_demo'
 export const STORE_ID = 'st_gangnam'
@@ -53,6 +67,9 @@ export const MANAGER_ID = 'u_sora'
 export const DANI_ID = 'u_dani'
 export const MINA_ID = 'u_mina'
 export const JOON_ID = 'u_joon'
+export const TEAM_ID = 'tm_gangnam'
+export const TEAM_JOIN_CODE = 'GN-4821'
+export const CAMPAIGN_ID = 'cp_launch_week'
 
 // Deterministic PRNG so every install shows the same demo numbers.
 function mulberry32(seed: number) {
@@ -183,11 +200,17 @@ export function buildSeed(now: Date = new Date()): SeedDatabase {
     focus_metric: 'attach_rate',
     created_at: '2026-08-01T00:00:00.000Z',
   }
+  const baseUser = { store_id: STORE_ID, team_id: TEAM_ID, company_id: COMPANY_ID, job_category: 'electronics' as const, consent: DEFAULT_CONSENT, is_demo: true, created_at: '2026-08-01T00:00:00.000Z' }
   const users: User[] = [
-    { id: MANAGER_ID, name: 'Sora Kim', email: 'manager@demo.bellatrix.app', role: 'manager', store_id: STORE_ID, company_id: COMPANY_ID, created_at: '2026-08-01T00:00:00.000Z' },
-    { id: DANI_ID, name: 'Dani Kim', email: 'dani@demo.bellatrix.app', role: 'employee', store_id: STORE_ID, company_id: COMPANY_ID, created_at: '2026-08-01T00:00:00.000Z' },
-    { id: MINA_ID, name: 'Mina Lee', email: 'mina@demo.bellatrix.app', role: 'employee', store_id: STORE_ID, company_id: COMPANY_ID, created_at: '2026-08-01T00:00:00.000Z' },
-    { id: JOON_ID, name: 'Joon Park', email: 'joon@demo.bellatrix.app', role: 'employee', store_id: STORE_ID, company_id: COMPANY_ID, created_at: '2026-08-01T00:00:00.000Z' },
+    { id: MANAGER_ID, name: 'Sora Kim', email: 'manager@demo.bellatrix.app', role: 'manager', interests: [], ...baseUser },
+    { id: DANI_ID, name: 'Dani Kim', email: 'dani@demo.bellatrix.app', role: 'employee', interests: ['cross_sell', 'discovery'], ...baseUser },
+    { id: MINA_ID, name: 'Mina Lee', email: 'mina@demo.bellatrix.app', role: 'employee', interests: ['discovery'], ...baseUser },
+    { id: JOON_ID, name: 'Joon Park', email: 'joon@demo.bellatrix.app', role: 'employee', interests: ['demo'], ...baseUser },
+  ]
+  const team: Team = { id: TEAM_ID, store_id: STORE_ID, name: 'Gangnam Flagship 팀', join_code: TEAM_JOIN_CODE, created_at: '2026-08-01T00:00:00.000Z' }
+  const memberships: TeamMembership[] = users.map((u) => ({ id: `mb_${u.id}`, team_id: TEAM_ID, user_id: u.id, role: u.role === 'manager' ? 'manager' : 'member', joined_at: '2026-08-01T00:00:00.000Z' }))
+  const campaigns: Campaign[] = [
+    { id: CAMPAIGN_ID, store_id: STORE_ID, name: '신제품 런칭 주간 — 액세서리 부착', behaviour_type: 'cross_sell', target_metric: 'attach_rate', start_date: addDaysISO(today, -14), end_date: addDaysISO(today, 14), active: true },
   ]
   const employees = [DANI_ID, MINA_ID, JOON_ID]
 
@@ -197,6 +220,11 @@ export function buildSeed(now: Date = new Date()): SeedDatabase {
   const evidence: BehaviourEvidence[] = []
   const outcomes: OutcomeEvent[] = []
   const reflections: ShiftReflection[] = []
+  const shift_preps: ShiftPrep[] = []
+  const personal_goals: PersonalGoal[] = [
+    { id: 'pg_dani_cross', user_id: DANI_ID, title: '부가상품을 자연스럽게 한 번 더 제안하기', behaviour_type: 'cross_sell', target_count: 2, source: 'recommended', coaching_card_id: 'cc_el_cross_sell', active: true, visibility: 'private', created_at: atTime(addDaysISO(today, -20), 9) },
+    { id: 'pg_dani_disc', user_id: DANI_ID, title: '고객이 망설인 이유를 한 가지 기록하기', behaviour_type: 'discovery', target_count: 1, source: 'self', coaching_card_id: 'cc_el_hesitation', active: true, visibility: 'private', created_at: atTime(addDaysISO(today, -12), 9) },
+  ]
 
   const shiftFor = (userId: string, date: ISODate) => shifts.find((s) => s.user_id === userId && toISODate(new Date(s.start_at)) === date)
 
@@ -218,6 +246,7 @@ export function buildSeed(now: Date = new Date()): SeedDatabase {
         start_at: atTime(date, startH),
         end_at: atTime(date, endH),
         status,
+        source: 'roster',
         created_at: atTime(addDaysISO(date, -7), 9),
       })
     }
@@ -231,12 +260,22 @@ export function buildSeed(now: Date = new Date()): SeedDatabase {
   const pushEvent = (a: ActionAssignment, type: ActionEvent['event_type'], at: string, progress: number | null) => {
     action_events.push({
       id: `ae_${a.id}_${evSeq++}`,
-      action_assignment_id: a.id,
       user_id: a.assigned_to_user_id,
+      action_kind: 'team_action',
+      action_assignment_id: a.id,
+      personal_goal_id: null,
+      coaching_card_id: null,
+      action_id: a.action_id,
+      source: 'manager',
       shift_id: a.shift_id,
+      store_id: STORE_ID,
+      team_id: TEAM_ID,
+      campaign_id: a.campaign_id,
       event_type: type,
       event_at: at,
       progress_value: progress,
+      self_report: type !== 'viewed',
+      visibility: 'manager_visible',
       metadata: null,
     })
   }
@@ -265,6 +304,7 @@ export function buildSeed(now: Date = new Date()): SeedDatabase {
           assigned_to_user_id: uid,
           store_id: STORE_ID,
           shift_id: shift.id,
+          campaign_id: action.behaviour_type === 'cross_sell' && offset >= -14 ? CAMPAIGN_ID : null,
           assigned_date: date,
           target_count: target,
           target_metric: action.target_metric,
@@ -306,6 +346,7 @@ export function buildSeed(now: Date = new Date()): SeedDatabase {
             helpfulness: rnd() < 0.5 ? 'very_helpful' : 'a_little',
             coaching_needed: null,
             note: null,
+            visibility: 'manager_visible',
             observed_at: atTime(date, startH + 6, 41),
             created_at: atTime(date, startH + 6, 41),
           })
@@ -338,23 +379,44 @@ export function buildSeed(now: Date = new Date()): SeedDatabase {
             helpfulness: null,
             coaching_needed: rnd() < 0.2,
             note: null,
+            visibility: 'manager_visible',
             observed_at: obsAt,
             created_at: obsAt,
           })
         }
       }
 
-      // Dani reflects on most of her shifts
+      // Dani preps and reflects on most of her shifts (private rows)
       if (uid === DANI_ID && rnd() < 0.8) {
-        const dominant: ShiftReflection['dominant_behaviour'][] = ['discovery', 'cross_sell', 'recommendation', 'demo']
+        const card = COACHING_CARDS[Math.floor(rnd() * 5)]
+        const wins = ['케이스 제안했더니 바로 사셨어요', '용도 질문 하나로 대화가 길어졌어요', '비교 기준 하나로 결정이 빨랐어요', null, null]
+        shift_preps.push({
+          id: `prep_${uid}_${date}`,
+          user_id: uid,
+          shift_id: shift.id,
+          shift_date: date,
+          coaching_card_id: card.id,
+          personal_goal_id: card.behaviour_type === 'cross_sell' ? 'pg_dani_cross' : 'pg_dani_disc',
+          action_assignment_id: null,
+          accepted_at: atTime(date, startH, -10),
+          visibility: 'private',
+        })
+        const tried: ShiftReflection['tried'] = rnd() < 0.65 ? 'yes' : rnd() < 0.5 ? 'partly' : 'no'
         reflections.push({
           id: `refl_${uid}_${date}`,
           user_id: uid,
           shift_id: shift.id,
-          dominant_behaviour: dominant[Math.floor(rnd() * dominant.length)],
-          perceived_sales_level: crossSellCompletedByDate.has(date) ? (rnd() < 0.6 ? 'higher' : 'similar') : rnd() < 0.5 ? 'similar' : 'lower',
-          coaching_helpfulness: (3 + Math.floor(rnd() * 3)) as ShiftReflection['coaching_helpfulness'],
-          note: null,
+          shift_date: date,
+          coaching_card_id: card.id,
+          personal_goal_id: card.behaviour_type === 'cross_sell' ? 'pg_dani_cross' : 'pg_dani_disc',
+          action_assignment_id: null,
+          tried,
+          customer_reaction: tried === 'no' ? 'no_chance' : rnd() < 0.55 ? 'positive' : rnd() < 0.6 ? 'neutral' : 'negative',
+          try_again: tried !== 'no' || rnd() < 0.5,
+          tip_helpful: tried === 'no' ? null : rnd() < 0.7,
+          confidence: tried === 'yes' ? (rnd() < 0.5 ? 'high' : 'ok') : rnd() < 0.5 ? 'ok' : 'low',
+          win_note: tried === 'yes' ? wins[Math.floor(rnd() * wins.length)] : null,
+          visibility: 'private',
           created_at: atTime(date, new Date(shift.end_at).getHours(), 5),
         })
       }
@@ -400,6 +462,7 @@ export function buildSeed(now: Date = new Date()): SeedDatabase {
     assigned_to_user_id: uid,
     store_id: STORE_ID,
     shift_id: shift.id,
+    campaign_id: action.behaviour_type === 'cross_sell' ? CAMPAIGN_ID : null,
     assigned_date: today,
     target_count: target,
     target_metric: action.target_metric,
@@ -413,17 +476,51 @@ export function buildSeed(now: Date = new Date()): SeedDatabase {
   const daniAccessory = mk(DANI_ID, daniToday, ACTIONS[1], 3)
   daniAccessory.status = 'in_progress'
   assignments.push(daniCoaching, daniDiscovery, daniAccessory)
-  pushEvent(daniDiscovery, 'viewed', atTime(today, 9, 2), null)
-  pushEvent(daniDiscovery, 'started', atTime(today, 9, 3), 0)
-  pushEvent(daniDiscovery, 'progress_updated', atTime(today, 10, 10), 1)
-  pushEvent(daniDiscovery, 'progress_updated', atTime(today, 10, 45), 2)
-  pushEvent(daniDiscovery, 'progress_updated', atTime(today, 11, 30), 3)
-  pushEvent(daniAccessory, 'viewed', atTime(today, 9, 2), null)
-  pushEvent(daniAccessory, 'started', atTime(today, 9, 4), 0)
-  pushEvent(daniAccessory, 'progress_updated', atTime(today, 11, 0), 1)
+  // Today's demo events must sit strictly BEFORE "now" (whatever the clock says
+  // at seed time) so a tap made right after install always becomes the latest
+  // event — progress is derived from the most recent event_at.
+  const ago = (minutes: number) => new Date(now.getTime() - minutes * 60_000).toISOString()
+  pushEvent(daniDiscovery, 'viewed', ago(180), null)
+  pushEvent(daniDiscovery, 'started', ago(179), 0)
+  pushEvent(daniDiscovery, 'progress_updated', ago(120), 1)
+  pushEvent(daniDiscovery, 'progress_updated', ago(90), 2)
+  pushEvent(daniDiscovery, 'progress_updated', ago(45), 3)
+  pushEvent(daniAccessory, 'viewed', ago(180), null)
+  pushEvent(daniAccessory, 'started', ago(178), 0)
+  pushEvent(daniAccessory, 'progress_updated', ago(60), 1)
 
   assignments.push(mk(MINA_ID, minaToday, ACTIONS[1], 3), mk(MINA_ID, minaToday, ACTIONS[6], null), mk(MINA_ID, minaToday, ACTIONS[2], 3))
   assignments.push(mk(JOON_ID, joonToday, ACTIONS[3], 3), mk(JOON_ID, joonToday, ACTIONS[7], 5))
+
+  // Dani's private personal-goal attempts over the last two weeks
+  for (let offset = -14; offset < 0; offset++) {
+    const date = addDaysISO(today, offset)
+    const shift = shiftFor(DANI_ID, date)
+    if (!shift) continue
+    const n = Math.floor(rnd() * 3)
+    for (let i = 0; i < n; i++) {
+      action_events.push({
+        id: `ae_pg_${date}_${i}`,
+        user_id: DANI_ID,
+        action_kind: 'personal_goal',
+        action_assignment_id: null,
+        personal_goal_id: i % 2 === 0 ? 'pg_dani_cross' : 'pg_dani_disc',
+        coaching_card_id: null,
+        action_id: null,
+        source: 'personal',
+        shift_id: shift.id,
+        store_id: STORE_ID,
+        team_id: TEAM_ID,
+        campaign_id: null,
+        event_type: 'attempted',
+        event_at: atTime(date, 14 + i * 2, 15),
+        progress_value: i + 1,
+        self_report: true,
+        visibility: 'private',
+        metadata: null,
+      })
+    }
+  }
 
   const pilots: Pilot[] = [
     {
@@ -448,9 +545,15 @@ export function buildSeed(now: Date = new Date()): SeedDatabase {
     seed_version: SEED_VERSION,
     companies: [company],
     stores: [store],
+    teams: [team],
+    memberships,
     users,
     shifts,
     actions: ACTIONS,
+    coaching_cards: COACHING_CARDS,
+    personal_goals,
+    shift_preps,
+    campaigns,
     assignments,
     action_events,
     evidence,
