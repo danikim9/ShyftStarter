@@ -1,13 +1,14 @@
 import { useMemo } from 'react'
 import { BarChart3, Upload } from 'lucide-react'
-import { useBellatrix, useReadyData } from '../../lib/bellatrixStore'
+import { useBellatrix, useManagerData } from '../../lib/bellatrixStore'
 import { ATTACH_RATE_DEFINITION_LABEL, formatMetric } from '../../lib/analytics/metrics'
 import { fmtShortDate } from '../../lib/dates'
 import { Card, SectionLabel, Badge, PrimaryButton, SecondaryButton } from '../../components/ui'
 import { ErrorState, LoadingState } from '../../components/bellatrix/shared'
+import { DemoBadge } from '../../components/bellatrix/DemoBadge'
 
 export function KpiView() {
-  const ready = useReadyData()
+  const ready = useManagerData()
   const { dataset, reload, openSheet, today } = useBellatrix()
   const rows = useMemo(
     () => (ready ? ready.data.outcomes.filter((o) => o.user_id === null).sort((a, b) => b.outcome_date.localeCompare(a.outcome_date)).slice(0, 21) : []),
@@ -22,6 +23,11 @@ export function KpiView() {
       <div>
         <h1 className="text-2xl font-bold text-ink-950 mb-1">매장 KPI</h1>
         <p className="text-sm text-ink-950/45">수동 입력 또는 CSV로 가져와요. POS 연동은 파일럿 이후에.</p>
+        {ready.user.is_demo && (
+          <div className="mt-2">
+            <DemoBadge label="데모 데이터 — 샘플 KPI" />
+          </div>
+        )}
       </div>
       <div className="grid grid-cols-2 gap-2">
         <PrimaryButton onClick={() => openSheet({ kind: 'kpi' })} className="flex items-center justify-center gap-1.5">
@@ -36,7 +42,7 @@ export function KpiView() {
           CVR = 거래 ÷ 방문자 · ATV = 매출 ÷ 거래 · UPT = 수량 ÷ 거래
         </div>
         <div>
-          Attach Rate = <span className="font-medium text-ink-950/70">{ATTACH_RATE_DEFINITION_LABEL[ready.data.store.attach_rate_definition]}</span> (매장 설정)
+          Attach Rate = <span className="font-medium text-ink-950/70">{ATTACH_RATE_DEFINITION_LABEL[ready.store.attach_rate_definition]}</span> (매장 설정)
         </div>
       </Card>
       <div>

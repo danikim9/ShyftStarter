@@ -90,7 +90,7 @@ function ManagerIdentity({ storeName }: { storeName: string }) {
       <span className="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-xs font-bold text-white">{name[0]}</span>
       <div>
         <div className="text-xs font-medium text-ink-950/85">{name}</div>
-        <div className="text-[10px] text-ink-950/35">Store Manager · {ready?.data.store.name ?? storeName}</div>
+        <div className="text-[10px] text-ink-950/35">Store Manager · {ready?.data.store?.name ?? storeName}</div>
       </div>
     </>
   )

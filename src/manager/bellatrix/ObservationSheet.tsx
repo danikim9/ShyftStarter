@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useBellatrix, useReadyData } from '../../lib/bellatrixStore'
+import { useBellatrix, useManagerData } from '../../lib/bellatrixStore'
 import type { BehaviourType, ObservationResult } from '../../types/bellatrix'
 import { BEHAVIOUR_LABEL } from '../../types/bellatrix'
 import { shiftsOn } from '../../lib/selectors'
@@ -34,7 +34,7 @@ function TriToggle({ value, onChange }: { value: Tri; onChange: (v: Tri) => void
 /** 10–20 second sampled observation. Only observed / not_observed rows are
  * stored (high confidence); "not checked" stores nothing — sampling is fine. */
 export function ObservationSheet({ presetUserId }: { presetUserId?: string }) {
-  const ready = useReadyData()
+  const ready = useManagerData()
   const { submitObservation, closeSheet, today } = useBellatrix()
   const [userId, setUserId] = useState<string | null>(presetUserId ?? null)
   const [results, setResults] = useState<Record<BehaviourType, Tri>>({ discovery: 'not_checked', demo: 'not_checked', cross_sell: 'not_checked' } as Record<BehaviourType, Tri>)

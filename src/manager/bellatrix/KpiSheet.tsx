@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useBellatrix, useReadyData } from '../../lib/bellatrixStore'
+import { useBellatrix, useManagerData } from '../../lib/bellatrixStore'
 import type { ISODate } from '../../types/bellatrix'
 import { addDaysISO, fmtShortDate } from '../../lib/dates'
 import { ATTACH_RATE_DEFINITION_LABEL, deriveKpis, formatMetric } from '../../lib/analytics/metrics'
@@ -14,7 +14,7 @@ function num(s: string): number | null | 'invalid' {
 }
 
 export function KpiSheet({ presetDate }: { presetDate?: ISODate }) {
-  const ready = useReadyData()
+  const ready = useManagerData()
   const { submitKpi, closeSheet, today } = useBellatrix()
   const [date, setDate] = useState<ISODate>(presetDate ?? today)
   const [f, setF] = useState({ visitors: '', transactions: '', revenue: '', units: '', accessory_units: '', accessory_transactions: '' })
@@ -38,7 +38,7 @@ export function KpiSheet({ presetDate }: { presetDate?: ISODate }) {
   }, [existing])
 
   if (!ready) return null
-  const { data } = ready
+  const { store } = ready
   const parsed = {
     visitors: num(f.visitors),
     transactions: num(f.transactions),
@@ -49,7 +49,7 @@ export function KpiSheet({ presetDate }: { presetDate?: ISODate }) {
   }
   const invalid = Object.values(parsed).some((v) => v === 'invalid')
   const clean = Object.fromEntries(Object.entries(parsed).map(([k, v]) => [k, v === 'invalid' ? null : v])) as Record<keyof typeof parsed, number | null>
-  const preview = deriveKpis(clean, data.store.attach_rate_definition)
+  const preview = deriveKpis(clean, store.attach_rate_definition)
 
   const submit = async () => {
     if (invalid) return setError('숫자만 입력해주세요.')
@@ -58,7 +58,7 @@ export function KpiSheet({ presetDate }: { presetDate?: ISODate }) {
     setBusy(true)
     setError(null)
     try {
-      await submitKpi({ date, storeId: data.store.id, ...clean })
+      await submitKpi({ date, storeId: store.id, ...clean })
       closeSheet()
     } catch (e) {
       setError(e instanceof Error ? e.message : '저장하지 못했어요.')
@@ -83,7 +83,7 @@ export function KpiSheet({ presetDate }: { presetDate?: ISODate }) {
           columns={3}
         />
         <div className="text-[11px] text-ink-950/40">
-          매장: <span className="font-medium text-ink-950/70">{data.store.name}</span>
+          매장: <span className="font-medium text-ink-950/70">{store.name}</span>
           {existing && <span className="ml-2 text-amber-600">이미 입력된 날 — 저장하면 덮어써요</span>}
         </div>
       </Question>
@@ -107,7 +107,7 @@ export function KpiSheet({ presetDate }: { presetDate?: ISODate }) {
             </div>
           ))}
         </div>
-        <div className="text-[10px] text-ink-950/35 mt-2">Attach Rate 정의: {ATTACH_RATE_DEFINITION_LABEL[data.store.attach_rate_definition]}</div>
+        <div className="text-[10px] text-ink-950/35 mt-2">Attach Rate 정의: {ATTACH_RATE_DEFINITION_LABEL[store.attach_rate_definition]}</div>
       </div>
       {error && <p className="text-xs text-rose-600">{error}</p>}
       <PrimaryButton disabled={busy} onClick={submit}>
