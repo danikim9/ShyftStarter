@@ -4,6 +4,7 @@ import { useBellatrix, useReadyData } from '../../lib/bellatrixStore'
 import { JOB_LABEL } from '../../types/bellatrix'
 import { Card, SectionLabel, SecondaryButton, Badge, Toggle } from '../../components/ui'
 import { LoadingState } from '../../components/bellatrix/shared'
+import { storage } from '../../lib/storage'
 import { DemoBadge } from '../../components/bellatrix/DemoBadge'
 import { CameraPermissionStatus } from '../../components/CameraPermissionStatus'
 
@@ -186,6 +187,15 @@ export function Profile() {
       >
         <LogOut size={14} /> 로그아웃
       </SecondaryButton>
+      <button
+        onClick={() => {
+          storage.remove('bellatrix.onboarded')
+          void signOut()
+        }}
+        className="w-full text-xs text-ink-950/40 py-1"
+      >
+        로그아웃하고 앱 소개부터 다시 보기
+      </button>
       <p className="text-center text-[10px] text-ink-950/25">ShyftStarter by Bellatrix · Shift Companion</p>
     </div>
   )

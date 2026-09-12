@@ -14,7 +14,7 @@ export type UserRole = 'employee' | 'manager'
 
 const ROLE_LABEL: Record<User['role'], string> = { employee: '직원', manager: '매니저', admin: '관리자' }
 
-export function LoginScreen({ onSignUp }: { onSignUp: () => void }) {
+export function LoginScreen({ onSignUp, onShowIntro }: { onSignUp: () => void; onShowIntro: () => void }) {
   const { repoMode, signIn, listDemoAccounts } = useBellatrix()
   const [accounts, setAccounts] = useState<User[] | null>(null)
   const [email, setEmail] = useState('')
@@ -99,6 +99,9 @@ export function LoginScreen({ onSignUp }: { onSignUp: () => void }) {
           {error && <p className="text-xs text-rose-600 text-center">{error}</p>}
           <button onClick={onSignUp} className="w-full rounded-xl border border-brand-300 bg-white text-brand-700 font-semibold py-3 text-sm active:scale-[0.98] transition">
             새로 시작하기 — 팀 없이 개인으로
+          </button>
+          <button onClick={onShowIntro} className="w-full text-center text-[11px] text-ink-950/40 py-1">
+            앱 소개 다시 보기
           </button>
           <p className="text-center text-[11px] text-ink-950/25 leading-relaxed">
             마이크·녹음·위치 추적 없음 · 기록은 코칭과 성장 근거로만 쓰여요
