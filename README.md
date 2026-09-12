@@ -88,12 +88,23 @@ BehaviourEvidence(visibility) · OutcomeEvent · **ShiftReflection**(tried, cust
 | `src/__tests__/` | vitest 단위 테스트 |
 | `supabase/migrations/` | `0001` 코어 스키마+RLS, `0002` 개인모드·팀·visibility·회고 재설계 |
 
-## iOS 권한 (Info.plist)
+## 카메라 권한 (iOS)
 
-인수인계 사진 첨부는 `<input type="file" accept="image/*">`를 사용해 iOS가 "사진 찍기 / 사진 보관함 / 파일"을 한 번에 제공합니다.
-사진 보관함 선택은 권한 키가 필요 없지만, **카메라로 바로 찍기**를 쓰려면 Xcode의 `ios/App/App/Info.plist`에
-`NSCameraUsageDescription`("인수인계에 진열대·재고 사진을 첨부하기 위해 카메라를 사용합니다")을 추가해야 합니다.
-마이크(`NSMicrophoneUsageDescription`)·위치 키는 추가하지 마세요.
+인수인계 사진 첨부는 `@capacitor/camera`를 사용합니다 (`src/lib/cameraAccess.ts`).
+- 앱은 사진을 붙이기 직전에 **OS 권한 상태를 먼저 확인**하고, 아직 묻지 않았으면 그때 한 번 요청합니다. 거부된 상태면 "설정 → ShyftStarter → 카메라" 안내를 보여주고 카메라 버튼을 비활성화합니다.
+- Profile → 데이터·개인정보에서 카메라/사진 권한 상태를 확인하고 요청할 수 있습니다.
+- 브라우저(웹/미리보기 링크)에서는 OS 권한 API가 없어 `<input type="file">`로 자동 전환되고, 브라우저가 직접 권한을 묻습니다.
+
+`git pull` 후 **`npm install && npx cap sync ios`** 로 플러그인을 설치하고, Xcode의 `ios/App/App/Info.plist`에 아래 두 키를 추가하세요 (없으면 카메라를 여는 순간 앱이 종료됩니다).
+
+```xml
+<key>NSCameraUsageDescription</key>
+<string>인수인계에 진열대·재고 사진을 첨부하기 위해 카메라를 사용합니다.</string>
+<key>NSPhotoLibraryUsageDescription</key>
+<string>인수인계에 첨부할 사진을 보관함에서 고르기 위해 사용합니다.</string>
+```
+
+마이크(`NSMicrophoneUsageDescription`)·위치 키는 추가하지 마세요. 앱은 요청하지 않습니다.
 
 ## 금지 기능 (구현하지 않음)
 
