@@ -1,15 +1,16 @@
 import { useEffect, useMemo } from 'react'
-import { TrendingUp, ArrowUpRight, ArrowRight, ArrowDownRight, Lock, Trophy, Sparkles, Repeat, Smile, Plug, Receipt, MessageSquareText, Zap } from 'lucide-react'
+import { TrendingUp, ArrowUpRight, ArrowRight, ArrowDownRight, Lock, Trophy, Sparkles, Repeat, Smile, Plug, Receipt, ChevronRight } from 'lucide-react'
 import { useBellatrix, useReadyData } from '../../lib/bellatrixStore'
 import { getEmployeeBehaviourTrend, getMySales, type TrendDirection } from '../../lib/analytics/analytics'
 import { formatMetric, formatPercentDelta } from '../../lib/analytics/metrics'
 import { recommendNextShiftFocus } from '../../lib/analytics/recommendation'
 import { addDaysISO, fmtShortDate, weekKey } from '../../lib/dates'
-import { BEHAVIOUR_LABEL, CONFIDENCE_FEEL_LABEL, METRIC_SHORT } from '../../types/bellatrix'
+import { BEHAVIOUR_LABEL, CONFIDENCE_FEEL_LABEL } from '../../types/bellatrix'
 import type { ConfidenceFeel } from '../../types/bellatrix'
-import { Card, SectionLabel, Badge, PrimaryButton } from '../../components/ui'
+import { Card, SectionLabel, Badge } from '../../components/ui'
 import { EmptyState, ErrorState, LoadingState } from '../../components/bellatrix/shared'
 import { DemoBadge } from '../../components/bellatrix/DemoBadge'
+import type { TabId } from '../../components/BottomNav'
 
 const DIR: Record<TrendDirection, { icon: typeof ArrowRight; label: string; cls: string }> = {
   up: { icon: ArrowUpRight, label: '늘고 있어요', cls: 'text-emerald-600' },
@@ -31,9 +32,9 @@ function Tile({ icon, value, label, sub }: { icon: React.ReactNode; value: strin
   )
 }
 
-export function Growth() {
+export function Growth({ onNavigate }: { onNavigate?: (t: TabId) => void }) {
   const ready = useReadyData()
-  const { dataset, reload, today, trackEvent, openSheet } = useBellatrix()
+  const { dataset, reload, today, trackEvent } = useBellatrix()
 
   useEffect(() => {
     if (ready) trackEvent('growth_viewed')
@@ -61,20 +62,16 @@ export function Growth() {
     const practicedWeek = data.action_events.filter((e) => e.user_id === user.id && e.event_type === 'practiced' && e.event_at.slice(0, 10) >= weekStartIso).length
     const quizWeek = data.action_events.filter((e) => e.user_id === user.id && e.event_type === 'quiz_answered' && e.event_at.slice(0, 10) >= weekStartIso)
     const quizCorrect = quizWeek.filter((e) => e.metadata?.correct === true).length
-    // Review prompt: latest reflection said the tip did not help or nothing was tried → one question on that card.
-    const latest = refl[0] ?? null
-    const reviewCardId = latest && (latest.tip_helpful === false || latest.tried === 'no') && latest.coaching_card_id ? latest.coaching_card_id : null
-    const reviewCard = reviewCardId ? data.coaching_cards.find((c) => c.id === reviewCardId) ?? null : null
     const helpfulCards = new Map<string, number>()
     for (const r of refl) if (r.tip_helpful && r.coaching_card_id) helpfulCards.set(r.coaching_card_id, (helpfulCards.get(r.coaching_card_id) ?? 0) + 1)
     const topCard = [...helpfulCards.entries()].sort((a, b) => b[1] - a[1])[0]
     const topCardObj = topCard ? data.coaching_cards.find((c) => c.id === topCard[0]) ?? null : null
-    return { user, refl, tried, thisWeek, attemptsThisWeek, teamDoneThisWeek, helpfulRate, conf, wins, repeat, trends, rec, topCardObj, topCardCount: topCard?.[1] ?? 0, sales, practicedWeek, quizWeek: quizWeek.length, quizCorrect, reviewCard }
+    return { user, refl, tried, thisWeek, attemptsThisWeek, teamDoneThisWeek, helpfulRate, conf, wins, repeat, trends, rec, topCardObj, topCardCount: topCard?.[1] ?? 0, sales, practicedWeek, quizWeek: quizWeek.length, quizCorrect }
   }, [ready, today])
 
   if (dataset.status === 'error') return <ErrorState message={dataset.message} onRetry={dataset.retryable ? reload : undefined} />
   if (!model) return <LoadingState />
-  const { user, refl, tried, thisWeek, attemptsThisWeek, teamDoneThisWeek, helpfulRate, conf, wins, repeat, trends, rec, topCardObj, topCardCount, sales, practicedWeek, quizWeek, quizCorrect, reviewCard } = model
+  const { user, refl, tried, thisWeek, attemptsThisWeek, teamDoneThisWeek, helpfulRate, conf, wins, repeat, trends, rec, topCardObj, topCardCount, sales, practicedWeek, quizWeek, quizCorrect } = model
   const hasAny = refl.length > 0 || attemptsThisWeek > 0 || trends.some((t) => t.total > 0)
 
   return (
@@ -196,44 +193,18 @@ export function Growth() {
         </>
       )}
 
-      {reviewCard && (
-        <div>
-          <SectionLabel>다시 보기</SectionLabel>
-          <Card className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-amber-signal/15 text-amber-600 flex items-center justify-center shrink-0">
-              <Zap size={16} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold text-ink-950/85 leading-snug">{reviewCard.headline}</div>
-              <div className="text-[11px] text-ink-950/45">지난 회고에서 아쉬웠던 팁이에요. 한 문제만 다시 볼까요?</div>
-            </div>
-            <button onClick={() => openSheet({ kind: 'quickQuiz', cardId: reviewCard.id })} className="shrink-0 rounded-full bg-ink-950 text-white text-xs font-semibold px-3 py-1.5">
-              한 문제
-            </button>
-          </Card>
-        </div>
-      )}
-
-      {rec && (
-        <div>
-          <SectionLabel>다음 근무 추천</SectionLabel>
-          <Card className="border-brand-200 bg-brand-50">
-            <div className="flex items-center gap-1.5 text-brand-700 text-[11px] font-semibold mb-1">
-              <TrendingUp size={12} /> {rec.focusMetric === 'none' ? BEHAVIOUR_LABEL[rec.behaviour] : `${METRIC_SHORT[rec.focusMetric]} 포커스`}
-            </div>
-            <div className="text-base font-bold text-ink-950 leading-snug">{rec.headline}</div>
-            <p className="text-xs text-ink-950/60 mt-1.5 leading-relaxed">{rec.reason}</p>
-            <p className="text-[10px] text-ink-950/35 mt-2">규칙 기반 추천이에요. 성과와의 관계는 아직 검증 전이에요.</p>
-            {rec.card && (
-              <div className="mt-3">
-                <PrimaryButton onClick={() => openSheet({ kind: 'rolePlay', cardId: rec.card!.id })} className="flex items-center justify-center gap-1.5">
-                  <MessageSquareText size={14} /> 2분 연습하기
-                </PrimaryButton>
-              </div>
-            )}
-          </Card>
-        </div>
-      )}
+      <button onClick={() => onNavigate?.('actions')} className="w-full text-left">
+        <Card className="flex items-center gap-3 active:scale-[0.99] transition">
+          <div className="w-9 h-9 rounded-xl bg-brand-500/12 text-brand-700 flex items-center justify-center shrink-0">
+            <TrendingUp size={16} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-semibold text-ink-950/85">다음 근무에 뭘 해볼지는 Actions에서</div>
+            <div className="text-[11px] text-ink-950/45">{rec ? `추천: ${rec.headline}` : '추천 행동 · 2분 연습 · 10초 확인'}</div>
+          </div>
+          <ChevronRight size={16} className="text-ink-950/25 shrink-0" />
+        </Card>
+      </button>
 
       <Badge tone="default">
         <Lock size={10} /> Growth는 기본적으로 비공개 · 매니저에게 보이지 않아요
