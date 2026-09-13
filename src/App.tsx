@@ -81,7 +81,7 @@ function EmployeeScreen({ tab, onNavigate }: { tab: TabId; onNavigate: (t: TabId
     case 'team':
       return <Team onNavigate={onNavigate} />
     case 'growth':
-      return <Growth />
+      return <Growth onNavigate={onNavigate} />
     case 'profile':
       return <Profile />
     case 'teamFeed':
