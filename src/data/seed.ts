@@ -450,6 +450,32 @@ export function buildSeed(now: Date = new Date()): SeedDatabase {
     })
   }
 
+  // --- per-employee sales rows (as a POS/CSV feed would provide) ------------
+  // Only Dani has them so the demo shows both states: connected (Dani) and
+  // "not connected yet" (Mina/Joon and any personal account).
+  for (let offset = -21; offset < 0; offset++) {
+    const date = addDaysISO(today, offset)
+    const shift = shiftFor(DANI_ID, date)
+    if (!shift) continue
+    const transactions = 9 + Math.round(rnd() * 8)
+    const lift = crossSellCompletedByDate.has(date) ? 1.12 : 1
+    const units = Math.round(transactions * (1.25 + rnd() * 0.25) * lift)
+    const revenue = Math.round(transactions * (98000 + rnd() * 14000) * lift)
+    const raw = { visitors: null, transactions, revenue, units, accessory_units: Math.round(units * 0.22), accessory_transactions: null }
+    outcomes.push({
+      id: `out_${DANI_ID}_${date}`,
+      company_id: COMPANY_ID,
+      store_id: STORE_ID,
+      user_id: DANI_ID,
+      shift_id: shift.id,
+      outcome_date: date,
+      ...raw,
+      ...deriveKpis(raw, store.attach_rate_definition),
+      source: 'csv',
+      created_at: atTime(addDaysISO(date, 1), 9, 35),
+    })
+  }
+
   // --- today: live assignments for the demo flow -----------------------------
   const daniToday = shiftFor(DANI_ID, today)!
   const minaToday = shiftFor(MINA_ID, today)!

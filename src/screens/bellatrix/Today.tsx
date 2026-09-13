@@ -274,25 +274,7 @@ export function Today({ onNavigate }: { onNavigate: (t: TabId) => void }) {
         </div>
       )}
 
-      {/* Personal goals */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <SectionLabel>오늘의 내 목표</SectionLabel>
-          <span className="inline-flex items-center gap-1 text-[10px] text-ink-950/35 -mt-2">
-            <Lock size={10} /> 나만 보기
-          </span>
-        </div>
-        <Card>
-          {goals.length === 0 ? (
-            <EmptyState icon={<Target size={18} />} title="아직 목표가 없어요" body="오늘 고객에게 시도할 행동을 아래에 한 줄로 적거나, 추천 목표에서 골라보세요." />
-          ) : (
-            goals.map((g, i) => <GoalRow key={g.id} goal={g} count={goalCounts[i]} />)
-          )}
-          <QuickGoalEntry />
-        </Card>
-      </div>
-
-      {/* Team news — right under my goals so it's checked in the same glance */}
+      {/* Team news — above my goals so it's the first thing after the shift card */}
       {(urgentHandover || pinned) && (
         <div>
           <SectionLabel>팀 소식</SectionLabel>
@@ -320,6 +302,24 @@ export function Today({ onNavigate }: { onNavigate: (t: TabId) => void }) {
           </button>
         </div>
       )}
+
+      {/* Personal goals */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <SectionLabel>오늘의 내 목표</SectionLabel>
+          <span className="inline-flex items-center gap-1 text-[10px] text-ink-950/35 -mt-2">
+            <Lock size={10} /> 나만 보기
+          </span>
+        </div>
+        <Card>
+          {goals.length === 0 ? (
+            <EmptyState icon={<Target size={18} />} title="아직 목표가 없어요" body="오늘 고객에게 시도할 행동을 아래에 한 줄로 적거나, 추천 목표에서 골라보세요." />
+          ) : (
+            goals.map((g, i) => <GoalRow key={g.id} goal={g} count={goalCounts[i]} />)
+          )}
+          <QuickGoalEntry />
+        </Card>
+      </div>
 
       {/* Team actions */}
       {inTeam && (
