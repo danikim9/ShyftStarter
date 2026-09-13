@@ -1,7 +1,8 @@
 import { useEffect, useMemo } from 'react'
-import { TrendingUp, ArrowUpRight, ArrowRight, ArrowDownRight, Lock, Trophy, Sparkles, Repeat, Smile } from 'lucide-react'
+import { TrendingUp, ArrowUpRight, ArrowRight, ArrowDownRight, Lock, Trophy, Sparkles, Repeat, Smile, Plug, Receipt } from 'lucide-react'
 import { useBellatrix, useReadyData } from '../../lib/bellatrixStore'
-import { getEmployeeBehaviourTrend, type TrendDirection } from '../../lib/analytics/analytics'
+import { getEmployeeBehaviourTrend, getMySales, type TrendDirection } from '../../lib/analytics/analytics'
+import { formatMetric, formatPercentDelta } from '../../lib/analytics/metrics'
 import { recommendNextShiftFocus } from '../../lib/analytics/recommendation'
 import { addDaysISO, fmtShortDate, weekKey } from '../../lib/dates'
 import { BEHAVIOUR_LABEL, CONFIDENCE_FEEL_LABEL, METRIC_SHORT } from '../../types/bellatrix'
@@ -55,16 +56,17 @@ export function Growth() {
     const repeat = refl.filter((r) => r.try_again).length
     const trends = getEmployeeBehaviourTrend(data, user.id, today, 3)
     const rec = recommendNextShiftFocus({ dataset: data, userId: user.id, today })
+    const sales = getMySales(data, user.id, today)
     const helpfulCards = new Map<string, number>()
     for (const r of refl) if (r.tip_helpful && r.coaching_card_id) helpfulCards.set(r.coaching_card_id, (helpfulCards.get(r.coaching_card_id) ?? 0) + 1)
     const topCard = [...helpfulCards.entries()].sort((a, b) => b[1] - a[1])[0]
     const topCardObj = topCard ? data.coaching_cards.find((c) => c.id === topCard[0]) ?? null : null
-    return { user, refl, tried, thisWeek, attemptsThisWeek, teamDoneThisWeek, helpfulRate, conf, wins, repeat, trends, rec, topCardObj, topCardCount: topCard?.[1] ?? 0 }
+    return { user, refl, tried, thisWeek, attemptsThisWeek, teamDoneThisWeek, helpfulRate, conf, wins, repeat, trends, rec, topCardObj, topCardCount: topCard?.[1] ?? 0, sales }
   }, [ready, today])
 
   if (dataset.status === 'error') return <ErrorState message={dataset.message} onRetry={dataset.retryable ? reload : undefined} />
   if (!model) return <LoadingState />
-  const { user, refl, tried, thisWeek, attemptsThisWeek, teamDoneThisWeek, helpfulRate, conf, wins, repeat, trends, rec, topCardObj, topCardCount } = model
+  const { user, refl, tried, thisWeek, attemptsThisWeek, teamDoneThisWeek, helpfulRate, conf, wins, repeat, trends, rec, topCardObj, topCardCount, sales } = model
   const hasAny = refl.length > 0 || attemptsThisWeek > 0 || trends.some((t) => t.total > 0)
 
   return (
@@ -81,9 +83,12 @@ export function Growth() {
       {user.is_demo && <DemoBadge label="데모 계정 · 아래 숫자는 샘플이에요" />}
 
       {!hasAny ? (
-        <Card>
-          <EmptyState icon={<Sparkles size={18} />} title="첫 근무 후에 채워져요" body="Shift Prep으로 준비하고, 근무 후 5초 회고를 남기면 여기에 내 성장이 쌓여요." />
-        </Card>
+        <>
+          <Card>
+            <EmptyState icon={<Sparkles size={18} />} title="첫 근무 후에 채워져요" body="Shift Prep으로 준비하고, 근무 후 5초 회고를 남기면 여기에 내 성장이 쌓여요." />
+          </Card>
+          <MySalesSection sales={sales} />
+        </>
       ) : (
         <>
           <div>
@@ -94,6 +99,8 @@ export function Growth() {
               <Tile icon={<Smile size={16} />} value={helpfulRate === null ? '—' : `${Math.round(helpfulRate * 100)}%`} label="팁이 도움됨" sub={helpful(helpfulRate, refl.length)} />
             </div>
           </div>
+
+          <MySalesSection sales={sales} />
 
           {wins.length > 0 && (
             <div>
@@ -194,6 +201,82 @@ export function Growth() {
         <Lock size={10} /> Growth는 기본적으로 비공개 · 매니저에게 보이지 않아요
       </Badge>
       <span className="hidden">{addDaysISO(today, 0)}</span>
+    </div>
+  )
+}
+
+/** The employee's own POS sales — only rows that carry their employee id.
+ * Shows a clear "not connected" state instead of made-up numbers. */
+function MySalesSection({ sales }: { sales: ReturnType<typeof getMySales> }) {
+  if (!sales.connected) {
+    return (
+      <div>
+        <SectionLabel>내 매출 · POS</SectionLabel>
+        <Card className="space-y-2">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl bg-ink-950/6 flex items-center justify-center text-ink-950/40 shrink-0">
+              <Plug size={16} />
+            </div>
+            <div>
+              <div className="text-sm font-semibold text-ink-950/85">아직 판매 데이터가 연결되지 않았어요</div>
+              <p className="text-xs text-ink-950/45 leading-relaxed mt-0.5">
+                POS가 연결되거나 매니저가 직원별 판매 데이터(CSV의 employee_id)를 올리면, 이번 주 내 매출과 UPT가 여기에 보여요. 다른 사람 숫자는 보이지 않아요.
+              </p>
+            </div>
+          </div>
+        </Card>
+      </div>
+    )
+  }
+  const tw = sales.thisWeek
+  const lw = sales.lastWeek
+  const delta = (a: number | null, b: number | null) => (a !== null && b !== null && b > 0 ? formatPercentDelta(a, b) : null)
+  const revDelta = delta(tw.revenue, lw.revenue)
+  const uptDelta = delta(tw.upt, lw.upt)
+  const maxRev = Math.max(1, ...tw.days.map((d) => d.revenue ?? 0))
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <SectionLabel>내 매출 · POS</SectionLabel>
+        <span className="text-[10px] text-ink-950/35 -mt-2">
+          {sales.source === 'api' ? 'POS 연동' : 'CSV 업로드'} · {sales.lastDate?.slice(5)}까지
+        </span>
+      </div>
+      <Card className="space-y-3">
+        <div className="grid grid-cols-3 gap-2">
+          <div className="rounded-xl bg-ink-950/4 border border-ink-950/8 px-3 py-3 flex flex-col gap-1">
+            <div className="text-brand-600"><Receipt size={16} /></div>
+            <div className="text-lg font-bold text-ink-950 tabular-nums leading-none">{tw.revenue === null ? '—' : `${Math.round(tw.revenue / 10000).toLocaleString()}만`}</div>
+            <div className="text-[11px] text-ink-950/60">이번 주 매출</div>
+            <div className={`text-[10px] ${revDelta && revDelta.startsWith('+') ? 'text-emerald-600' : 'text-ink-950/35'}`}>{revDelta ? `지난주 대비 ${revDelta}` : '지난주 데이터 없음'}</div>
+          </div>
+          <div className="rounded-xl bg-ink-950/4 border border-ink-950/8 px-3 py-3 flex flex-col gap-1">
+            <div className="text-brand-600"><TrendingUp size={16} /></div>
+            <div className="text-lg font-bold text-ink-950 tabular-nums leading-none">{formatMetric('upt', tw.upt)}</div>
+            <div className="text-[11px] text-ink-950/60">UPT</div>
+            <div className={`text-[10px] ${uptDelta && uptDelta.startsWith('+') ? 'text-emerald-600' : 'text-ink-950/35'}`}>{uptDelta ? `지난주 ${formatMetric('upt', lw.upt)}` : '거래당 수량'}</div>
+          </div>
+          <div className="rounded-xl bg-ink-950/4 border border-ink-950/8 px-3 py-3 flex flex-col gap-1">
+            <div className="text-brand-600"><Receipt size={16} /></div>
+            <div className="text-lg font-bold text-ink-950 tabular-nums leading-none">{tw.transactions ?? '—'}</div>
+            <div className="text-[11px] text-ink-950/60">거래 건수</div>
+            <div className="text-[10px] text-ink-950/35">ATV {formatMetric('atv', tw.atv)}</div>
+          </div>
+        </div>
+        {tw.days.length > 0 && (
+          <div>
+            <div className="flex items-end gap-1.5 h-12">
+              {tw.days.map((d) => (
+                <div key={d.date} className="flex-1 flex flex-col items-center justify-end h-full gap-1" title={`${d.date} 매출 ${d.revenue ?? '—'} · UPT ${d.upt?.toFixed(2) ?? '—'}`}>
+                  <div className="w-full rounded-sm bg-brand-500/35" style={{ height: `${Math.max(8, ((d.revenue ?? 0) / maxRev) * 100)}%` }} />
+                  <span className="text-[9px] text-ink-950/35">{d.date.slice(8)}일</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        <p className="text-[10px] text-ink-950/35">매장 시스템에서 온 내 판매 기록이에요. 행동과 매출의 관계는 아직 검증 중인 가설이에요.</p>
+      </Card>
     </div>
   )
 }

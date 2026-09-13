@@ -45,7 +45,7 @@ npm run cap:sync     # build + npx cap sync (ios/ android/ 는 로컬 Mac에만 
 - **My Shift**: 다음 근무 히어로, 근무 등록(프리셋 3개 + 직접 입력), **반복 근무 편집**(요일 × 주 수), **월별 보기**, **캘린더로 내보내기**(.ics — iOS 공유 시트), 근무 시간 수정/삭제, 팀 소속이면 **팀 근무표 · 근무 교대**(교대 요청/승인, 구버전 시트 복구)
 - **Actions**: 세그먼트 **My Goals**(추천 템플릿/직접 작성, 시도 +, 보관) | **Team Actions**(매니저 배정, "완료 여부는 매니저에게 보여요")
 - **Team**: 팀 미션 요약 + 공지·인수인계 피드. 카드마다 **확인 N명**(누가·언제 확인했는지 펼쳐보기), 👍🙌❤️ **리액션**(공지·인수인계 모두), 인수인계에 **사진 첨부**(최대 3장, 기기에서 압축). 팀 없으면 참여 안내(선택)
-- **Growth**: 이번 주 시도/해낸 근무/팁 도움 비율 · My Wins · 행동별 시도 3주 · 자신감 흐름 · 주간 요약 · 다음 근무 추천(규칙 기반, 가설 표기). 순위·점수 없음, 비공개
+- **Growth**: 이번 주 시도/해낸 근무/팁 도움 비율 · **내 매출 · POS**(직원 본인 employee_id가 붙은 POS/CSV 행만: 이번 주 매출·UPT·거래, 지난주 대비, 일별 막대; 데이터 없으면 '연결 전' 상태) · My Wins · 행동별 시도 3주 · 자신감 흐름 · 주간 요약 · 다음 근무 추천(규칙 기반, 가설 표기). 순위·점수 없음, 비공개
 - **Profile**: 팀 참여/떠나기, **누가 무엇을 볼 수 있나요** 표, 동의 토글(회고 공유 / 목표 집계 포함, 기본 OFF), 데이터 위치
 
 **신규 사용자 흐름**: 로그인 화면 "새로 시작하기" → 이름·이메일·직군·관심 행동 → 팀 코드(건너뛰기) → 다음 근무(건너뛰기) → 목표 1개 → Today
@@ -59,6 +59,8 @@ npm run cap:sync     # build + npx cap sync (ios/ android/ 는 로컬 Mac에만 
 | 나만 보기 (private) | 매니저에게 보임 (manager_visible) | 팀에 공개 (team) |
 |---|---|---|
 | PersonalGoal · 시도 기록(ActionEvent personal_goal) · ShiftPrep · ShiftReflection · My Wins · 자신감 | Team Action 실행 상태·체크인 · ManagerObservation | 공지 · 인수인계 · 댓글 |
+
+매출 데이터: 매장 합계(`outcome_events.user_id = null`)는 매니저만, **본인 employee_id가 붙은 행은 그 직원 본인도** 읽을 수 있습니다(`0003` 마이그레이션). 다른 직원의 매출은 보이지 않습니다.
 
 - 강제 지점 2곳: `src/lib/repo/visibility.ts`(`applyVisibility`, 로컬·Supabase 어댑터 공통) + Supabase RLS(`0002` 마이그레이션). 매니저 데이터셋에는 `private` 행이 아예 포함되지 않습니다 (단위 테스트로 검증).
 - 직원이 Profile에서 회고 공유를 켜면 **이후** 회고만 `manager_visible`로 저장됩니다. 지난 회고는 그대로 비공개.
@@ -86,7 +88,7 @@ BehaviourEvidence(visibility) · OutcomeEvent · **ShiftReflection**(tried, cust
 | `src/auth/`, `src/onboarding/` | LoginScreen(데모/새로 시작) · SignUpScreen · OnboardingScreen · SetupFlow |
 | `src/manager/bellatrix/` | 매니저 홈 · 배정(캠페인) · 관찰 · KPI · CSV · 인사이트 |
 | `src/__tests__/` | vitest 단위 테스트 |
-| `supabase/migrations/` | `0001` 코어 스키마+RLS, `0002` 개인모드·팀·visibility·회고 재설계 |
+| `supabase/migrations/` | `0001` 코어 스키마+RLS, `0002` 개인모드·팀·visibility·회고 재설계, `0003` 직원 본인 매출 행 읽기 |
 
 ## 카메라 권한 (iOS)
 

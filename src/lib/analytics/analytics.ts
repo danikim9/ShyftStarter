@@ -318,3 +318,58 @@ export function getPilotGroupObservation(ds: StoreDataset, behaviour: BehaviourT
   }
   return { pilot, intervention: rateFor(groups.intervention), control: rateFor(groups.control) }
 }
+
+// --- employee's own sales (POS / CSV rows with user_id) --------------------
+
+export interface MySalesWeek {
+  revenue: number | null
+  transactions: number | null
+  units: number | null
+  upt: number | null
+  atv: number | null
+  days: { date: ISODate; revenue: number | null; upt: number | null }[]
+}
+
+export interface MySales {
+  connected: boolean
+  source: OutcomeEvent['source'] | null
+  lastDate: ISODate | null
+  thisWeek: MySalesWeek
+  lastWeek: MySalesWeek
+}
+
+function sumOrNull(values: (number | null)[]): number | null {
+  const nums = values.filter((v): v is number => v !== null)
+  return nums.length === 0 ? null : nums.reduce((a, b) => a + b, 0)
+}
+
+function weekAgg(rows: OutcomeEvent[]): MySalesWeek {
+  const revenue = sumOrNull(rows.map((r) => r.revenue))
+  const transactions = sumOrNull(rows.map((r) => r.transactions))
+  const units = sumOrNull(rows.map((r) => r.units))
+  return {
+    revenue,
+    transactions,
+    units,
+    upt: units !== null && transactions !== null && transactions > 0 ? units / transactions : null,
+    atv: revenue !== null && transactions !== null && transactions > 0 ? revenue / transactions : null,
+    days: rows.sort((a, b) => a.outcome_date.localeCompare(b.outcome_date)).map((r) => ({ date: r.outcome_date, revenue: r.revenue, upt: r.upt })),
+  }
+}
+
+/** Sales rows that carry this employee's id (never store totals). */
+export function getMySales(ds: StoreDataset, userId: string, today: ISODate): MySales {
+  const mine = ds.outcomes.filter((o) => o.user_id === userId)
+  const thisMonday = weekKey(today)
+  const lastMonday = toISODate(addDays(parseISODate(thisMonday), -7))
+  const thisWeek = mine.filter((o) => o.outcome_date >= thisMonday && o.outcome_date <= today)
+  const lastWeek = mine.filter((o) => o.outcome_date >= lastMonday && o.outcome_date < thisMonday)
+  const latest = [...mine].sort((a, b) => b.outcome_date.localeCompare(a.outcome_date))[0] ?? null
+  return {
+    connected: mine.length > 0,
+    source: latest?.source ?? null,
+    lastDate: latest?.outcome_date ?? null,
+    thisWeek: weekAgg(thisWeek),
+    lastWeek: weekAgg(lastWeek),
+  }
+}

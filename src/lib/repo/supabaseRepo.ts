@@ -158,7 +158,6 @@ export class SupabaseRepo implements BellatrixRepo {
     const to = `${window.to}T23:59:59`
     const c = this.client
     const storeId = viewer.store_id
-    const byStore = <Q extends { eq: (col: string, v: string) => Q }>(q: Q, col = 'store_id') => (storeId ? q.eq(col, storeId) : q)
 
     const [store, team, memberships, users, shifts, actions, cards, goals, preps, campaigns, assignments, events, evidence, outcomes, reflections, pilots, participants] =
       await Promise.all([
@@ -175,7 +174,7 @@ export class SupabaseRepo implements BellatrixRepo {
         c.from('action_assignments').select('*').gte('assigned_date', window.from).lte('assigned_date', window.to),
         c.from('action_events').select('*').gte('event_at', from).lte('event_at', to),
         c.from('behaviour_evidence').select('*').gte('observed_at', from).lte('observed_at', to),
-        storeId ? byStore(c.from('outcome_events').select('*')).gte('outcome_date', window.from).lte('outcome_date', window.to) : Promise.resolve({ data: [], error: null }),
+        c.from('outcome_events').select('*').gte('outcome_date', window.from).lte('outcome_date', window.to),
         c.from('shift_reflections').select('*').gte('shift_date', window.from).lte('shift_date', window.to),
         c.from('pilots').select('*'),
         c.from('pilot_participants').select('*'),
