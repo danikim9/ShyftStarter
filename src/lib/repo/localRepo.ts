@@ -170,7 +170,7 @@ export class LocalRepo implements BellatrixRepo {
       assignments: this.db.assignments.filter((a) => sameScope(a.store_id, a.assigned_to_user_id) && inWindow(a.assigned_date, window)),
       action_events: this.db.action_events.filter((e) => sameScope(e.store_id, e.user_id) && inWindow(dateOf(e.event_at), window)),
       evidence: this.db.evidence.filter((e) => sameScope(e.store_id, e.user_id) && inWindow(dateOf(e.observed_at), window)),
-      outcomes: storeId ? this.db.outcomes.filter((o) => o.store_id === storeId && inWindow(o.outcome_date, window)) : [],
+      outcomes: this.db.outcomes.filter((o) => (o.user_id === viewer.id || (storeId !== null && o.store_id === storeId)) && inWindow(o.outcome_date, window)),
       reflections: this.db.reflections.filter((r) => inWindow(r.shift_date, window) && (r.user_id === viewer.id || (storeId !== null && this.db.users.some((u) => u.id === r.user_id && u.store_id === storeId)))),
       pilots: storeId ? this.db.pilots.filter((p) => p.store_id === storeId || p.store_id === null) : [],
       pilot_participants: this.db.pilot_participants,

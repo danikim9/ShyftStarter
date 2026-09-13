@@ -4,6 +4,7 @@ import { parseKpiCsv } from '../lib/csvImport'
 import { rateStrength } from '../lib/analytics/confidence'
 import { generateWeeklyInsights } from '../lib/analytics/insights'
 import { recommendNextShiftFocus } from '../lib/analytics/recommendation'
+import { getMySales } from '../lib/analytics/analytics'
 import { buildSeed, DANI_ID, MANAGER_ID } from '../data/seed'
 import { LocalRepo } from '../lib/repo/localRepo'
 import { addDaysISO, todayISO } from '../lib/dates'
@@ -91,5 +92,28 @@ describe('insights and recommendation on seed data', () => {
     const dani = (await r.listDemoAccounts()).find((u) => u.id === DANI_ID)!
     const ds = await r.loadDataset(dani, window)
     expect(recommendNextShiftFocus({ dataset: ds, userId: dani.id, today })).not.toBeNull()
+  })
+})
+
+describe('my sales (POS rows with employee id)', () => {
+  const today = todayISO()
+  const window = { from: addDaysISO(today, -35), to: addDaysISO(today, 14) }
+  it('is connected for Dani and computes UPT from units/transactions', async () => {
+    const r = new LocalRepo(buildSeed(new Date()))
+    const dani = (await r.listDemoAccounts()).find((u) => u.id === DANI_ID)!
+    const ds = await r.loadDataset(dani, window)
+    const s = getMySales(ds, dani.id, today)
+    expect(s.connected).toBe(true)
+    expect(s.source).toBe('csv')
+    if (s.lastWeek.units !== null && s.lastWeek.transactions) expect(s.lastWeek.upt).toBeCloseTo(s.lastWeek.units / s.lastWeek.transactions)
+  })
+  it('is not connected for a personal user and never invents numbers', async () => {
+    const r = new LocalRepo(buildSeed(new Date()))
+    const u = await r.signUp({ name: 'p', email: 'pos@example.com', job_category: 'electronics', interests: [] })
+    const ds = await r.loadDataset(u, window)
+    const s = getMySales(ds, u.id, today)
+    expect(s.connected).toBe(false)
+    expect(s.thisWeek.revenue).toBeNull()
+    expect(s.thisWeek.upt).toBeNull()
   })
 })

@@ -38,7 +38,9 @@ describe('privacy: what a manager can see', () => {
     expect(ds.reflections.every((x) => x.user_id === DANI_ID)).toBe(true)
     expect(ds.personal_goals.every((g) => g.user_id === DANI_ID)).toBe(true)
     expect(ds.shifts.every((s) => s.user_id === DANI_ID)).toBe(true)
-    expect(ds.outcomes).toHaveLength(0)
+    // Only rows carrying the employee's own id (POS/CSV per-employee sales); never store totals.
+    expect(ds.outcomes.length).toBeGreaterThan(0)
+    expect(ds.outcomes.every((o) => o.user_id === DANI_ID)).toBe(true)
     expect(ds.reflections.length).toBeGreaterThan(0)
   })
 

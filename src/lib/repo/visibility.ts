@@ -27,7 +27,9 @@ export function applyVisibility(ds: StoreDataset, viewer: User): StoreDataset {
       action_events: own(ds.action_events),
       evidence: own(ds.evidence),
       reflections: own(ds.reflections),
-      outcomes: [], // store sales data is business data, not for employees
+      // Store-level KPIs are business data. An employee may see rows that are
+      // explicitly theirs (employee_id from POS/CSV) — that is their own sales.
+      outcomes: ds.outcomes.filter((o) => o.user_id === viewer.id),
       pilot_participants: own(ds.pilot_participants),
     }
   }
