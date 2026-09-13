@@ -61,6 +61,8 @@ export type BxSheet =
   | { kind: 'shiftComposer'; presetDate?: ISODate; editShiftId?: string }
   | { kind: 'shiftDetail'; shiftId: string }
   | { kind: 'joinTeam' }
+  | { kind: 'rolePlay'; cardId: string; goalId?: string }
+  | { kind: 'quickQuiz'; cardId: string }
   | { kind: 'assign'; presetUserId?: string }
   | { kind: 'observe'; presetUserId?: string }
   | { kind: 'kpi'; presetDate?: ISODate }
@@ -171,6 +173,8 @@ interface BellatrixShape {
   setGoalActive: (id: string, active: boolean) => Promise<void>
   logGoalAttempt: (goalId: string, delta: 1 | -1) => Promise<void>
   acceptShiftPrep: (input: { shiftId: string; coachingCardId: string; personalGoalId: string | null; assignmentId: string | null }) => Promise<void>
+  /** Quiz answer (aggregated: managers see counts only) or role-play practice (private). */
+  logCardEvent: (input: { cardId: string; type: 'quiz_answered' | 'practiced'; goalId?: string | null; shiftId?: string | null; metadata: Record<string, string | number | boolean | null> }) => Promise<void>
   logActionEvent: (assignmentId: string, type: ActionEventType, progress?: number | null) => Promise<void>
   submitCheckIn: (input: CheckInInput) => Promise<void>
   submitReflection: (input: ReflectionInput) => Promise<void>
@@ -217,6 +221,8 @@ function statusForEvent(type: ActionEventType, prev: ActionAssignment['status'])
     case 'viewed':
     case 'helpful':
     case 'not_helpful':
+    case 'quiz_answered':
+    case 'practiced':
       return prev
   }
 }
@@ -565,6 +571,36 @@ export function BellatrixProvider({ children }: { children: ReactNode }) {
     [guard, requireCtx, repo, patch, trackEvent, showToast]
   )
 
+  const logCardEvent = useCallback(
+    (input: { cardId: string; type: 'quiz_answered' | 'practiced'; goalId?: string | null; shiftId?: string | null; metadata: Record<string, string | number | boolean | null> }) =>
+      guard(async () => {
+        const { user: u, data: d } = requireCtx()
+        const shift = input.shiftId ? d.shifts.find((s) => s.id === input.shiftId) ?? null : todayShiftFor(d, u.id, today)
+        const ev = await repo.createActionEvent({
+          user_id: u.id,
+          action_kind: 'coaching_card',
+          action_assignment_id: null,
+          personal_goal_id: null,
+          coaching_card_id: input.cardId,
+          action_id: null,
+          source: 'ai',
+          shift_id: shift?.id ?? null,
+          store_id: u.store_id,
+          team_id: u.team_id,
+          campaign_id: null,
+          event_type: input.type,
+          event_at: new Date().toISOString(),
+          progress_value: null,
+          self_report: true,
+          visibility: input.type === 'quiz_answered' ? 'aggregated' : 'private',
+          metadata: { ...input.metadata, goal_id: input.goalId ?? null },
+        })
+        patch((cur) => ({ ...cur, action_events: [...cur.action_events, ev] }))
+        trackEvent(input.type === 'quiz_answered' ? 'quiz_answered' : 'role_play_practiced', { card_id: input.cardId, ...input.metadata })
+      }, '기록을 저장하지 못했어요'),
+    [guard, requireCtx, repo, patch, trackEvent, today]
+  )
+
   // --- team actions (manager_visible) -----------------------------------------
   const logActionEvent = useCallback(
     (assignmentId: string, type: ActionEventType, progress: number | null = null) =>
@@ -847,6 +883,7 @@ export function BellatrixProvider({ children }: { children: ReactNode }) {
       setGoalActive,
       logGoalAttempt,
       acceptShiftPrep,
+      logCardEvent,
       logActionEvent,
       submitCheckIn,
       submitReflection,
@@ -880,6 +917,7 @@ export function BellatrixProvider({ children }: { children: ReactNode }) {
       setGoalActive,
       logGoalAttempt,
       acceptShiftPrep,
+      logCardEvent,
       logActionEvent,
       submitCheckIn,
       submitReflection,
