@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react'
-import { TrendingUp, ArrowUpRight, ArrowRight, ArrowDownRight, Lock, Trophy, Sparkles, Repeat, Smile, Plug, Receipt } from 'lucide-react'
+import { TrendingUp, ArrowUpRight, ArrowRight, ArrowDownRight, Lock, Trophy, Sparkles, Repeat, Smile, Plug, Receipt, MessageSquareText, Zap } from 'lucide-react'
 import { useBellatrix, useReadyData } from '../../lib/bellatrixStore'
 import { getEmployeeBehaviourTrend, getMySales, type TrendDirection } from '../../lib/analytics/analytics'
 import { formatMetric, formatPercentDelta } from '../../lib/analytics/metrics'
@@ -7,7 +7,7 @@ import { recommendNextShiftFocus } from '../../lib/analytics/recommendation'
 import { addDaysISO, fmtShortDate, weekKey } from '../../lib/dates'
 import { BEHAVIOUR_LABEL, CONFIDENCE_FEEL_LABEL, METRIC_SHORT } from '../../types/bellatrix'
 import type { ConfidenceFeel } from '../../types/bellatrix'
-import { Card, SectionLabel, Badge } from '../../components/ui'
+import { Card, SectionLabel, Badge, PrimaryButton } from '../../components/ui'
 import { EmptyState, ErrorState, LoadingState } from '../../components/bellatrix/shared'
 import { DemoBadge } from '../../components/bellatrix/DemoBadge'
 
@@ -33,7 +33,7 @@ function Tile({ icon, value, label, sub }: { icon: React.ReactNode; value: strin
 
 export function Growth() {
   const ready = useReadyData()
-  const { dataset, reload, today, trackEvent } = useBellatrix()
+  const { dataset, reload, today, trackEvent, openSheet } = useBellatrix()
 
   useEffect(() => {
     if (ready) trackEvent('growth_viewed')
@@ -57,16 +57,24 @@ export function Growth() {
     const trends = getEmployeeBehaviourTrend(data, user.id, today, 3)
     const rec = recommendNextShiftFocus({ dataset: data, userId: user.id, today })
     const sales = getMySales(data, user.id, today)
+    const weekStartIso = weekStart
+    const practicedWeek = data.action_events.filter((e) => e.user_id === user.id && e.event_type === 'practiced' && e.event_at.slice(0, 10) >= weekStartIso).length
+    const quizWeek = data.action_events.filter((e) => e.user_id === user.id && e.event_type === 'quiz_answered' && e.event_at.slice(0, 10) >= weekStartIso)
+    const quizCorrect = quizWeek.filter((e) => e.metadata?.correct === true).length
+    // Review prompt: latest reflection said the tip did not help or nothing was tried → one question on that card.
+    const latest = refl[0] ?? null
+    const reviewCardId = latest && (latest.tip_helpful === false || latest.tried === 'no') && latest.coaching_card_id ? latest.coaching_card_id : null
+    const reviewCard = reviewCardId ? data.coaching_cards.find((c) => c.id === reviewCardId) ?? null : null
     const helpfulCards = new Map<string, number>()
     for (const r of refl) if (r.tip_helpful && r.coaching_card_id) helpfulCards.set(r.coaching_card_id, (helpfulCards.get(r.coaching_card_id) ?? 0) + 1)
     const topCard = [...helpfulCards.entries()].sort((a, b) => b[1] - a[1])[0]
     const topCardObj = topCard ? data.coaching_cards.find((c) => c.id === topCard[0]) ?? null : null
-    return { user, refl, tried, thisWeek, attemptsThisWeek, teamDoneThisWeek, helpfulRate, conf, wins, repeat, trends, rec, topCardObj, topCardCount: topCard?.[1] ?? 0, sales }
+    return { user, refl, tried, thisWeek, attemptsThisWeek, teamDoneThisWeek, helpfulRate, conf, wins, repeat, trends, rec, topCardObj, topCardCount: topCard?.[1] ?? 0, sales, practicedWeek, quizWeek: quizWeek.length, quizCorrect, reviewCard }
   }, [ready, today])
 
   if (dataset.status === 'error') return <ErrorState message={dataset.message} onRetry={dataset.retryable ? reload : undefined} />
   if (!model) return <LoadingState />
-  const { user, refl, tried, thisWeek, attemptsThisWeek, teamDoneThisWeek, helpfulRate, conf, wins, repeat, trends, rec, topCardObj, topCardCount, sales } = model
+  const { user, refl, tried, thisWeek, attemptsThisWeek, teamDoneThisWeek, helpfulRate, conf, wins, repeat, trends, rec, topCardObj, topCardCount, sales, practicedWeek, quizWeek, quizCorrect, reviewCard } = model
   const hasAny = refl.length > 0 || attemptsThisWeek > 0 || trends.some((t) => t.total > 0)
 
   return (
@@ -178,9 +186,32 @@ export function Growth() {
                   가장 도움이 됐던 팁: <span className="font-semibold text-ink-950">{topCardObj.headline}</span> ({topCardCount}회)
                 </p>
               )}
+              {(practicedWeek > 0 || quizWeek > 0) && (
+                <p className="text-xs text-ink-950/55">
+                  이번 주 연습 {practicedWeek}회{quizWeek > 0 ? ` · 10초 확인 ${quizCorrect}/${quizWeek} 정답` : ''}
+                </p>
+              )}
             </Card>
           </div>
         </>
+      )}
+
+      {reviewCard && (
+        <div>
+          <SectionLabel>다시 보기</SectionLabel>
+          <Card className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-signal/15 text-amber-600 flex items-center justify-center shrink-0">
+              <Zap size={16} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-semibold text-ink-950/85 leading-snug">{reviewCard.headline}</div>
+              <div className="text-[11px] text-ink-950/45">지난 회고에서 아쉬웠던 팁이에요. 한 문제만 다시 볼까요?</div>
+            </div>
+            <button onClick={() => openSheet({ kind: 'quickQuiz', cardId: reviewCard.id })} className="shrink-0 rounded-full bg-ink-950 text-white text-xs font-semibold px-3 py-1.5">
+              한 문제
+            </button>
+          </Card>
+        </div>
       )}
 
       {rec && (
@@ -193,6 +224,13 @@ export function Growth() {
             <div className="text-base font-bold text-ink-950 leading-snug">{rec.headline}</div>
             <p className="text-xs text-ink-950/60 mt-1.5 leading-relaxed">{rec.reason}</p>
             <p className="text-[10px] text-ink-950/35 mt-2">규칙 기반 추천이에요. 성과와의 관계는 아직 검증 전이에요.</p>
+            {rec.card && (
+              <div className="mt-3">
+                <PrimaryButton onClick={() => openSheet({ kind: 'rolePlay', cardId: rec.card!.id })} className="flex items-center justify-center gap-1.5">
+                  <MessageSquareText size={14} /> 2분 연습하기
+                </PrimaryButton>
+              </div>
+            )}
           </Card>
         </div>
       )}

@@ -10,6 +10,8 @@ import { GoalDetailSheet } from './sheets/GoalDetailSheet'
 import { ShiftComposerSheet } from './sheets/ShiftComposerSheet'
 import { ShiftDetailSheet } from './sheets/ShiftDetailSheet'
 import { JoinTeamSheet } from './sheets/JoinTeamSheet'
+import { RolePlaySheet } from './sheets/RolePlaySheet'
+import { QuickQuizSheet } from './sheets/QuickQuizSheet'
 import { AssignActionSheet } from '../../manager/bellatrix/AssignActionSheet'
 import { ObservationSheet } from '../../manager/bellatrix/ObservationSheet'
 import { KpiSheet } from '../../manager/bellatrix/KpiSheet'
@@ -26,6 +28,8 @@ const TITLES = {
   shiftComposer: '근무 등록',
   shiftDetail: '근무',
   joinTeam: '팀 참여',
+  rolePlay: '2분 연습',
+  quickQuiz: '다시 보기 한 문제',
   assign: '액션 배정',
   observe: '빠른 관찰',
   kpi: '오늘 성과 입력',
@@ -46,12 +50,14 @@ export function BxSheetHost() {
   else if (sheet?.kind === 'shiftComposer') content = <ShiftComposerSheet presetDate={sheet.presetDate} editShiftId={sheet.editShiftId} />
   else if (sheet?.kind === 'shiftDetail') content = <ShiftDetailSheet shiftId={sheet.shiftId} />
   else if (sheet?.kind === 'joinTeam') content = <JoinTeamSheet />
+  else if (sheet?.kind === 'rolePlay') content = <RolePlaySheet cardId={sheet.cardId} goalId={sheet.goalId} />
+  else if (sheet?.kind === 'quickQuiz') content = <QuickQuizSheet cardId={sheet.cardId} />
   else if (sheet?.kind === 'assign') content = <AssignActionSheet presetUserId={sheet.presetUserId} />
   else if (sheet?.kind === 'observe') content = <ObservationSheet presetUserId={sheet.presetUserId} />
   else if (sheet?.kind === 'kpi') content = <KpiSheet presetDate={sheet.presetDate} />
   else if (sheet?.kind === 'csvImport') content = <CsvImportSheet />
 
-  const key = sheet ? `${sheet.kind}:${'assignmentId' in sheet ? sheet.assignmentId : 'shiftId' in sheet ? sheet.shiftId : 'goalId' in sheet ? sheet.goalId : 'editShiftId' in sheet ? sheet.editShiftId ?? '' : ''}` : 'none'
+  const key = sheet ? `${sheet.kind}:${'assignmentId' in sheet ? sheet.assignmentId : 'shiftId' in sheet ? sheet.shiftId : 'goalId' in sheet ? sheet.goalId : 'editShiftId' in sheet ? sheet.editShiftId ?? '' : 'cardId' in sheet ? sheet.cardId : ''}` : 'none'
   return (
     <Sheet open={open} title={sheet ? TITLES[sheet.kind] : ''} onClose={closeSheet}>
       <div key={key}>{content}</div>

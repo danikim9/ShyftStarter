@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Minus, Plus, Archive, Lock, Sparkles } from 'lucide-react'
+import { Minus, Plus, Archive, Lock, Sparkles, MessageSquareText } from 'lucide-react'
 import { useBellatrix, useReadyData } from '../../../lib/bellatrixStore'
 import { cardById, goalAttemptsOn } from '../../../lib/selectors'
 import { addDaysISO } from '../../../lib/dates'
@@ -8,14 +8,15 @@ import { Badge, SecondaryButton } from '../../ui'
 
 export function GoalDetailSheet({ goalId }: { goalId: string }) {
   const ready = useReadyData()
-  const { logGoalAttempt, setGoalActive, closeSheet, today } = useBellatrix()
+  const { logGoalAttempt, setGoalActive, closeSheet, openSheet, today } = useBellatrix()
   const [busy, setBusy] = useState(false)
   if (!ready) return null
   const { data } = ready
   const goal = data.personal_goals.find((g) => g.id === goalId)
   if (!goal) return <p className="text-sm text-ink-950/50">목표를 찾을 수 없어요.</p>
   const count = goalAttemptsOn(data, goal.id, today)
-  const card = cardById(data, goal.coaching_card_id)
+  const card = cardById(data, goal.coaching_card_id) ?? data.coaching_cards.find((c) => c.behaviour_type === goal.behaviour_type) ?? null
+  const practiced = data.action_events.filter((e) => e.event_type === 'practiced' && e.metadata?.goal_id === goal.id).length
   const last7 = Array.from({ length: 7 }, (_, i) => addDaysISO(today, -6 + i)).map((d) => ({ d, n: goalAttemptsOn(data, goal.id, d) }))
   const weekTotal = last7.reduce((a, x) => a + x.n, 0)
   const daysTried = last7.filter((x) => x.n > 0).length
@@ -78,6 +79,11 @@ export function GoalDetailSheet({ goalId }: { goalId: string }) {
         </div>
       )}
 
+      {card && (
+        <SecondaryButton onClick={() => openSheet({ kind: 'rolePlay', cardId: card.id, goalId: goal.id })} className="flex items-center justify-center gap-1.5">
+          <MessageSquareText size={14} /> 이 행동 2분 연습하기{practiced > 0 ? ` · ${practiced}회 연습함` : ''}
+        </SecondaryButton>
+      )}
       <SecondaryButton
         disabled={busy}
         onClick={async () => {
