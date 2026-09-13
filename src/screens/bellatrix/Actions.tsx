@@ -1,11 +1,14 @@
 import { useMemo, useState } from 'react'
-import { Target, Users, Check, Plus, Lock, ChevronRight, Sparkles } from 'lucide-react'
+import { Target, Users, Check, Plus, Lock, ChevronRight, Sparkles, TrendingUp, MessageSquareText, Zap } from 'lucide-react'
+import { recommendNextShiftFocus } from '../../lib/analytics/recommendation'
+import { GOAL_TEMPLATES } from '../../data/coachingCards'
+import { METRIC_SHORT } from '../../types/bellatrix'
 import { useBellatrix, useReadyData } from '../../lib/bellatrixStore'
 import { activeGoals, goalAttemptsOn, viewAssignments, type AssignmentView } from '../../lib/selectors'
 import { addDaysISO, fmtShortDate } from '../../lib/dates'
 import { BEHAVIOUR_LABEL, INTERVENTION_LABEL } from '../../types/bellatrix'
 import type { PersonalGoal } from '../../types/bellatrix'
-import { Card, SectionLabel, Badge, ProgressBar, SecondaryButton } from '../../components/ui'
+import { Card, SectionLabel, Badge, ProgressBar, SecondaryButton, PrimaryButton } from '../../components/ui'
 import { EmptyState, ErrorState, LoadingState } from '../../components/bellatrix/shared'
 
 type Segment = 'mine' | 'team'
@@ -79,8 +82,9 @@ function TeamRow({ v }: { v: AssignmentView }) {
 
 export function Actions() {
   const ready = useReadyData()
-  const { dataset, reload, today, openSheet } = useBellatrix()
+  const { dataset, reload, today, openSheet, createGoal } = useBellatrix()
   const [seg, setSeg] = useState<Segment>('mine')
+  const [adding, setAdding] = useState(false)
   const [showArchived, setShowArchived] = useState(false)
 
   const model = useMemo(() => {
@@ -95,12 +99,37 @@ export function Actions() {
     const past = viewAssignments(data, mine.filter((a) => a.assigned_date < today && a.assigned_date >= addDaysISO(today, -7))).sort((a, b) =>
       b.assignment.assigned_date.localeCompare(a.assignment.assigned_date)
     )
-    return { user, goals, archived, counts, todayRows, upcoming, past }
+    const rec = recommendNextShiftFocus({ dataset: data, userId: user.id, today })
+    const recTemplate = rec?.card ? GOAL_TEMPLATES.find((t) => t.coaching_card_id === rec.card!.id) ?? null : null
+    const recTitle = recTemplate?.title ?? rec?.card?.headline ?? rec?.headline ?? null
+    const recInGoals = recTitle !== null && data.personal_goals.some((g) => g.user_id === user.id && g.active && (g.title === recTitle || (rec?.card !== null && g.coaching_card_id === rec?.card?.id)))
+    // Review prompt: latest reflection said the tip did not help or nothing was tried → one question on that card.
+    const latest = data.reflections.filter((r) => r.user_id === user.id).sort((a, b) => b.shift_date.localeCompare(a.shift_date))[0] ?? null
+    const reviewCard = latest && (latest.tip_helpful === false || latest.tried === 'no') && latest.coaching_card_id ? data.coaching_cards.find((c) => c.id === latest.coaching_card_id) ?? null : null
+    return { user, goals, archived, counts, todayRows, upcoming, past, rec, recTemplate, recTitle, recInGoals, reviewCard }
   }, [ready, today])
 
   if (dataset.status === 'error') return <ErrorState message={dataset.message} onRetry={dataset.retryable ? reload : undefined} />
   if (!model) return <LoadingState />
-  const { user, goals, archived, counts, todayRows, upcoming, past } = model
+  const { user, goals, archived, counts, todayRows, upcoming, past, rec, recTemplate, recTitle, recInGoals, reviewCard } = model
+
+  const addRecommendedGoal = async () => {
+    if (!rec || !recTitle || adding) return
+    setAdding(true)
+    try {
+      await createGoal({
+        title: recTitle,
+        behaviour_type: rec.behaviour,
+        target_count: recTemplate?.target_count ?? 2,
+        source: 'recommended',
+        coaching_card_id: rec.card?.id ?? null,
+      })
+    } catch {
+      // toast shown
+    } finally {
+      setAdding(false)
+    }
+  }
   const inTeam = user.team_id !== null
   const teamTodayCount = todayRows.length
 
@@ -110,6 +139,45 @@ export function Actions() {
         <h1 className="text-xl font-bold text-ink-950 mb-1">Actions</h1>
         <p className="text-xs text-ink-950/40">내가 정한 목표와 팀에서 받은 행동을 따로 봐요. 섞이지 않아요.</p>
       </div>
+
+      {rec && (
+        <Card className="border-brand-200 bg-brand-50 space-y-3">
+          <div>
+            <div className="flex items-center gap-1.5 text-brand-700 text-[11px] font-semibold mb-1">
+              <TrendingUp size={12} /> 다음 근무 추천{rec.focusMetric !== 'none' ? ` · ${METRIC_SHORT[rec.focusMetric]}` : ''}
+            </div>
+            <div className="text-base font-bold text-ink-950 leading-snug">{rec.headline}</div>
+            <p className="text-xs text-ink-950/60 mt-1 leading-relaxed">{rec.reason}</p>
+          </div>
+          {recInGoals ? (
+            <div className="inline-flex items-center gap-1.5 text-xs text-emerald-700 font-medium">
+              <Check size={14} /> 내 목표에 있어요
+            </div>
+          ) : (
+            <PrimaryButton disabled={adding} onClick={() => void addRecommendedGoal()} className="flex items-center justify-center gap-1.5">
+              <Plus size={14} /> {adding ? '추가 중…' : '목표로 추가'}
+            </PrimaryButton>
+          )}
+          {rec.card && (
+            <div className="grid grid-cols-2 gap-2">
+              <SecondaryButton onClick={() => openSheet({ kind: 'rolePlay', cardId: rec.card!.id })} className="flex items-center justify-center gap-1.5 !py-2.5 bg-white">
+                <MessageSquareText size={14} /> 2분 연습
+              </SecondaryButton>
+              <SecondaryButton onClick={() => openSheet({ kind: 'quickQuiz', cardId: rec.card!.id })} className="flex items-center justify-center gap-1.5 !py-2.5 bg-white">
+                <Zap size={14} /> 10초 확인
+              </SecondaryButton>
+            </div>
+          )}
+          {reviewCard && reviewCard.id !== rec.card?.id && (
+            <button onClick={() => openSheet({ kind: 'quickQuiz', cardId: reviewCard.id })} className="w-full text-left flex items-center gap-2 rounded-xl bg-white border border-amber-signal/30 px-3 py-2">
+              <Zap size={13} className="text-amber-600 shrink-0" />
+              <span className="text-xs text-ink-950/70 flex-1 min-w-0 truncate">지난 회고에서 아쉬웠던 "{reviewCard.headline}" 한 문제 다시 보기</span>
+              <ChevronRight size={14} className="text-ink-950/30 shrink-0" />
+            </button>
+          )}
+          <p className="text-[10px] text-ink-950/35">규칙 기반 추천이에요. 성과와의 관계는 아직 검증 전이에요.</p>
+        </Card>
+      )}
 
       <div className="flex items-center gap-1 rounded-full bg-ink-950/6 p-1">
         <button onClick={() => setSeg('mine')} className={`flex-1 rounded-full py-2 text-xs font-semibold transition inline-flex items-center justify-center gap-1.5 ${seg === 'mine' ? 'bg-white text-brand-700 shadow-sm' : 'text-ink-950/50'}`}>
