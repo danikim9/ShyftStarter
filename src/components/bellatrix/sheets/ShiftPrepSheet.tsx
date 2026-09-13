@@ -4,6 +4,8 @@ import { useBellatrix, useReadyData } from '../../../lib/bellatrixStore'
 import { BEHAVIOUR_LABEL } from '../../../types/bellatrix'
 import { cardById, pickPrepCard, prepForShift } from '../../../lib/selectors'
 import { Badge, PrimaryButton, SecondaryButton } from '../../ui'
+import { buildPrepQuiz } from '../../../lib/prepQuiz'
+import { PrepQuiz } from '../PrepQuiz'
 
 function Block({ icon, label, children, tone = 'default' }: { icon: React.ReactNode; label: string; children: React.ReactNode; tone?: 'default' | 'brand' }) {
   return (
@@ -20,7 +22,7 @@ function Block({ icon, label, children, tone = 'default' }: { icon: React.ReactN
  * objection, one cross-sell tip, one CTA. */
 export function ShiftPrepSheet({ shiftId }: { shiftId: string }) {
   const ready = useReadyData()
-  const { acceptShiftPrep, closeSheet, trackEvent, today } = useBellatrix()
+  const { acceptShiftPrep, logCardEvent, closeSheet, trackEvent, today } = useBellatrix()
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
@@ -44,6 +46,9 @@ export function ShiftPrepSheet({ shiftId }: { shiftId: string }) {
   if (!ready) return null
   if (!model) return <p className="text-sm text-ink-950/50">아직 준비할 콘텐츠가 없어요. Actions에서 목표를 하나 골라보세요.</p>
   const { card, goal, assignment, accepted } = model
+  const quiz = buildPrepQuiz(card, ready.data.coaching_cards)
+  const answeredEvent = ready.data.action_events.find((e) => e.event_type === 'quiz_answered' && e.coaching_card_id === card.id && e.shift_id === shiftId)
+  const answered = answeredEvent ? { correct: answeredEvent.metadata?.correct === true } : null
 
   const accept = async () => {
     setBusy(true)
@@ -81,6 +86,8 @@ export function ShiftPrepSheet({ shiftId }: { shiftId: string }) {
       <Block icon={<PlusCircle size={12} />} label="한 번 더 제안하기">
         {card.cross_sell_tip}
       </Block>
+
+      {quiz && <PrepQuiz quiz={quiz} answered={answered} onAnswer={(index, correct) => void logCardEvent({ cardId: card.id, type: 'quiz_answered', shiftId, metadata: { correct, index, context: 'prep' } })} />}
 
       {accepted ? (
         <div className="flex items-center gap-2 rounded-xl bg-emerald-signal/10 px-4 py-3 text-sm text-emerald-700 font-medium">

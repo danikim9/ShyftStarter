@@ -233,6 +233,8 @@ export type ActionEventType =
   | 'expired'
   | 'helpful'
   | 'not_helpful'
+  | 'quiz_answered' // 10-second check after Shift Prep (metadata.correct)
+  | 'practiced' // text role-play completed (metadata.turns)
 
 /** Where the thing being acted on came from. */
 export type ActionSource = 'personal' | 'team' | 'manager' | 'ai' | 'system'
@@ -388,6 +390,8 @@ export type ProductEventName =
   | 'shift_prep_viewed'
   | 'shift_prep_accepted'
   | 'my_shift_viewed'
+  | 'quiz_answered'
+  | 'role_play_practiced'
 
 export interface ProductEvent {
   id: string
