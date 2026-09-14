@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useBellatrix, useManagerData } from '../../lib/bellatrixStore'
 import type { ISODate } from '../../types/bellatrix'
+import { METRIC_SHORT } from '../../types/bellatrix'
 import { addDaysISO, fmtShortDate } from '../../lib/dates'
 import { ATTACH_RATE_DEFINITION_LABEL, deriveKpis, formatMetric } from '../../lib/analytics/metrics'
 import { PrimaryButton } from '../../components/ui'
@@ -74,8 +75,8 @@ export function KpiSheet({ presetDate }: { presetDate?: ISODate }) {
       <Question n={1} text="날짜">
         <ChoiceChips
           options={[
-            { value: today, label: `오늘 ${fmtShortDate(today)}` },
-            { value: addDaysISO(today, -1), label: `어제 ${fmtShortDate(addDaysISO(today, -1))}` },
+            { value: today, label: '오늘' },
+            { value: addDaysISO(today, -1), label: '어제' },
             { value: addDaysISO(today, -2), label: fmtShortDate(addDaysISO(today, -2)) },
           ]}
           value={date}
@@ -87,28 +88,33 @@ export function KpiSheet({ presetDate }: { presetDate?: ISODate }) {
           {existing && <span className="ml-2 text-amber-600">이미 입력된 날 — 저장하면 덮어써요</span>}
         </div>
       </Question>
-      <Question n={2} text="오늘 성과">
+      <Question n={2} text="네 칸만 입력">
         <div className="grid grid-cols-2 gap-2.5">
           <NumberField label="방문자 *" value={f.visitors} onChange={set('visitors')} suffix="명" />
           <NumberField label="거래 건수 *" value={f.transactions} onChange={set('transactions')} suffix="건" />
           <NumberField label="매출 *" value={f.revenue} onChange={set('revenue')} suffix="원" />
           <NumberField label="판매 수량" value={f.units} onChange={set('units')} suffix="개" />
-          <NumberField label="부가상품 수량" value={f.accessory_units} onChange={set('accessory_units')} suffix="개" />
-          <NumberField label="부가상품 포함 거래" value={f.accessory_transactions} onChange={set('accessory_transactions')} suffix="건" />
         </div>
       </Question>
       <div className="rounded-xl bg-ink-950/4 border border-ink-950/8 p-3.5">
         <div className="text-[10px] font-semibold text-ink-950/40 uppercase tracking-wide mb-2">자동 계산</div>
-        <div className="grid grid-cols-4 gap-2 text-center">
-          {(['cvr', 'atv', 'upt', 'attach_rate'] as const).map((m) => (
+        <div className="grid grid-cols-3 gap-2 text-center">
+          {(['cvr', 'atv', 'upt'] as const).map((m) => (
             <div key={m}>
-              <div className="text-[10px] text-ink-950/40">{m === 'attach_rate' ? 'Attach' : m.toUpperCase()}</div>
+              <div className="text-[10px] text-ink-950/40">{METRIC_SHORT[m]}</div>
               <div className="text-sm font-bold text-ink-950 tabular-nums">{formatMetric(m, preview[m])}</div>
             </div>
           ))}
         </div>
-        <div className="text-[10px] text-ink-950/35 mt-2">Attach Rate 정의: {ATTACH_RATE_DEFINITION_LABEL[store.attach_rate_definition]}</div>
       </div>
+      <details className="rounded-xl border border-ink-950/8 px-3.5 py-2.5">
+        <summary className="text-xs font-semibold text-ink-950/55 cursor-pointer">부가상품 (선택) · Attach Rate {formatMetric('attach_rate', preview.attach_rate)}</summary>
+        <div className="grid grid-cols-2 gap-2.5 mt-3">
+          <NumberField label="부가상품 수량" value={f.accessory_units} onChange={set('accessory_units')} suffix="개" />
+          <NumberField label="부가상품 포함 거래" value={f.accessory_transactions} onChange={set('accessory_transactions')} suffix="건" />
+        </div>
+        <div className="text-[10px] text-ink-950/35 mt-2">정의: {ATTACH_RATE_DEFINITION_LABEL[store.attach_rate_definition]}</div>
+      </details>
       {error && <p className="text-xs text-rose-600">{error}</p>}
       <PrimaryButton disabled={busy} onClick={submit}>
         {busy ? '저장 중…' : existing ? '수정 저장' : '성과 저장'}
