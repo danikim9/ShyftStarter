@@ -80,6 +80,8 @@ export interface BellatrixRepo {
   updateAssignmentStatus(id: string, status: ActionAssignment['status']): Promise<void>
 
   // manager writes ----------------------------------------------------------
+  /** Store roster: set (create/update) or clear ('off') an employee's shift for a date. source = 'roster'. */
+  setRosterShift(input: { user_id: string; store_id: string; date: ISODate; entry: { start_at: string; end_at: string } | 'off' }): Promise<Shift | null>
   createAssignments(rows: NewRow<ActionAssignment>[]): Promise<ActionAssignment[]>
   /** Upserts on (store_id, outcome_date, user_id) so re-entering a day corrects it. */
   upsertOutcome(row: NewRow<OutcomeEvent>): Promise<OutcomeEvent>

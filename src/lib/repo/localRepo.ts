@@ -291,6 +291,34 @@ export class LocalRepo implements BellatrixRepo {
   }
 
   // manager writes ------------------------------------------------------------
+  async setRosterShift(input: { user_id: string; store_id: string; date: string; entry: { start_at: string; end_at: string } | 'off' }): Promise<Shift | null> {
+    const existing = this.db.shifts.find((s) => s.user_id === input.user_id && dateOf(s.start_at) === input.date && s.status !== 'cancelled')
+    if (input.entry === 'off') {
+      if (existing) {
+        if (existing.source === 'roster') this.db.shifts = this.db.shifts.filter((s) => s.id !== existing.id)
+        else existing.status = 'cancelled'
+        this.persist()
+      }
+      return null
+    }
+    if (new Date(input.entry.end_at) <= new Date(input.entry.start_at)) throw new RepoError('validation', '종료 시각은 시작 시각보다 뒤여야 해요.')
+    const today = dateOf(new Date().toISOString())
+    const status: Shift['status'] = input.date < today ? 'completed' : input.date === today ? 'in_progress' : 'scheduled'
+    if (existing) {
+      existing.start_at = input.entry.start_at
+      existing.end_at = input.entry.end_at
+      existing.store_id = input.store_id
+      existing.source = 'roster'
+      existing.status = status
+      this.persist()
+      return existing
+    }
+    const created: Shift = { id: newId('sh'), user_id: input.user_id, store_id: input.store_id, start_at: input.entry.start_at, end_at: input.entry.end_at, status, source: 'roster', created_at: new Date().toISOString() }
+    this.db.shifts.push(created)
+    this.persist()
+    return created
+  }
+
   async createAssignments(rows: NewRow<ActionAssignment>[]): Promise<ActionAssignment[]> {
     const now = new Date().toISOString()
     const created = rows.map((r) => ({ ...r, id: newId('asg'), created_at: now }))

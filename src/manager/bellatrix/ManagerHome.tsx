@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Eye, BarChart3, ListPlus, Users, Check, Sparkles, UserCheck } from 'lucide-react'
 import { useBellatrix, useManagerData } from '../../lib/bellatrixStore'
+import { useManagerState } from '../../lib/managerStore'
 import { shiftsOn, viewAssignments } from '../../lib/selectors'
 import { fmtDateKo, fmtTimeHM, dateOf } from '../../lib/dates'
 import { BEHAVIOUR_LABEL, METRIC_LABEL } from '../../types/bellatrix'
@@ -26,6 +27,7 @@ function Cta({ icon, title, sub, onClick, primary = false }: { icon: React.React
 export function ManagerHome() {
   const ready = useManagerData()
   const { dataset, reload, openSheet, today } = useBellatrix()
+  const { setView, showRosterFor } = useManagerState()
 
   const model = useMemo(() => {
     if (!ready) return null
@@ -72,6 +74,7 @@ export function ManagerHome() {
         <Cta icon={<Eye size={18} />} title="빠른 관찰" sub="10초 · 본 것만 기록" onClick={() => openSheet({ kind: 'observe' })} primary />
         <Cta icon={<BarChart3 size={18} />} title={kpiToday ? '오늘 성과 수정' : '오늘 성과 입력'} sub={kpiToday ? '입력 완료' : '방문자·거래·매출'} onClick={() => openSheet({ kind: 'kpi' })} />
         <Cta icon={<ListPlus size={18} />} title="액션 배정" sub="개인 또는 팀 전체" onClick={() => openSheet({ kind: 'assign' })} />
+        <Cta icon={<Users size={18} />} title="팀 · 코칭 가이드" sub="행동 근거 · 1:1 대화" onClick={() => setView('team')} />
         <Card className="flex flex-col justify-between">
           <div className="text-[11px] text-ink-950/45">오늘 액션 진행</div>
           <div className="text-2xl font-bold text-ink-950 tabular-nums">
@@ -83,7 +86,12 @@ export function ManagerHome() {
       </div>
 
       <div>
-        <SectionLabel>오늘 근무 · {team.length}명</SectionLabel>
+        <div className="flex items-center justify-between mb-2">
+          <SectionLabel>오늘 근무 · {team.length}명</SectionLabel>
+          <button onClick={() => showRosterFor(null)} className="text-xs text-brand-700 font-medium -mt-2">
+            근무표 보기
+          </button>
+        </div>
         <Card className="p-0 overflow-hidden">
           {team.length === 0 ? (
             <div className="p-4">
@@ -94,10 +102,12 @@ export function ManagerHome() {
               const done = v.filter((x) => x.isDone).length
               return (
                 <div key={user.id} className="flex items-center gap-3 px-4 py-3 border-b border-ink-950/6 last:border-0">
-                  <span className="w-9 h-9 rounded-full bg-brand-500/15 text-brand-700 flex items-center justify-center text-sm font-bold shrink-0">{user.name[0]}</span>
+                  <button onClick={() => openSheet({ kind: 'member', userId: user.id })} className="w-9 h-9 rounded-full bg-brand-500/15 text-brand-700 flex items-center justify-center text-sm font-bold shrink-0" aria-label={`${user.name} 상세`}>
+                    {user.name[0]}
+                  </button>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-ink-950">{user.name}</span>
+                      <button onClick={() => openSheet({ kind: 'member', userId: user.id })} className="text-sm font-semibold text-ink-950">{user.name}</button>
                       <span className="text-[11px] text-ink-950/40 tabular-nums">
                         {fmtTimeHM(shift.start_at)}–{fmtTimeHM(shift.end_at)}
                       </span>

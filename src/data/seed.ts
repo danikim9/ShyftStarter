@@ -228,8 +228,8 @@ export function buildSeed(now: Date = new Date()): SeedDatabase {
 
   const shiftFor = (userId: string, date: ISODate) => shifts.find((s) => s.user_id === userId && toISODate(new Date(s.start_at)) === date)
 
-  // --- shifts: 21 past days, today, +2 future days -------------------------
-  for (let offset = -21; offset <= 2; offset++) {
+  // --- shifts: 21 past days, today, +13 future days (two roster weeks) --------
+  for (let offset = -21; offset <= 13; offset++) {
     const date = addDaysISO(today, offset)
     for (const uid of employees) {
       // Joon works 5 fixed days; Dani/Mina ~5/7 pseudo-randomly. Everyone works today.

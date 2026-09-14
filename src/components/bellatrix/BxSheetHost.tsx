@@ -16,6 +16,8 @@ import { AssignActionSheet } from '../../manager/bellatrix/AssignActionSheet'
 import { ObservationSheet } from '../../manager/bellatrix/ObservationSheet'
 import { KpiSheet } from '../../manager/bellatrix/KpiSheet'
 import { CsvImportSheet } from '../../manager/bellatrix/CsvImportSheet'
+import { MemberDetailSheet } from '../../manager/bellatrix/MemberDetailSheet'
+import { RosterCellSheet } from '../../manager/bellatrix/RosterCellSheet'
 
 const TITLES = {
   coaching: '마이크로 코칭',
@@ -34,6 +36,8 @@ const TITLES = {
   observe: '빠른 관찰',
   kpi: '오늘 성과 입력',
   csvImport: 'KPI CSV 가져오기',
+  member: '팀원',
+  rosterCell: '근무표 편집',
 } as const
 
 export function BxSheetHost() {
@@ -56,8 +60,10 @@ export function BxSheetHost() {
   else if (sheet?.kind === 'observe') content = <ObservationSheet presetUserId={sheet.presetUserId} />
   else if (sheet?.kind === 'kpi') content = <KpiSheet presetDate={sheet.presetDate} />
   else if (sheet?.kind === 'csvImport') content = <CsvImportSheet />
+  else if (sheet?.kind === 'member') content = <MemberDetailSheet userId={sheet.userId} />
+  else if (sheet?.kind === 'rosterCell') content = <RosterCellSheet userId={sheet.userId} date={sheet.date} />
 
-  const key = sheet ? `${sheet.kind}:${'assignmentId' in sheet ? sheet.assignmentId : 'shiftId' in sheet ? sheet.shiftId : 'goalId' in sheet ? sheet.goalId : 'editShiftId' in sheet ? sheet.editShiftId ?? '' : 'cardId' in sheet ? sheet.cardId : ''}` : 'none'
+  const key = sheet ? `${sheet.kind}:${'assignmentId' in sheet ? sheet.assignmentId : 'shiftId' in sheet ? sheet.shiftId : 'goalId' in sheet ? sheet.goalId : 'editShiftId' in sheet ? sheet.editShiftId ?? '' : 'cardId' in sheet ? sheet.cardId : 'userId' in sheet ? `${sheet.userId}:${'date' in sheet ? sheet.date : ''}` : ''}` : 'none'
   return (
     <Sheet open={open} title={sheet ? TITLES[sheet.kind] : ''} onClose={closeSheet}>
       <div key={key}>{content}</div>
