@@ -16,7 +16,8 @@ export const FEATURES = {
   confidenceFlow: false,
   weeklySummary: false,
   // 매니저
-  managerKpi: false, // KPI tab + CSV import (until real store data)
+  managerKpi: true, // KPI tab: 오늘 입력 · 이번 주 vs 지난주 · 최근 7일
+  managerInsights: false, // full 주간 인사이트 tab (top signals still appear at the bottom of KPI)
   managerLegacyTools: false, // 더보기: 구버전 공지·근무표 목업·매트릭스
 } as const
 

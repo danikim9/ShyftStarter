@@ -25,14 +25,14 @@ import { useReadyData } from '../lib/bellatrixStore'
 // 폭이 훨씬 좁아서 "근무 일정 관리"/"Will × Capability" 같은 긴 라벨은
 // 그대로 못 쓰므로 shortLabel을 별도로 둔다.
 const ALL_NAV: { id: ManagerView; label: string; shortLabel: string; icon: typeof Users; pro?: boolean }[] = [
-  { id: 'home', label: '오늘', shortLabel: '홈', icon: Sun },
+  { id: 'home', label: '오늘', shortLabel: '오늘', icon: Sun },
   { id: 'team', label: '팀 · 근무표', shortLabel: '팀', icon: Users },
+  { id: 'kpi', label: 'KPI · CVR AOV UPT', shortLabel: 'KPI', icon: BarChart3 },
   { id: 'insights', label: '주간 인사이트', shortLabel: '인사이트', icon: Lightbulb },
-  { id: 'kpi', label: '매장 KPI', shortLabel: 'KPI', icon: BarChart3 },
   { id: 'more', label: '더보기 (팀 운영)', shortLabel: '더보기', icon: MoreHorizontal },
 ]
-// TestFlight build: 홈 · 팀 · 인사이트. KPI/CSV and the legacy tools come back via src/lib/features.ts.
-const NAV = ALL_NAV.filter((n) => (n.id === 'kpi' ? FEATURES.managerKpi : n.id === 'more' ? FEATURES.managerLegacyTools : true))
+// TestFlight build: 오늘 · 팀 · KPI. 인사이트 tab and the legacy tools come back via src/lib/features.ts.
+const NAV = ALL_NAV.filter((n) => (n.id === 'kpi' ? FEATURES.managerKpi : n.id === 'insights' ? FEATURES.managerInsights : n.id === 'more' ? FEATURES.managerLegacyTools : true))
 
 // Legacy Shift-Companion manager tools — deprioritised for the Bellatrix MVP
 // but kept working behind "더보기".

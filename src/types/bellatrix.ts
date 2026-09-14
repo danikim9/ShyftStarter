@@ -462,7 +462,7 @@ export const BEHAVIOUR_LABEL: Record<BehaviourType, string> = {
 
 export const METRIC_LABEL: Record<TargetMetric, string> = {
   cvr: 'CVR (구매 전환율)',
-  atv: 'ATV (객단가)',
+  atv: 'AOV (객단가)',
   upt: 'UPT (건당 수량)',
   attach_rate: 'Attach Rate (부가상품 부착률)',
   revenue: '매출',
@@ -471,7 +471,7 @@ export const METRIC_LABEL: Record<TargetMetric, string> = {
 
 export const METRIC_SHORT: Record<TargetMetric, string> = {
   cvr: 'CVR',
-  atv: 'ATV',
+  atv: 'AOV',
   upt: 'UPT',
   attach_rate: 'Attach Rate',
   revenue: '매출',
