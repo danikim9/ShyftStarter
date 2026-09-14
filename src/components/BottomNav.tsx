@@ -1,8 +1,11 @@
 import { Home, CalendarDays, Target, Radar as RadarIcon, Sparkles, TrendingUp, Trophy, CalendarClock, Megaphone, ListChecks, Sun, Users } from 'lucide-react'
 
-// Shift Companion nav: Today · My Shift · Actions · Team · Growth.
-// Profile is reached from the avatar on Today (not a tab). Legacy ids stay in
-// the union so hidden screens keep compiling.
+// Shift Companion nav — three tabs, one per reason to open the app:
+//   오늘  근무 전 미션 · 근무 중 기록 · 근무 후 회고
+//   팀    공지·인수인계 + 근무표 (매일 여는 이유)
+//   성장  지나온 근거
+// Profile and 목표 관리(actions) are sub-screens reached from 오늘. Legacy ids
+// stay in the union so hidden screens keep compiling.
 export type TabId =
   | 'today'
   | 'myShift'
@@ -20,11 +23,9 @@ export type TabId =
   | 'myActions'
 
 const TABS: { id: TabId; label: string; icon: typeof Home }[] = [
-  { id: 'today', label: 'Today', icon: Sun },
-  { id: 'myShift', label: 'My Shift', icon: CalendarClock },
-  { id: 'actions', label: 'Actions', icon: Target },
-  { id: 'team', label: 'Team', icon: Users },
-  { id: 'growth', label: 'Growth', icon: TrendingUp },
+  { id: 'today', label: '오늘', icon: Sun },
+  { id: 'team', label: '팀', icon: Users },
+  { id: 'growth', label: '성장', icon: TrendingUp },
 ]
 
 export const LEGACY_TABS: { id: TabId; label: string; icon: typeof Home }[] = [
@@ -36,6 +37,7 @@ export const LEGACY_TABS: { id: TabId; label: string; icon: typeof Home }[] = [
   { id: 'progress', label: 'Progress', icon: TrendingUp },
   { id: 'teamFeed', label: 'Team', icon: Megaphone },
   { id: 'myActions', label: 'My Actions', icon: ListChecks },
+  { id: 'myShift', label: 'My Shift', icon: CalendarClock },
   { id: 'team', label: 'Team', icon: Trophy },
 ]
 
@@ -47,8 +49,8 @@ export function BottomNav({ active, onChange }: { active: TabId; onChange: (id: 
           const isActive = active === id
           return (
             <button key={id} onClick={() => onChange(id)} className="flex-1 flex flex-col items-center gap-1 py-1.5 rounded-xl transition min-w-0" aria-current={isActive ? 'page' : undefined}>
-              <Icon size={20} strokeWidth={isActive ? 2.4 : 1.8} className={isActive ? 'text-brand-600' : 'text-ink-950/40'} />
-              <span className={`text-[10px] font-medium leading-none ${isActive ? 'text-brand-600' : 'text-ink-950/40'}`}>{label}</span>
+              <Icon size={22} strokeWidth={isActive ? 2.4 : 1.8} className={isActive ? 'text-brand-600' : 'text-ink-950/40'} />
+              <span className={`text-[11px] font-medium leading-none ${isActive ? 'text-brand-600' : 'text-ink-950/40'}`}>{label}</span>
             </button>
           )
         })}

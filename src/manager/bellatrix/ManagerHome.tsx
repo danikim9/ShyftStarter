@@ -8,6 +8,7 @@ import { BEHAVIOUR_LABEL, METRIC_LABEL } from '../../types/bellatrix'
 import { formatMetric } from '../../lib/analytics/metrics'
 import { Card, SectionLabel, Badge } from '../../components/ui'
 import { EmptyState, ErrorState, LoadingState } from '../../components/bellatrix/shared'
+import { FEATURES } from '../../lib/features'
 import { DemoBadge } from '../../components/bellatrix/DemoBadge'
 import { Lock } from 'lucide-react'
 
@@ -72,9 +73,9 @@ export function ManagerHome() {
 
       <div className="grid grid-cols-2 gap-3">
         <Cta icon={<Eye size={18} />} title="빠른 관찰" sub="10초 · 본 것만 기록" onClick={() => openSheet({ kind: 'observe' })} primary />
-        <Cta icon={<BarChart3 size={18} />} title={kpiToday ? '오늘 성과 수정' : '오늘 성과 입력'} sub={kpiToday ? '입력 완료' : '방문자·거래·매출'} onClick={() => openSheet({ kind: 'kpi' })} />
         <Cta icon={<ListPlus size={18} />} title="액션 배정" sub="개인 또는 팀 전체" onClick={() => openSheet({ kind: 'assign' })} />
         <Cta icon={<Users size={18} />} title="팀 · 코칭 가이드" sub="행동 근거 · 1:1 대화" onClick={() => setView('team')} />
+        {FEATURES.managerKpi && <Cta icon={<BarChart3 size={18} />} title={kpiToday ? '오늘 성과 수정' : '오늘 성과 입력'} sub={kpiToday ? '입력 완료' : '방문자·거래·매출'} onClick={() => openSheet({ kind: 'kpi' })} />}
         <Card className="flex flex-col justify-between">
           <div className="text-[11px] text-ink-950/45">오늘 액션 진행</div>
           <div className="text-2xl font-bold text-ink-950 tabular-nums">

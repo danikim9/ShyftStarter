@@ -11,6 +11,7 @@ import { Card, SectionLabel, Badge } from '../../components/ui'
 import { EmptyState, ErrorState, LoadingState } from '../../components/bellatrix/shared'
 import { DemoBadge } from '../../components/bellatrix/DemoBadge'
 import type { TabId } from '../../components/BottomNav'
+import { FEATURES } from '../../lib/features'
 
 const DIR: Record<TrendDirection, { icon: typeof ArrowRight; label: string; cls: string }> = {
   up: { icon: ArrowUpRight, label: '늘고 있어요', cls: 'text-emerald-600' },
@@ -78,7 +79,7 @@ export function Growth({ onNavigate }: { onNavigate?: (t: TabId) => void }) {
     <div className="px-4 pt-4 pb-8 space-y-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-ink-950 mb-1">Growth</h1>
+          <h1 className="text-xl font-bold text-ink-950 mb-1">성장</h1>
           <p className="text-xs text-ink-950/40">순위도 점수도 없어요. 내가 시도한 것과 그때 느낀 것만 모아둔 곳이에요.</p>
         </div>
         <span className="inline-flex items-center gap-1 text-[10px] text-ink-950/40 shrink-0 mt-1">
@@ -92,7 +93,7 @@ export function Growth({ onNavigate }: { onNavigate?: (t: TabId) => void }) {
           <Card>
             <EmptyState icon={<Sparkles size={18} />} title="첫 근무 후에 채워져요" body="Shift Prep으로 준비하고, 근무 후 5초 회고를 남기면 여기에 내 성장이 쌓여요." />
           </Card>
-          <MySalesSection sales={sales} />
+          {FEATURES.posSales && <MySalesSection sales={sales} />}
         </>
       ) : (
         <>
@@ -105,7 +106,7 @@ export function Growth({ onNavigate }: { onNavigate?: (t: TabId) => void }) {
             </div>
           </div>
 
-          <MySalesSection sales={sales} />
+          {FEATURES.posSales && <MySalesSection sales={sales} />}
 
           {wins.length > 0 && (
             <div>
@@ -153,7 +154,7 @@ export function Growth({ onNavigate }: { onNavigate?: (t: TabId) => void }) {
             </Card>
           </div>
 
-          {conf.length > 0 && (
+          {FEATURES.confidenceFlow && conf.length > 0 && (
             <div>
               <SectionLabel>자신감 흐름</SectionLabel>
               <Card>
@@ -172,6 +173,7 @@ export function Growth({ onNavigate }: { onNavigate?: (t: TabId) => void }) {
             </div>
           )}
 
+          {FEATURES.weeklySummary && (
           <div>
             <SectionLabel>주간 요약</SectionLabel>
             <Card className="space-y-1.5 text-sm text-ink-950/75 leading-relaxed">
@@ -190,6 +192,7 @@ export function Growth({ onNavigate }: { onNavigate?: (t: TabId) => void }) {
               )}
             </Card>
           </div>
+          )}
         </>
       )}
 
@@ -199,8 +202,8 @@ export function Growth({ onNavigate }: { onNavigate?: (t: TabId) => void }) {
             <TrendingUp size={16} />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-sm font-semibold text-ink-950/85">다음 근무에 뭘 해볼지는 Actions에서</div>
-            <div className="text-[11px] text-ink-950/45">{rec ? `추천: ${rec.headline}` : '추천 행동 · 2분 연습 · 10초 확인'}</div>
+            <div className="text-sm font-semibold text-ink-950/85">다음 근무에 뭘 해볼지 정하기</div>
+            <div className="text-[11px] text-ink-950/45">{rec ? `추천: ${rec.headline}` : '목표 · 팀 액션'}</div>
           </div>
           <ChevronRight size={16} className="text-ink-950/25 shrink-0" />
         </Card>

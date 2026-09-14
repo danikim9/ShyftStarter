@@ -1,5 +1,6 @@
 import { Users, Grid3x3, Megaphone, CalendarDays, Construction, Crown, Sun, Lightbulb, BarChart3, MoreHorizontal, ChevronRight, ArrowLeft } from 'lucide-react'
 import { useManagerState, LEGACY_MANAGER_VIEWS, type ManagerView } from '../lib/managerStore'
+import { FEATURES } from '../lib/features'
 import { STORES } from '../data/stores'
 import { TeamActionsComposer } from './TeamActionsComposer'
 import { RosterView } from './RosterView'
@@ -23,13 +24,15 @@ import { useReadyData } from '../lib/bellatrixStore'
 // 27차 — iPhone UI 대응: 모바일 하단 탭바에도 이 NAV를 재사용한다. 탭바는
 // 폭이 훨씬 좁아서 "근무 일정 관리"/"Will × Capability" 같은 긴 라벨은
 // 그대로 못 쓰므로 shortLabel을 별도로 둔다.
-const NAV: { id: ManagerView; label: string; shortLabel: string; icon: typeof Users; pro?: boolean }[] = [
+const ALL_NAV: { id: ManagerView; label: string; shortLabel: string; icon: typeof Users; pro?: boolean }[] = [
   { id: 'home', label: '오늘', shortLabel: '홈', icon: Sun },
   { id: 'team', label: '팀 · 근무표', shortLabel: '팀', icon: Users },
   { id: 'insights', label: '주간 인사이트', shortLabel: '인사이트', icon: Lightbulb },
   { id: 'kpi', label: '매장 KPI', shortLabel: 'KPI', icon: BarChart3 },
   { id: 'more', label: '더보기 (팀 운영)', shortLabel: '더보기', icon: MoreHorizontal },
 ]
+// TestFlight build: 홈 · 팀 · 인사이트. KPI/CSV and the legacy tools come back via src/lib/features.ts.
+const NAV = ALL_NAV.filter((n) => (n.id === 'kpi' ? FEATURES.managerKpi : n.id === 'more' ? FEATURES.managerLegacyTools : true))
 
 // Legacy Shift-Companion manager tools — deprioritised for the Bellatrix MVP
 // but kept working behind "더보기".
@@ -180,7 +183,7 @@ function ManagerBottomNav() {
       className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-paper border-t border-ink-950/8"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      <div className="grid grid-cols-5">
+      <div className={`grid ${NAV.length === 5 ? 'grid-cols-5' : NAV.length === 4 ? 'grid-cols-4' : 'grid-cols-3'}`}>
         {NAV.map(({ id, shortLabel, icon: Icon, pro }) => {
           const active = view === id || (id === 'more' && LEGACY_MANAGER_VIEWS.includes(view))
           return (

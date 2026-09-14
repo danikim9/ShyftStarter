@@ -9,7 +9,9 @@ import type { Shift as LegacyShift } from '../../types'
 import { Card, SectionLabel, Badge, PrimaryButton, SecondaryButton } from '../../components/ui'
 import { EmptyState, ErrorState, LoadingState } from '../../components/bellatrix/shared'
 import { MonthCalendar } from '../../components/MonthCalendar'
+import { WeekRoster } from '../../components/bellatrix/WeekRoster'
 import { exportShifts } from '../../lib/shiftExport'
+import { FEATURES } from '../../lib/features'
 
 /** Adapter so the legacy month calendar can draw Bellatrix shifts. */
 function toLegacy(s: Shift, storeName: string): LegacyShift {
@@ -55,7 +57,9 @@ function ShiftRow({ shift, hasPrep, hasReflection, isToday }: { shift: Shift; ha
   )
 }
 
-export function MyShift() {
+/** 근무표 — my shifts and, in a team, the whole team's week from the same
+ * shift rows the manager edits. Registration stays one tap (the + button). */
+export function MyShift({ embedded = false }: { embedded?: boolean }) {
   const ready = useReadyData()
   const { dataset, reload, openSheet, today, trackEvent, showToast } = useBellatrix()
   const legacy = useAppState()
@@ -77,12 +81,14 @@ export function MyShift() {
     const flags = (s: Shift) => ({ hasPrep: !!prepForShift(data, user.id, s.id), hasReflection: !!reflectionForShift(data, s.id) })
     const prepped = past.filter((s) => flags(s).hasPrep).length
     const reflected = past.filter((s) => flags(s).hasReflection).length
-    return { next, upcoming, past, mine, flags, prepped, reflected, inTeam: user.team_id !== null, storeName: data.store?.name ?? '근무' }
+    const teammates = user.team_id ? data.users.filter((u) => u.team_id === user.team_id && u.role === 'employee') : []
+    const teamShifts = user.team_id ? data.shifts.filter((s) => teammates.some((u) => u.id === s.user_id)) : []
+    return { user, next, upcoming, past, mine, flags, prepped, reflected, inTeam: user.team_id !== null, storeName: data.store?.name ?? '근무', teammates, teamShifts }
   }, [ready, today])
 
   if (dataset.status === 'error') return <ErrorState message={dataset.message} onRetry={dataset.retryable ? reload : undefined} />
   if (!model) return <LoadingState />
-  const { next, upcoming, past, mine, flags, prepped, reflected, inTeam, storeName } = model
+  const { user, next, upcoming, past, mine, flags, prepped, reflected, inTeam, storeName, teammates, teamShifts } = model
 
   const handleExport = async () => {
     const result = await exportShifts(upcoming, storeName)
@@ -92,16 +98,18 @@ export function MyShift() {
   }
 
   return (
-    <div className="px-4 pt-4 pb-8 space-y-6">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-bold text-ink-950 mb-1">My Shift</h1>
-          <p className="text-xs text-ink-950/40">근무마다 준비와 회고를 연결해요. 근무표 앱이 아니에요.</p>
+    <div className={`px-4 ${embedded ? 'pt-2' : 'pt-4'} pb-8 space-y-6`}>
+      {!embedded && (
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-bold text-ink-950 mb-1">근무표</h1>
+            <p className="text-xs text-ink-950/40">내 근무와 팀 근무를 한눈에. 근무마다 준비와 회고가 붙어요.</p>
+          </div>
+          <button onClick={() => openSheet({ kind: 'shiftComposer' })} className="shrink-0 w-11 h-11 rounded-full bg-brand-500 text-white flex items-center justify-center active:scale-95 transition" aria-label="근무 등록">
+            <CalendarPlus size={18} />
+          </button>
         </div>
-        <button onClick={() => openSheet({ kind: 'shiftComposer' })} className="shrink-0 w-11 h-11 rounded-full bg-brand-500 text-white flex items-center justify-center active:scale-95 transition" aria-label="근무 등록">
-          <CalendarPlus size={18} />
-        </button>
-      </div>
+      )}
 
       {next ? (
         <button onClick={() => openSheet({ kind: 'shiftDetail', shiftId: next.id })} className="w-full text-left rounded-2xl bg-gradient-to-br from-brand-500 to-brand-800 p-5 shadow-lg shadow-brand-900/30 text-white active:scale-[0.99] transition">
@@ -113,64 +121,83 @@ export function MyShift() {
           <div className="mt-3 flex items-center gap-2">
             {flags(next).hasPrep ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-white/15 text-xs px-2.5 py-1">
-                <Check size={12} /> 준비 완료
+                <Check size={12} /> 미션 준비 완료
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 rounded-full bg-white text-brand-700 text-xs font-bold px-2.5 py-1">
-                <Sparkles size={12} /> Shift Prep 열기
+                <Sparkles size={12} /> 미션 확인
               </span>
             )}
           </div>
         </button>
       ) : (
         <Card>
-          <EmptyState icon={<CalendarPlus size={18} />} title="등록된 근무가 없어요" body="다음 근무를 등록하면 준비와 회고를 근무에 묶어 기록할 수 있어요." />
+          <EmptyState icon={<CalendarPlus size={18} />} title="등록된 근무가 없어요" body="다음 근무를 등록하면 미션 확인과 회고가 근무에 붙어요." />
           <PrimaryButton onClick={() => openSheet({ kind: 'shiftComposer' })}>다음 근무 등록</PrimaryButton>
         </Card>
       )}
 
-      <div className="grid grid-cols-2 gap-2">
-        <SecondaryButton onClick={() => openSheet({ kind: 'shiftComposer' })} className="flex items-center justify-center gap-1.5 !py-2.5">
-          <Repeat size={14} /> 반복 근무 편집
-        </SecondaryButton>
-        <SecondaryButton onClick={() => void handleExport()} className="flex items-center justify-center gap-1.5 !py-2.5">
-          <Share size={14} /> 캘린더로 내보내기
-        </SecondaryButton>
-      </div>
-
-      {inTeam ? (
-        <button onClick={() => legacy.openSheet({ kind: 'teamSchedule' })} className="w-full text-left">
-          <Card className="flex items-center gap-3 active:scale-[0.99] transition">
-            <div className="w-9 h-9 rounded-xl bg-amber-signal/15 text-amber-600 flex items-center justify-center shrink-0">
-              <ArrowLeftRight size={16} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold text-ink-950">팀 근무표 · 근무 교대</div>
-              <div className="text-[11px] text-ink-950/45">팀원 근무 확인, 교대 요청 보내기 · 받은 요청 승인</div>
-            </div>
-            <ChevronRight size={16} className="text-ink-950/25 shrink-0" />
-          </Card>
-        </button>
-      ) : (
-        <p className="text-[11px] text-ink-950/35 inline-flex items-center gap-1">
-          <Lock size={11} /> 팀에 참여하면 팀원과 근무 교대를 요청할 수 있어요.
-        </p>
+      {inTeam && teammates.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <SectionLabel>팀 근무표</SectionLabel>
+            <span className="text-[10px] text-ink-950/35 -mt-2">매니저가 올린 매장 근무표 기준</span>
+          </div>
+          <WeekRoster users={teammates} shifts={teamShifts} meId={user.id} today={today} onSelectMine={(s) => openSheet({ kind: 'shiftDetail', shiftId: s.id })} />
+        </div>
       )}
+
+      {(FEATURES.shiftExport || embedded) && (
+        <div className="grid grid-cols-2 gap-2">
+          <SecondaryButton onClick={() => openSheet({ kind: 'shiftComposer' })} className="flex items-center justify-center gap-1.5 !py-2.5">
+            <Repeat size={14} /> 근무 등록 · 반복
+          </SecondaryButton>
+          {FEATURES.shiftExport ? (
+            <SecondaryButton onClick={() => void handleExport()} className="flex items-center justify-center gap-1.5 !py-2.5">
+              <Share size={14} /> 캘린더로 내보내기
+            </SecondaryButton>
+          ) : (
+            <span />
+          )}
+        </div>
+      )}
+
+      {FEATURES.shiftSwap &&
+        (inTeam ? (
+          <button onClick={() => legacy.openSheet({ kind: 'teamSchedule' })} className="w-full text-left">
+            <Card className="flex items-center gap-3 active:scale-[0.99] transition">
+              <div className="w-9 h-9 rounded-xl bg-amber-signal/15 text-amber-600 flex items-center justify-center shrink-0">
+                <ArrowLeftRight size={16} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-semibold text-ink-950">근무 교대</div>
+                <div className="text-[11px] text-ink-950/45">교대 요청 보내기 · 받은 요청 승인</div>
+              </div>
+              <ChevronRight size={16} className="text-ink-950/25 shrink-0" />
+            </Card>
+          </button>
+        ) : (
+          <p className="text-[11px] text-ink-950/35 inline-flex items-center gap-1">
+            <Lock size={11} /> 팀에 참여하면 팀원과 근무 교대를 요청할 수 있어요.
+          </p>
+        ))}
 
       <div>
         <div className="flex items-center justify-between mb-2">
-          <SectionLabel>{view === 'list' ? '예정된 근무' : '월별 보기'}</SectionLabel>
-          <button onClick={() => setView((v) => (v === 'list' ? 'calendar' : 'list'))} className="text-xs text-brand-700 font-medium inline-flex items-center gap-1 -mt-2">
-            {view === 'list' ? (
-              <>
-                <CalendarRange size={13} /> 월별로 보기
-              </>
-            ) : (
-              <>
-                <List size={13} /> 목록으로 보기
-              </>
-            )}
-          </button>
+          <SectionLabel>{view === 'list' ? '내 예정 근무' : '월별 보기'}</SectionLabel>
+          {FEATURES.shiftMonthView && (
+            <button onClick={() => setView((v) => (v === 'list' ? 'calendar' : 'list'))} className="text-xs text-brand-700 font-medium inline-flex items-center gap-1 -mt-2">
+              {view === 'list' ? (
+                <>
+                  <CalendarRange size={13} /> 월별로 보기
+                </>
+              ) : (
+                <>
+                  <List size={13} /> 목록으로 보기
+                </>
+              )}
+            </button>
+          )}
         </div>
         {view === 'calendar' ? (
           <MonthCalendar shifts={mine.map((s) => toLegacy(s, storeName))} todayDate={today} onSelectShift={(id) => openSheet({ kind: 'shiftDetail', shiftId: id })} />
@@ -179,26 +206,22 @@ export function MyShift() {
             {upcoming.length === 0 ? (
               <p className="text-xs text-ink-950/35 py-2">예정된 근무가 없어요.</p>
             ) : (
-              upcoming.map((s) => <ShiftRow key={s.id} shift={s} {...flags(s)} isToday={dateOf(s.start_at) === today} />)
+              upcoming.slice(0, 7).map((s) => <ShiftRow key={s.id} shift={s} {...flags(s)} isToday={dateOf(s.start_at) === today} />)
             )}
           </Card>
         )}
       </div>
 
-      {view === 'list' && (
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <SectionLabel>지난 근무</SectionLabel>
-          {past.length > 0 && (
+      {view === 'list' && past.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <SectionLabel>지난 근무</SectionLabel>
             <span className="text-[10px] text-ink-950/35 -mt-2 tabular-nums">
               준비 {prepped} · 회고 {reflected} / {past.length}
             </span>
-          )}
+          </div>
+          <Card>{past.slice(0, 5).map((s) => <ShiftRow key={s.id} shift={s} {...flags(s)} isToday={false} />)}</Card>
         </div>
-        <Card>
-          {past.length === 0 ? <p className="text-xs text-ink-950/35 py-2">아직 지난 근무 기록이 없어요.</p> : past.map((s) => <ShiftRow key={s.id} shift={s} {...flags(s)} isToday={false} />)}
-        </Card>
-      </div>
       )}
     </div>
   )

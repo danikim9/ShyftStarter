@@ -10,6 +10,7 @@ import { BEHAVIOUR_LABEL, INTERVENTION_LABEL } from '../../types/bellatrix'
 import type { PersonalGoal } from '../../types/bellatrix'
 import { Card, SectionLabel, Badge, ProgressBar, SecondaryButton, PrimaryButton } from '../../components/ui'
 import { EmptyState, ErrorState, LoadingState } from '../../components/bellatrix/shared'
+import { FEATURES } from '../../lib/features'
 
 type Segment = 'mine' | 'team'
 
@@ -136,8 +137,8 @@ export function Actions() {
   return (
     <div className="px-4 pt-4 pb-8 space-y-5">
       <div>
-        <h1 className="text-xl font-bold text-ink-950 mb-1">Actions</h1>
-        <p className="text-xs text-ink-950/40">내가 정한 목표와 팀에서 받은 행동을 따로 봐요. 섞이지 않아요.</p>
+        <h1 className="text-xl font-bold text-ink-950 mb-1">목표 · 팀 액션</h1>
+        <p className="text-xs text-ink-950/40">오늘의 미션은 여기서 정해져요. 내 목표와 팀에서 받은 행동은 섞이지 않아요.</p>
       </div>
 
       {rec && (
@@ -158,17 +159,21 @@ export function Actions() {
               <Plus size={14} /> {adding ? '추가 중…' : '목표로 추가'}
             </PrimaryButton>
           )}
-          {rec.card && (
+          {rec.card && (FEATURES.rolePlay || FEATURES.quickQuiz) && (
             <div className="grid grid-cols-2 gap-2">
-              <SecondaryButton onClick={() => openSheet({ kind: 'rolePlay', cardId: rec.card!.id })} className="flex items-center justify-center gap-1.5 !py-2.5 bg-white">
-                <MessageSquareText size={14} /> 2분 연습
-              </SecondaryButton>
-              <SecondaryButton onClick={() => openSheet({ kind: 'quickQuiz', cardId: rec.card!.id })} className="flex items-center justify-center gap-1.5 !py-2.5 bg-white">
-                <Zap size={14} /> 10초 확인
-              </SecondaryButton>
+              {FEATURES.rolePlay && (
+                <SecondaryButton onClick={() => openSheet({ kind: 'rolePlay', cardId: rec.card!.id })} className="flex items-center justify-center gap-1.5 !py-2.5 bg-white">
+                  <MessageSquareText size={14} /> 2분 연습
+                </SecondaryButton>
+              )}
+              {FEATURES.quickQuiz && (
+                <SecondaryButton onClick={() => openSheet({ kind: 'quickQuiz', cardId: rec.card!.id })} className="flex items-center justify-center gap-1.5 !py-2.5 bg-white">
+                  <Zap size={14} /> 10초 확인
+                </SecondaryButton>
+              )}
             </div>
           )}
-          {reviewCard && reviewCard.id !== rec.card?.id && (
+          {FEATURES.quickQuiz && reviewCard && reviewCard.id !== rec.card?.id && (
             <button onClick={() => openSheet({ kind: 'quickQuiz', cardId: reviewCard.id })} className="w-full text-left flex items-center gap-2 rounded-xl bg-white border border-amber-signal/30 px-3 py-2">
               <Zap size={13} className="text-amber-600 shrink-0" />
               <span className="text-xs text-ink-950/70 flex-1 min-w-0 truncate">지난 회고에서 아쉬웠던 "{reviewCard.headline}" 한 문제 다시 보기</span>
