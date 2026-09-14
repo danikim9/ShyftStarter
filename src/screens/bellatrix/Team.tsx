@@ -11,7 +11,7 @@ import type { TabId } from '../../components/BottomNav'
 /** Team tab = announcements + handover + team missions + shared tips.
  * Not a chat. Joining is optional; without a team the page explains what it
  * unlocks and offers the invite-code sheet. */
-export function Team({ onNavigate }: { onNavigate: (t: TabId) => void }) {
+export function Team({ onNavigate, embedded = false }: { onNavigate: (t: TabId) => void; embedded?: boolean }) {
   const ready = useReadyData()
   const { openSheet, today } = useBellatrix()
   const legacy = useAppState()
@@ -28,11 +28,13 @@ export function Team({ onNavigate }: { onNavigate: (t: TabId) => void }) {
 
   if (!inTeam) {
     return (
-      <div className="px-4 pt-5 pb-8 space-y-4">
-        <div>
-          <h1 className="text-xl font-bold text-ink-950 mb-1">Team</h1>
-          <p className="text-xs text-ink-950/40">공지 · 인수인계 · 팀 미션 · 응대 팁. 자유 채팅방은 아니에요.</p>
-        </div>
+      <div className={`px-4 ${embedded ? 'pt-2' : 'pt-5'} pb-8 space-y-4`}>
+        {!embedded && (
+          <div>
+            <h1 className="text-xl font-bold text-ink-950 mb-1">Team</h1>
+            <p className="text-xs text-ink-950/40">공지 · 인수인계 · 팀 미션 · 응대 팁. 자유 채팅방은 아니에요.</p>
+          </div>
+        )}
         <Card className="space-y-4 py-6">
           <EmptyState icon={<Users size={18} />} title="팀 없이도 잘 쓰고 있어요" body="매니저나 동료에게 초대 코드를 받으면 팀 공지, 인수인계, 팀 미션을 여기서 받을 수 있어요." />
           <PrimaryButton onClick={() => openSheet({ kind: 'joinTeam' })}>초대 코드로 참여</PrimaryButton>
@@ -67,7 +69,7 @@ export function Team({ onNavigate }: { onNavigate: (t: TabId) => void }) {
           </button>
         </div>
       )}
-      <TeamFeed />
+      <TeamFeed embedded={embedded} />
     </div>
   )
 }

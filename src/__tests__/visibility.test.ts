@@ -37,7 +37,12 @@ describe('privacy: what a manager can see', () => {
     const ds = await r.loadDataset(dani, window)
     expect(ds.reflections.every((x) => x.user_id === DANI_ID)).toBe(true)
     expect(ds.personal_goals.every((g) => g.user_id === DANI_ID)).toBe(true)
-    expect(ds.shifts.every((s) => s.user_id === DANI_ID)).toBe(true)
+    // Shift times are shared inside the team (근무표); nothing else of a teammate's is.
+    const teammateIds = new Set(ds.users.filter((u) => u.team_id === dani.team_id).map((u) => u.id))
+    expect(ds.shifts.some((s) => s.user_id !== DANI_ID)).toBe(true)
+    expect(ds.shifts.every((s) => teammateIds.has(s.user_id))).toBe(true)
+    expect(ds.shift_preps.every((p) => p.user_id === DANI_ID)).toBe(true)
+    expect(ds.action_events.every((e) => e.user_id === DANI_ID)).toBe(true)
     // Only rows carrying the employee's own id (POS/CSV per-employee sales); never store totals.
     expect(ds.outcomes.length).toBeGreaterThan(0)
     expect(ds.outcomes.every((o) => o.user_id === DANI_ID)).toBe(true)
@@ -86,6 +91,7 @@ describe('personal mode without a team', () => {
     const ds = await r.loadDataset(u, window)
     expect(ds.store).toBeNull()
     expect(ds.shifts.map((s) => s.id)).toContain(shift.id)
+    expect(ds.shifts.every((s) => s.user_id === u.id)).toBe(true)
     expect(ds.personal_goals.map((g) => g.id)).toContain(goal.id)
     expect(ds.coaching_cards.length).toBeGreaterThan(0)
     expect(ds.assignments).toHaveLength(0)

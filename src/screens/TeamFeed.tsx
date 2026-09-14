@@ -386,7 +386,7 @@ function HistorySection({ items }: { items: FeedItem[] }) {
   )
 }
 
-export function TeamFeed() {
+export function TeamFeed({ embedded = false }: { embedded?: boolean } = {}) {
   const { announcements, handovers, openSheet, membership, readFeedIds, acknowledgeFeedItem } = useAppState()
 
   const allFeed: FeedItem[] = [
@@ -402,11 +402,17 @@ export function TeamFeed() {
   const historyFeed = allFeed.filter((item) => readFeedIds.includes(item.data.id))
 
   return (
-    <div className="px-4 pt-5 pb-8 space-y-4">
+    <div className={`px-4 ${embedded ? 'pt-2' : 'pt-5'} pb-8 space-y-4`}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-ink-950 mb-1">Team</h1>
-          <p className="text-xs text-ink-950/40">공지 + 인수인계만 모아둔 곳이에요 — 누가 확인했는지, 어떤 반응인지 한눈에. 자유 채팅방은 아니에요.</p>
+          {embedded ? (
+            <p className="text-xs text-ink-950/40 pt-2">공지 + 인수인계. 누가 확인했는지, 어떤 반응인지 한눈에.</p>
+          ) : (
+            <>
+              <h1 className="text-xl font-bold text-ink-950 mb-1">Team</h1>
+              <p className="text-xs text-ink-950/40">공지 + 인수인계만 모아둔 곳이에요 — 누가 확인했는지, 어떤 반응인지 한눈에. 자유 채팅방은 아니에요.</p>
+            </>
+          )}
         </div>
         {membership === 'store' && (
           <div className="flex items-center gap-2 shrink-0">

@@ -5,6 +5,7 @@ import { cardById, goalAttemptsOn } from '../../../lib/selectors'
 import { addDaysISO } from '../../../lib/dates'
 import { BEHAVIOUR_LABEL } from '../../../types/bellatrix'
 import { Badge, SecondaryButton } from '../../ui'
+import { FEATURES } from '../../../lib/features'
 
 export function GoalDetailSheet({ goalId }: { goalId: string }) {
   const ready = useReadyData()
@@ -79,7 +80,7 @@ export function GoalDetailSheet({ goalId }: { goalId: string }) {
         </div>
       )}
 
-      {card && (
+      {card && FEATURES.rolePlay && (
         <SecondaryButton onClick={() => openSheet({ kind: 'rolePlay', cardId: card.id, goalId: goal.id })} className="flex items-center justify-center gap-1.5">
           <MessageSquareText size={14} /> 이 행동 2분 연습하기{practiced > 0 ? ` · ${practiced}회 연습함` : ''}
         </SecondaryButton>

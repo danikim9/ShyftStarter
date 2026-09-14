@@ -24,9 +24,8 @@ import { BxToast } from './components/bellatrix/BxToast'
 import { Toast } from './components/Toast'
 import { MoodCheckIn } from './components/MoodCheckIn'
 import { Today } from './screens/bellatrix/Today'
-import { MyShift } from './screens/bellatrix/MyShift'
+import { TeamHub } from './screens/bellatrix/TeamHub'
 import { Actions } from './screens/bellatrix/Actions'
-import { Team } from './screens/bellatrix/Team'
 import { Growth } from './screens/bellatrix/Growth'
 import { Profile } from './screens/bellatrix/Profile'
 import { ManagerDashboard } from './manager/ManagerDashboard'
@@ -76,17 +75,16 @@ function EmployeeScreen({ tab, onNavigate }: { tab: TabId; onNavigate: (t: TabId
     case 'today':
       return <Today onNavigate={onNavigate} />
     case 'myShift':
-      return <MyShift />
+      return <TeamHub segment="roster" onSegment={(s) => onNavigate(s === 'news' ? 'team' : 'myShift')} onNavigate={onNavigate} />
     case 'actions':
       return <Actions />
     case 'team':
-      return <Team onNavigate={onNavigate} />
+    case 'teamFeed':
+      return <TeamHub segment="news" onSegment={(s) => onNavigate(s === 'news' ? 'team' : 'myShift')} onNavigate={onNavigate} />
     case 'growth':
       return <Growth onNavigate={onNavigate} />
     case 'profile':
       return <Profile />
-    case 'teamFeed':
-      return <Team onNavigate={onNavigate} />
     default:
       return <Today onNavigate={onNavigate} />
   }
@@ -94,19 +92,20 @@ function EmployeeScreen({ tab, onNavigate }: { tab: TabId; onNavigate: (t: TabId
 
 function EmployeeAppShell() {
   const [tab, setTab] = useState<TabId>('today')
-  const isProfile = tab === 'profile'
-  const navActive: TabId = isProfile ? 'today' : tab
+  // Sub-screens (not tabs): Profile and 목표 · 팀 액션 open from 오늘 with a back link.
+  const isSub = tab === 'profile' || tab === 'actions'
+  const navActive: TabId = isSub ? 'today' : tab === 'myShift' ? 'team' : tab
 
   return (
     <div className={`min-h-screen w-full ${APP_BACKDROP} flex items-center justify-center py-0 sm:py-8 px-0 sm:px-4`}>
       <div className={`relative w-full max-w-[430px] h-[100dvh] sm:h-[880px] sm:rounded-[2.75rem] sm:border sm:border-ink-950/8 overflow-hidden flex flex-col bg-paper ${PHONE_SHADOW}`} style={FIXED_CONTAINMENT}>
         <StatusBar />
-        {isProfile && (
+        {isSub && (
           <div className="shrink-0 flex items-center gap-2 px-4 pb-2">
             <button onClick={() => setTab('today')} className="inline-flex items-center gap-1 text-xs font-medium text-brand-700">
-              <ArrowLeft size={14} /> Today
+              <ArrowLeft size={14} /> 오늘
             </button>
-            <span className="text-xs text-ink-950/40">/ Profile</span>
+            <span className="text-xs text-ink-950/40">/ {tab === 'profile' ? '프로필' : '목표 · 팀 액션'}</span>
           </div>
         )}
         <div className="relative grow overflow-y-auto app-scroll">

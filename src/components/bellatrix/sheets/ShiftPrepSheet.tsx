@@ -6,6 +6,7 @@ import { cardById, pickPrepCard, prepForShift } from '../../../lib/selectors'
 import { Badge, PrimaryButton, SecondaryButton } from '../../ui'
 import { buildPrepQuiz } from '../../../lib/prepQuiz'
 import { PrepQuiz } from '../PrepQuiz'
+import { FEATURES } from '../../../lib/features'
 
 function Block({ icon, label, children, tone = 'default' }: { icon: React.ReactNode; label: string; children: React.ReactNode; tone?: 'default' | 'brand' }) {
   return (
@@ -44,7 +45,7 @@ export function ShiftPrepSheet({ shiftId }: { shiftId: string }) {
   }, [ready, shiftId, today])
 
   if (!ready) return null
-  if (!model) return <p className="text-sm text-ink-950/50">아직 준비할 콘텐츠가 없어요. Actions에서 목표를 하나 골라보세요.</p>
+  if (!model) return <p className="text-sm text-ink-950/50">아직 준비할 콘텐츠가 없어요. 목표를 하나 골라보세요.</p>
   const { card, goal, assignment, accepted } = model
   const quiz = buildPrepQuiz(card, ready.data.coaching_cards)
   const answeredEvent = ready.data.action_events.find((e) => e.event_type === 'quiz_answered' && e.coaching_card_id === card.id && e.shift_id === shiftId)
@@ -87,7 +88,7 @@ export function ShiftPrepSheet({ shiftId }: { shiftId: string }) {
         {card.cross_sell_tip}
       </Block>
 
-      {quiz && <PrepQuiz quiz={quiz} answered={answered} onAnswer={(index, correct) => void logCardEvent({ cardId: card.id, type: 'quiz_answered', shiftId, metadata: { correct, index, context: 'prep' } })} />}
+      {FEATURES.prepQuiz && quiz && <PrepQuiz quiz={quiz} answered={answered} onAnswer={(index, correct) => void logCardEvent({ cardId: card.id, type: 'quiz_answered', shiftId, metadata: { correct, index, context: 'prep' } })} />}
 
       {accepted ? (
         <div className="flex items-center gap-2 rounded-xl bg-emerald-signal/10 px-4 py-3 text-sm text-emerald-700 font-medium">

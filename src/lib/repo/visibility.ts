@@ -18,9 +18,12 @@ export function applyVisibility(ds: StoreDataset, viewer: User): StoreDataset {
     rows.filter((r) => r.user_id === viewer.id || MANAGER_READABLE.has(r.visibility))
 
   if (!manager) {
+    // Shift times are shared inside a team so the 근무표 works for everyone; a
+    // person without a team only ever receives their own shifts.
+    const teammates = viewer.team_id ? new Set(ds.users.filter((u) => u.team_id === viewer.team_id).map((u) => u.id)) : null
     return {
       ...ds,
-      shifts: own(ds.shifts),
+      shifts: ds.shifts.filter((s) => s.user_id === viewer.id || (teammates !== null && teammates.has(s.user_id))),
       personal_goals: own(ds.personal_goals),
       shift_preps: own(ds.shift_preps),
       assignments: ds.assignments.filter((a) => a.assigned_to_user_id === viewer.id),
