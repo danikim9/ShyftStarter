@@ -256,6 +256,34 @@ export class SupabaseRepo implements BellatrixRepo {
     return data
   }
 
+  async setRosterShift(input: { user_id: string; store_id: string; date: string; entry: { start_at: string; end_at: string } | 'off' }): Promise<Shift | null> {
+    const existing = await this.client
+      .from('shifts')
+      .select('*')
+      .eq('user_id', input.user_id)
+      .gte('start_at', `${input.date}T00:00:00`)
+      .lte('start_at', `${input.date}T23:59:59`)
+      .neq('status', 'cancelled')
+      .maybeSingle()
+    if (existing.error) throw mapError(existing.error, '근무표를 저장할 수 없어요.')
+    if (input.entry === 'off') {
+      if (existing.data) {
+        const { error } = await this.client.from('shifts').update({ status: 'cancelled' }).eq('id', existing.data.id)
+        if (error) throw mapError(error, '근무표를 저장할 수 없어요.')
+      }
+      return null
+    }
+    const patch = { start_at: input.entry.start_at, end_at: input.entry.end_at, store_id: input.store_id, source: 'roster' as const, status: 'scheduled' as const }
+    if (existing.data) {
+      const { data, error } = await this.client.from('shifts').update(patch).eq('id', existing.data.id).select('*').single()
+      if (error) throw mapError(error, '근무표를 저장할 수 없어요.')
+      return data
+    }
+    const { data, error } = await this.client.from('shifts').insert({ user_id: input.user_id, ...patch }).select('*').single()
+    if (error) throw mapError(error, '근무표를 저장할 수 없어요.')
+    return data
+  }
+
   async createAssignments(rows: NewRow<ActionAssignment>[]): Promise<ActionAssignment[]> {
     const { data, error } = await this.client.from('action_assignments').insert(rows).select('*')
     if (error) throw mapError(error, '액션을 배정할 수 없어요.')

@@ -1,10 +1,10 @@
 import { Users, Grid3x3, Megaphone, CalendarDays, Construction, Crown, Sun, Lightbulb, BarChart3, MoreHorizontal, ChevronRight, ArrowLeft } from 'lucide-react'
-import { ManagerStateProvider, useManagerState, LEGACY_MANAGER_VIEWS, type ManagerView } from '../lib/managerStore'
+import { useManagerState, LEGACY_MANAGER_VIEWS, type ManagerView } from '../lib/managerStore'
 import { STORES } from '../data/stores'
 import { TeamActionsComposer } from './TeamActionsComposer'
 import { RosterView } from './RosterView'
 import { StoreSwitcher } from './StoreSwitcher'
-import { TeamOverview } from './TeamOverview'
+import { TeamView } from './bellatrix/TeamView'
 import { MatrixView } from './MatrixView'
 import { EmployeeDetailPanel } from './EmployeeDetailPanel'
 import { QuestCreateModal } from './QuestCreateModal'
@@ -24,7 +24,8 @@ import { useReadyData } from '../lib/bellatrixStore'
 // 폭이 훨씬 좁아서 "근무 일정 관리"/"Will × Capability" 같은 긴 라벨은
 // 그대로 못 쓰므로 shortLabel을 별도로 둔다.
 const NAV: { id: ManagerView; label: string; shortLabel: string; icon: typeof Users; pro?: boolean }[] = [
-  { id: 'home', label: '오늘의 팀', shortLabel: '홈', icon: Sun },
+  { id: 'home', label: '오늘', shortLabel: '홈', icon: Sun },
+  { id: 'team', label: '팀 · 근무표', shortLabel: '팀', icon: Users },
   { id: 'insights', label: '주간 인사이트', shortLabel: '인사이트', icon: Lightbulb },
   { id: 'kpi', label: '매장 KPI', shortLabel: 'KPI', icon: BarChart3 },
   { id: 'more', label: '더보기 (팀 운영)', shortLabel: '더보기', icon: MoreHorizontal },
@@ -34,8 +35,7 @@ const NAV: { id: ManagerView; label: string; shortLabel: string; icon: typeof Us
 // but kept working behind "더보기".
 const LEGACY_NAV: { id: ManagerView; label: string; icon: typeof Users; pro?: boolean }[] = [
   { id: 'actions', label: '팀 공지 · 체크리스트', icon: Megaphone },
-  { id: 'roster', label: '근무 일정 관리', icon: CalendarDays },
-  { id: 'team', label: '팀 현황 (구버전)', icon: Users },
+  { id: 'roster', label: '근무 일정 관리 (구버전 목업)', icon: CalendarDays },
   { id: 'matrix', label: 'Will × Capability', icon: Grid3x3, pro: true },
 ]
 
@@ -180,7 +180,7 @@ function ManagerBottomNav() {
       className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-paper border-t border-ink-950/8"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      <div className="grid grid-cols-4">
+      <div className="grid grid-cols-5">
         {NAV.map(({ id, shortLabel, icon: Icon, pro }) => {
           const active = view === id || (id === 'more' && LEGACY_MANAGER_VIEWS.includes(view))
           return (
@@ -242,7 +242,7 @@ function ManagerContent() {
       {view === 'more' && <MoreView />}
       {view === 'actions' && <TeamActionsComposer />}
       {view === 'roster' && <RosterView />}
-      {view === 'team' && <TeamOverview />}
+      {view === 'team' && <TeamView />}
       {view === 'matrix' && <MatrixView />}
     </div>
   )
@@ -254,9 +254,11 @@ function ManagerContent() {
 // 조합으로만 전환하므로, 리사이즈나 회전에도 상태(view 등)가 끊기지 않는다.
 // md 이상에서는 MobileTopBar/ManagerBottomNav가 완전히 숨고 예전과 동일한
 // 데스크톱 레이아웃이 그대로 렌더링된다.
+// ManagerStateProvider는 App의 ManagerAppShell이 감싼다 — BxSheetHost(팀원
+// 상세·근무표 편집 시트)도 같은 매니저 상태(showRosterFor 등)를 써야 하기 때문.
 export function ManagerDashboard() {
   return (
-    <ManagerStateProvider>
+    <>
       <div className="flex flex-col md:flex-row h-full w-full">
         <MobileTopBar />
         <Sidebar />
@@ -266,6 +268,6 @@ export function ManagerDashboard() {
       <EmployeeDetailPanel />
       <QuestCreateModal />
       <CoachingGuideModal />
-    </ManagerStateProvider>
+    </>
   )
 }

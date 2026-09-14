@@ -19,6 +19,7 @@ import { SetupFlow } from './onboarding/SetupFlow'
 import { BottomNav, type TabId } from './components/BottomNav'
 import { SheetHost } from './components/sheets/SheetHost'
 import { BxSheetHost } from './components/bellatrix/BxSheetHost'
+import { ManagerStateProvider } from './lib/managerStore'
 import { BxToast } from './components/bellatrix/BxToast'
 import { Toast } from './components/Toast'
 import { MoodCheckIn } from './components/MoodCheckIn'
@@ -125,8 +126,10 @@ function EmployeeAppShell() {
 function ManagerAppShell() {
   return (
     <div className={`h-screen w-full ${APP_BACKDROP} relative overflow-hidden`} style={FIXED_CONTAINMENT}>
-      <ManagerDashboard />
-      <BxSheetHost />
+      <ManagerStateProvider>
+        <ManagerDashboard />
+        <BxSheetHost />
+      </ManagerStateProvider>
       <BxToast />
       <Toast />
     </div>

@@ -62,6 +62,8 @@ export type BxSheet =
   | { kind: 'shiftDetail'; shiftId: string }
   | { kind: 'joinTeam' }
   | { kind: 'rolePlay'; cardId: string; goalId?: string }
+  | { kind: 'member'; userId: string }
+  | { kind: 'rosterCell'; userId: string; date: ISODate }
   | { kind: 'quickQuiz'; cardId: string }
   | { kind: 'assign'; presetUserId?: string }
   | { kind: 'observe'; presetUserId?: string }
@@ -179,6 +181,7 @@ interface BellatrixShape {
   submitCheckIn: (input: CheckInInput) => Promise<void>
   submitReflection: (input: ReflectionInput) => Promise<void>
   // manager writes
+  setRosterShift: (input: { userId: string; date: ISODate; entry: { startHour: number; startMinute: number; endHour: number; endMinute: number } | 'off'; alsoNextWeek?: boolean }) => Promise<void>
   assignAction: (input: AssignInput) => Promise<void>
   submitObservation: (input: ObservationInput) => Promise<void>
   submitKpi: (input: KpiInput) => Promise<void>
@@ -736,6 +739,26 @@ export function BellatrixProvider({ children }: { children: ReactNode }) {
   )
 
   // --- manager ---------------------------------------------------------------
+  const setRosterShift = useCallback(
+    (input: { userId: string; date: ISODate; entry: { startHour: number; startMinute: number; endHour: number; endMinute: number } | 'off'; alsoNextWeek?: boolean }) =>
+      guard(async () => {
+        const { user: u } = requireCtx()
+        if (!u.store_id) throw new RepoError('validation', '매장에 소속된 매니저만 근무표를 편집할 수 있어요.')
+        const storeId = u.store_id
+        const dates = input.alsoNextWeek ? [input.date, addDaysISO(input.date, 7)] : [input.date]
+        for (const date of dates) {
+          const entry = input.entry === 'off' ? ('off' as const) : { start_at: atTime(date, input.entry.startHour, input.entry.startMinute), end_at: atTime(date, input.entry.endHour, input.entry.endMinute) }
+          const saved = await repo.setRosterShift({ user_id: input.userId, store_id: storeId, date, entry })
+          patch((cur) => {
+            const others = cur.shifts.filter((s) => !(s.user_id === input.userId && s.start_at.slice(0, 10) === date && s.status !== 'cancelled'))
+            return { ...cur, shifts: saved ? [...others, saved] : others }
+          })
+        }
+        showToast(input.entry === 'off' ? '휴무로 표시했어요' : input.alsoNextWeek ? '이번 주와 다음 주 근무를 저장했어요' : '근무를 저장했어요')
+      }, '근무표를 저장하지 못했어요'),
+    [guard, requireCtx, repo, patch, showToast]
+  )
+
   const assignAction = useCallback(
     (input: AssignInput) =>
       guard(async () => {
@@ -887,6 +910,7 @@ export function BellatrixProvider({ children }: { children: ReactNode }) {
       logActionEvent,
       submitCheckIn,
       submitReflection,
+      setRosterShift,
       assignAction,
       submitObservation,
       submitKpi,
@@ -921,6 +945,7 @@ export function BellatrixProvider({ children }: { children: ReactNode }) {
       logActionEvent,
       submitCheckIn,
       submitReflection,
+      setRosterShift,
       assignAction,
       submitObservation,
       submitKpi,

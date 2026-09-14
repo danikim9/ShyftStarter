@@ -50,7 +50,13 @@ npm run cap:sync     # build + npx cap sync (ios/ android/ 는 로컬 Mac에만 
 
 **신규 사용자 흐름**: 로그인 화면 "새로 시작하기" → 이름·이메일·직군·관심 행동 → 팀 코드(건너뛰기) → 다음 근무(건너뛰기) → 목표 1개 → Today
 
-**매니저** — 홈 / 인사이트 / KPI / 더보기. 홈·인사이트에 "직원의 개인 목표·회고는 보이지 않아요" 표시. 데모 계정에는 "데모 데이터" 배지.
+**매니저** — 하단 탭 5개: **홈 · 팀 · 인사이트 · KPI · 더보기**. 홈·팀·인사이트에 "직원의 개인 목표·회고는 보이지 않아요" 표시. 데모 계정에는 "데모 데이터" 배지.
+- **팀** 탭 = 세그먼트 **팀원 | 근무표**
+  - **팀원**: 직원별 카드 — 오늘 근무 여부, 코칭 필요 표시 수, 데이터에서 나온 신호 한 줄("니즈 파악 — 관찰 2회 중 1회만 보였어요"), 행동 5개 칩(꾸준히 보임 / 더 볼 것 / 근거 부족 — **점수·등급 없음**), `관찰` · `배정` · `코칭 가이드`. "이번 주 먼저 볼 사람"이 위로 정렬(코칭 필요 표시 > 격차 행동 > 7일 이상 관찰 없음).
+  - **팀원 상세 시트**: 오늘 근무 · `지금 관찰 기록` · `액션 배정` → 행동 근거(관찰 x/y · 팀 액션 x/y · 마지막 관찰) → 최근 관찰 → **1:1 코칭 가이드 5단계**(잘한 점 → 숫자 그대로 → 본인 생각 듣기 → 다음 근무에 하나 → 믿음)를 이 사람의 근거로 채움 → `코칭 카드 보내기`(해당 행동의 코칭 카드를 팀 액션으로 1명에게 배정, 같은 날 중복 방지) → `이번 주 근무 보기`.
+  - **근무표**: 직원 × 7일 표(이번 주/다음 주). 셀을 누르면 프리셋(오픈/미들/마감)·직접 입력·"다음 주 같은 요일에도"·휴무. 저장하면 실제 계정의 `shifts` 행(`source: 'roster'`)이 되어 직원 My Shift에 "매장 근무표" 근무로 바로 보임. 보라색=매장 근무표, 회색=직원이 직접 등록.
+  - 팀원 프로필은 `src/lib/analytics/team.ts`에서 **매니저에게 보이는 근거(관찰·팀 액션 완료)만으로** 계산. 개인 목표·회고·연습 기록은 `applyVisibility` 단계에서 이미 제거되어 이 파일에 도달하지 않음(단위 테스트 `team.test.ts`).
+- **더보기**: 팀 액션·공지(구버전), 근무표 목업(구버전), Will × Capability 매트릭스.
 
 ## 개인 데이터 vs 팀 데이터 (visibility)
 
@@ -79,16 +85,16 @@ BehaviourEvidence(visibility) · OutcomeEvent · **ShiftReflection**(tried, cust
 |---|---|
 | `src/lib/repo/` | `BellatrixRepo` 인터페이스 · `localRepo`(온디바이스) · `supabaseRepo` · `visibility.ts`(권한 필터) |
 | `src/lib/bellatrixStore.tsx` | 세션/데이터셋/쓰기 작업(개인 목표·근무·준비·회고·팀 참여·동의) |
-| `src/lib/analytics/` | KPI 파생 · 완료/시도율 · 그룹 비교 · 트렌드 · 주간 인사이트 · 다음 근무 추천(규칙) · 근거 신뢰도 |
+| `src/lib/analytics/` | KPI 파생 · 완료/시도율 · 그룹 비교 · 트렌드 · 주간 인사이트 · 다음 근무 추천(규칙) · 근거 신뢰도 · `team.ts`(매니저용 팀원 프로필·1:1 코칭 가이드) |
 | `src/lib/selectors.ts` | 다음 근무, 오늘 목표, Shift Prep 카드 선택 규칙 등 |
 | `src/data/coachingCards.ts` | Shift Prep 콘텐츠(전자제품·뷰티 예시) + 추천 목표 템플릿 |
 | `src/data/seed.ts` | 데모 매장 시드(`is_demo` 계정, 3주 샘플) |
 | `src/screens/bellatrix/` | Today · MyShift · Actions · Team · Growth · Profile |
 | `src/components/bellatrix/sheets/` | ShiftPrep · Reflection · GoalComposer · GoalDetail · ShiftComposer · ShiftDetail · JoinTeam · 팀 액션 시트 |
 | `src/auth/`, `src/onboarding/` | LoginScreen(데모/새로 시작) · SignUpScreen · OnboardingScreen · SetupFlow |
-| `src/manager/bellatrix/` | 매니저 홈 · 배정(캠페인) · 관찰 · KPI · CSV · 인사이트 |
+| `src/manager/bellatrix/` | 매니저 홈 · **TeamView(팀원/근무표) · MemberDetailSheet · RosterGrid · RosterCellSheet** · 배정(캠페인) · 관찰 · KPI · CSV · 인사이트 |
 | `src/__tests__/` | vitest 단위 테스트 |
-| `supabase/migrations/` | `0001` 코어 스키마+RLS, `0002` 개인모드·팀·visibility·회고 재설계, `0003` 직원 본인 매출 행 읽기, `0004` quiz_answered·practiced 이벤트 |
+| `supabase/migrations/` | `0001` 코어 스키마+RLS, `0002` 개인모드·팀·visibility·회고 재설계, `0003` 직원 본인 매출 행 읽기, `0004` quiz_answered·practiced 이벤트, `0005` 매니저의 매장 근무표 쓰기(shifts update/delete) |
 
 ## 카메라 권한 (iOS)
 
@@ -190,7 +196,7 @@ Graph" 데이터 모델의 씨앗이 됩니다 (UI 변경 없이 나중에 활�
 | 화면 | 내용 |
 |---|---|
 | **팀 액션 · 공지** *(신규, 기본 화면)* | 공지 등록(상단 고정 옵션) + 팀 액션 배포(제목·목표 횟수 → 전체 팀에게) 폼, 최근 배포 내역 리스트. Employee App의 Team/My Actions 탭과 **같은 상태를 공유**하므로, 매니저로 공지를 올리고 Employee App으로 전환하면 바로 반영된 걸 확인할 수 있습니다 |
-| **팀 현황** | "오늘 확인이 필요한 직원" 카드 + 전체 팀 로스터 |
+| **팀 (메인 탭)** | 팀원 역량 근거 + 1:1 코칭 가이드 + 매장 근무표 편집. 상세는 위 "화면 구조 → 매니저" 참고 |
 | **Will × Capability (고급)** | 참여도 × 역량 4분면 매트릭스 — 기존 기능 유지, nav에 "(고급)" 라벨로 구분해 Business+ 티어 성격임을 표시 |
 
 ## 수익화 사다리 v2
@@ -281,7 +287,7 @@ Script, 제네릭 Before/After 피드백 문장, 체크리스트 문구 풀, 매
 - 실제 Claude API 연동 (`generateQuickActions()` 등 mock 함수 교체)
 - 인증/로그인, Role 기반 접근 제어를 실제로 강제하는 백엔드
 - Free → Team 전환 트리거 설계, 팀 생성/초대 UX (아직 미확정 — 전략 문서 §6 참고)
-- Shift Swap(근무 교대 요청) 워크플로 — 아직 스코프 밖
+- 직원 My Shift의 **팀 근무표·근무 교대 시트**를 실제 계정 근무표(`shifts`, source `roster`)에 연결 — 지금은 구버전 목업 로스터(지은·박준서…)를 그대로 쓰므로 매니저 팀 탭의 근무표와 인물이 다름
 - 상위 티어 진입 시 숨겨진 기능(Stats/Coach/Progress/리더보드/Executive Dashboard)을 nav에
   다시 연결
 - 리더보드 On/Off는 지금은 화면 내 로컬 토글(데모용) — 실제로는 기업/매장 단위 관리자 설정으로
