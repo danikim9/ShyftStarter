@@ -62,20 +62,7 @@ npm run cap:sync     # build + npx cap sync (ios/ android/ 는 로컬 Mac에만 
   - **팀원 상세 시트**: 오늘 근무 · `지금 관찰 기록` · `액션 배정` → 행동 근거 → 최근 관찰 → **1:1 코칭 가이드 5단계** → `코칭 카드 보내기`(같은 날 중복 방지) → `이번 주 근무 보기`
   - **근무표**: 직원 × 7일(이번 주/다음 주). 셀 탭 → 프리셋(오픈/미들/마감)·직접 입력·"다음 주 같은 요일에도"·휴무. 실제 `shifts` 행(`source: 'roster'`)이 되어 직원 팀 탭의 근무표에 바로 보임.
 - **KPI**: `오늘 성과 입력`(방문·거래·매출·수량 **네 칸**, 부가상품은 접힌 선택 항목) → **이번 주 vs 지난주**(월~오늘 합계 기준 CVR · AOV · UPT, 지난주 같은 요일과 비교) → **최근 7일** 표(날짜 탭으로 수정) → **이번 주 신호**(규칙 기반 인사이트 상위 3개, 근거 강도 배지, "상관관계 ≠ 인과관계") · CSV 가져오기. 지표 정의: `src/lib/analytics/kpiSummary.ts`(합계의 비율, 일별 비율 평균 아님).
-- 플래그 OFF: 전체 주간 인사이트 탭(`managerInsights`), 더보기 구버전 도구(`managerLegacyTools`)
-
-**기능 플래그 (`src/lib/features.ts`)** — 아래는 코드가 남아 있고 기본 OFF예요. 한 줄 바꾸면 다시 켜져요.
-월별 보기 · .ics 내보내기 · 근무 교대(구버전 목업 로스터) · Shift Prep 10초 확인 · 2분 롤플레이 · 10초 퀴즈 · 내 매출 POS · 자신감 흐름 · 주간 요약 · 매니저 전체 인사이트 탭 · 매니저 구버전 도구(더보기)
-
-**신규 사용자 흐름**: 로그인 화면 "새로 시작하기" → 이름·이메일·직군·관심 행동 → 팀 코드(건너뛰기) → 다음 근무(건너뛰기) → 목표 1개 → Today
-
-**매니저** — 하단 탭 3개: **홈 · 팀 · 인사이트** (KPI·더보기는 플래그 OFF). 홈·팀·인사이트에 "직원의 개인 목표·회고는 보이지 않아요" 표시. 데모 계정에는 "데모 데이터" 배지.
-- **팀** 탭 = 세그먼트 **팀원 | 근무표**
-  - **팀원**: 직원별 카드 — 오늘 근무 여부, 코칭 필요 표시 수, 데이터에서 나온 신호 한 줄("니즈 파악 — 관찰 2회 중 1회만 보였어요"), 행동 5개 칩(꾸준히 보임 / 더 볼 것 / 근거 부족 — **점수·등급 없음**), `관찰` · `배정` · `코칭 가이드`. "이번 주 먼저 볼 사람"이 위로 정렬(코칭 필요 표시 > 격차 행동 > 7일 이상 관찰 없음).
-  - **팀원 상세 시트**: 오늘 근무 · `지금 관찰 기록` · `액션 배정` → 행동 근거(관찰 x/y · 팀 액션 x/y · 마지막 관찰) → 최근 관찰 → **1:1 코칭 가이드 5단계**(잘한 점 → 숫자 그대로 → 본인 생각 듣기 → 다음 근무에 하나 → 믿음)를 이 사람의 근거로 채움 → `코칭 카드 보내기`(해당 행동의 코칭 카드를 팀 액션으로 1명에게 배정, 같은 날 중복 방지) → `이번 주 근무 보기`.
-  - **근무표**: 직원 × 7일 표(이번 주/다음 주). 셀을 누르면 프리셋(오픈/미들/마감)·직접 입력·"다음 주 같은 요일에도"·휴무. 저장하면 실제 계정의 `shifts` 행(`source: 'roster'`)이 되어 직원 My Shift에 "매장 근무표" 근무로 바로 보임. 보라색=매장 근무표, 회색=직원이 직접 등록.
-  - 팀원 프로필은 `src/lib/analytics/team.ts`에서 **매니저에게 보이는 근거(관찰·팀 액션 완료)만으로** 계산. 개인 목표·회고·연습 기록은 `applyVisibility` 단계에서 이미 제거되어 이 파일에 도달하지 않음(단위 테스트 `team.test.ts`).
-- **더보기** (플래그 `managerLegacyTools`): 팀 액션·공지(구버전), 근무표 목업(구버전), Will × Capability 매트릭스.
+- 플래그 OFF: 전체 주간 인사이트 탭(`managerInsights`), 더보기 구버전 도구(`managerLegacyTools` — 팀 액션·공지 구버전, 근무표 목업, Will × Capability 매트릭스)
 
 ## 개인 데이터 vs 팀 데이터 (visibility)
 
@@ -142,185 +129,25 @@ KPI 개선은 UI 어디에서도 확인된 성과로 표현하지 않고 **검�
 
 ---
 
-# (아래는 v2 Shift Companion 시절 문서 — 참고용)
+## 이전 버전(v2 Shift Companion) 문서에 대하여
 
-# ShyftStarter — Prototype (v2: Shift Companion MVP)
+v2 "Shift Companion" 시절 README 본문은 삭제했습니다. 당시 문서에 적혀 있던
+Executive Dashboard · ROI 상관분석 · 공개 리더보드 · 좌석 기반 수익화 사다리는
+**모두 폐기된 방향**이며, 위 "금지 기능" 항목과 정면으로 충돌합니다. 현행 사양은
+이 문서의 윗부분이 유일한 기준입니다.
 
-> **이 폴더는 ShyftStarter의 세 코드 폴더 중 Employee(팀원용) 전용입니다.**
-> `shyftstarter_manager/`, `shyftstarter_executive/`와 원래 하나였던 프로토타입에서 나눈
-> 것이라, 상태 관리(`src/lib/store.tsx`)·타입(`src/types/`)·데이터 모델(`src/data/`) 같은
-> 공유 인프라는 세 폴더에 각각 복사되어 있습니다. 직접 만질 일이 많은 Employee 전용 코드는
-> `src/screens/`, `src/auth/`, `src/onboarding/`, `src/components/`에 있습니다.
-> `.env`에 `VITE_PERSONA=employee`가 고정돼 있어 `npm install && npm run dev`만 하면 온보딩
-> → 로그인 데모 → My Shift/My Actions/Team 3탭으로 바로 들어갑니다(페르소나 전환 버튼 없음).
+폐기 사유를 요약하면 다음과 같습니다.
 
-> 최신 업데이트: **v2 피벗 — "Shift Companion" MVP**. Employee App을 **My Shift / Team / My Actions** 3탭으로
-> 단순화했습니다. 기존 Stats/Coach/Progress/Team 리더보드/Executive Dashboard 등 P0~P2 기능은
-> **코드는 그대로 두고 nav에서만 숨겼습니다** (아래 "숨겨진 기능" 섹션 참고 — Business+/Enterprise 티어에서
-> 다시 노출할 예정). 전략 배경은 `claude/shyftstarter-v2-strategy-b2c-pivot.md` 참고.
-
-## 핵심 정의
-
-**"교대근무자의 근무일을 정리하고, 팀과 연결하고, 매일의 일을 더 잘하게 만드는 Shift Companion."**
-
-스케줄링 앱으로 포지셔닝하지 않습니다. 스케줄은 사용자가 앱을 반복해서 여는 *이유*이고,
-체크리스트·퀘스트·성장 데이터가 ShyftStarter가 존재하는 *이유*입니다.
-
-```
-Schedule → Shift → Action → Growth
-```
-
-북극성 질문: **"알바생 한 명이 아무도 초대하지 않은 상태에서도 왜 ShyftStarter를 설치하고
-다음 근무 때 다시 열까?"** — 이 질문을 기준으로 MVP를 5개 기능으로 잘랐습니다.
-
-## 실행 방법
-
-```bash
-npm install
-npm run dev       # 개발 서버 (http://localhost:5173)
-npm run build      # 프로덕션 빌드 → dist/
-```
-
-화면 상단의 **Employee App / Manager Dashboard / Executive Dashboard** 전환 버튼으로 세 페르소나를
-모두 체험할 수 있습니다. (Executive Dashboard는 현재 nav에서는 숨겨진 P2 기능이지만, 페르소나
-전환 버튼 자체는 데모 편의를 위해 계속 노출해 두었습니다.)
-
-## Employee App — MVP 3탭
-
-| 탭 | 내용 |
+| 폐기된 v2 내용 | 사유 |
 |---|---|
-| **My Shift** | 오늘 근무 히어로 카드(탭하면 상세: 오늘 할 일 보기 · 인수인계 남기기), 1탭 컨디션 체크인(무드), 최근 인수인계 미리보기, 예정된/지난 근무 리스트 |
-| **Team** | Announcement(공지, 상단 고정 가능 · 👍🙌❤️ 리액션 · 댓글) + Handover(인수인계) 피드를 시간순으로 합쳐서 표시. **완전한 메신저가 아닙니다** — 실시간 잡담은 의도적으로 카카오톡 등 기존 채팅앱 영역으로 남겨두고, 시프트에 묶인 "구조화된 정보"만 소유합니다 |
-| **My Actions** | 셀프/매니저/AI 세 출처가 통합된 Action(체크리스트+퀘스트) 목록. 완료 시 토스트 + 주간 완료 카운터(Flame 아이콘) — XP/레벨은 의도적으로 숨김, 최소한의 완료 피드백만 유지 |
+| Executive Dashboard · "ROI 상관분석" 화면 | 목업 데이터로 만든 시연용 화면이었고, 실측 데이터가 아님. `src/exec/*`는 `App.tsx`에서 import되지 않아 UI에서 도달 불가하며 삭제 예정 |
+| 체크리스트 이수율 × 객단가 상관계수 등 수치 | **목업 데이터로 계산한 값이며 실제 매장에서 측정된 결과가 아님.** 어떤 대외 자료에도 사용하지 않음 |
+| 공개 리더보드 · Recognition 순위 | "공개 순위표 없음"이 현행 제품 원칙이므로 폐기 |
+| Will × Capability 매트릭스 | 근거 없는 직원 분류로 읽힐 수 있어 기본 OFF (`managerLegacyTools`) |
+| 좌석/티어 기반 수익화 사다리 v2 | 매장 단위 과금으로 재설계됨. 가격은 저장소가 아닌 사업 문서에서 관리 |
+| 3개 폴더(employee/manager/executive) 분리 구조 | 단일 앱으로 통합됨 |
 
-### Handover (인수인계)
-
-`My Shift`와 `Team` 양쪽에서 작성/열람 가능한 짧은 텍스트 노트. 근무 교대 시 "누가 무엇을
-남겼는지"가 그룹채팅에 묻히지 않고 구조화되어 남습니다. `src/components/sheets/HandoverComposer.tsx`.
-
-### Action — 셀프/매니저/AI 통합 엔티티
-
-기존에 별도였던 Quest/Checklist 개념을 하나의 `Action` 타입으로 통합했습니다
-(`src/types/index.ts` — `kind: 'checklist' | 'quest'`, `createdBy: 'self' | 'manager' | 'ai'`).
-완료할 때마다 화면에 보이지 않는 `ActionEvent`가 조용히 기록되어, 나중에 "Employee Performance
-Graph" 데이터 모델의 씨앗이 됩니다 (UI 변경 없이 나중에 활용 가능).
-
-### Invisible AI — 퀵 액션 생성
-
-`My Actions`의 "+" 버튼 → AI 모드에서 자연어 프롬프트("마감 준비 도와줘" 등)를 입력하면
-`generateQuickActions()` (`src/lib/aiEngine.ts`, 키워드 매칭 규칙 기반 mock)가 체크리스트 문구
-3~4개를 제안 → 탭하면 바로 Action으로 추가됩니다. AI라는 라벨을 전면에 내세우지 않고, "그냥
-빠르게 만들어지는" 경험으로 설계했습니다.
-
-## Manager Dashboard
-
-| 화면 | 내용 |
-|---|---|
-| **팀 액션 · 공지** *(신규, 기본 화면)* | 공지 등록(상단 고정 옵션) + 팀 액션 배포(제목·목표 횟수 → 전체 팀에게) 폼, 최근 배포 내역 리스트. Employee App의 Team/My Actions 탭과 **같은 상태를 공유**하므로, 매니저로 공지를 올리고 Employee App으로 전환하면 바로 반영된 걸 확인할 수 있습니다 |
-| **오늘 · 팀 · KPI** | 인력 관리(근무표) · 코칭(근거 + 1:1 가이드 + 카드 보내기) · KPI(CVR · AOV · UPT). 상세는 위 "화면 구조 → 매니저" 참고 |
-| **Will × Capability (고급)** | 참여도 × 역량 4분면 매트릭스 — 기존 기능 유지, nav에 "(고급)" 라벨로 구분해 Business+ 티어 성격임을 표시 |
-
-## 수익화 사다리 v2
-
-| 티어 | 대상 | 핵심 기능 |
-|---|---|---|
-| **Free — Worker** | 개인 교대근무자 | My Shift · Team(공지/인수인계) · My Actions(셀프) |
-| **Team — Manager** | 점장/소규모 팀 | + 매니저 Action/공지 배포, 팀 현황 |
-| **Business — Store/SMB** | 매장/SMB | + Will×Capability, AI 코칭, 브랜드 커스터마이즈 |
-| **Enterprise — Brand** | 본사/멀티스토어 | + Executive Dashboard, ROI Correlation, 컨설팅 |
-
-Land & Expand 경로가 기존 계획과 반대로 뒤집힙니다: **직원 개별 사용 → 매장 도입 → 본사 발견 →
-Enterprise 계약**. 자세한 내용은 프로젝트 전략 문서 참고.
-
----
-
-## 숨겨진 기능 (Business+/Enterprise 참고용 — 현재 nav에서 숨김)
-
-아래 기능들은 v2 MVP 심플화 과정에서 네비게이션에서 제거했지만, **코드는 전부 그대로
-유지**되어 있습니다. 상위 티어(Business/Enterprise)에서 다시 연결할 예정입니다.
-
-### Home / Stats / Coach (구 P0/P1)
-
-| 화면 | 내용 |
-|---|---|
-| **Home** | Today's Mission, Quest 요약, Today's Stats 스냅샷, AI Nudge, Start My Shift |
-| **Stats** | 바그래프(Capability Score) + 밸런스휠(Radar Chart), 스킬별 Shift-by-Shift 성장 그래프, Score·Confidence·Evidence·Trend, Performance Level(Lv.1–5) |
-| **Coach** | AI Coach 카드(WHAT HAPPENED → WHY IT MATTERS → WHAT TO DO NEXT), START ROLE-PLAY / 3분 학습 버튼 |
-
-Killer Script · Micro Checklist는 스킬당 2개 버전을 SHOW ANOTHER로 순환하는 바텀시트로
-구현되어 있습니다. **마이크로러닝**과 **AI Role-play**(텍스트 기반, 음성 없음, 5축 mock 채점)도
-Coach 화면에 포함되어 있습니다.
-
-### Progress (성장 추이) — 구 P1
-
-Stats가 "지금의 스냅샷"이라면 Progress는 "시간에 따른 성장 곡선"입니다. 연속 활동 스트릭,
-Capability Trend(주간/월간 라인 차트 + AI 한줄 요약), Skill Trajectory(스킬별 Δ 칩), Milestones
-배지 그리드로 구성되어 있습니다.
-
-### Team 리더보드 · Recognition — 구 P1~P2
-
-지금의 Team 탭(공지+인수인계)과는 별개의 **구 버전** 화면입니다. Team Challenge(매장 공유 목표
-진행바), Recognition(인정 메시지 피드), Leaderboard(역량 종합 점수 순위, On/Off 토글)로
-구성됩니다. **매니저 대시보드의 Will(참여도)·needsAttention 등 민감한 코칭 신호는 절대
-리더보드에 노출하지 않는다**는 원칙을 지켰습니다 (`src/data/teamFeedData.ts`).
-
-### Executive Dashboard — P2
-
-조직 단위의 역량-성과 상관 분석 화면. **Executive/Admin 역할은 개별 직원 데이터에 접근하지
-않고 매장/조직 단위 집계만 봅니다** (Role-Based Access Control 원칙).
-
-| 화면 | 내용 |
-|---|---|
-| **조직 현황** | Organization Performance KPI 8종, 지역별 매장 비교 테이블, 조직 Capability Map(레이더) |
-| **ROI 분석** | **"The Smoking Gun"** — 체크리스트 이수율 × ATV 산점도 + 회귀선, Training/Coaching ROI, Brand Alignment |
-
-"The Smoking Gun" 차트는 체크리스트 이수율 상위 20% 매장의 평균 ATV가 유의미하게 높다는 것을
-실제 계산으로 보여줍니다. 10개 매장 목업 데이터(`src/data/execData.ts`)는 상관계수·상승폭이
-**r≈0.74, +15.4%**에 근접하도록 설계했고, 화면에 표시되는 값은 하드코딩이 아니라
-`src/lib/execAnalytics.ts`의 Pearson 상관계수·선형회귀 함수로 매 렌더링마다 실제로 계산됩니다.
-
-### 코칭 콘텐츠 라이브러리 (`src/data/coachingContent.ts`)
-
-특정 브랜드·산업에 종속되지 않도록 재구성한 예시 콘텐츠: 6단계 응대 흐름, 스킬별 Killer
-Script, 제네릭 Before/After 피드백 문장, 체크리스트 문구 풀, 매장 문화 원칙 8종, 매니저 1:1
-대화 템플릿. 실제 고객사 온보딩 시 그 회사의 SOP로 교체하는 자리입니다.
-
----
-
-## 데이터 & AI — 지금은 mock, 나중에 교체하는 법
-
-- `src/data/mockData.ts` — 직원 1명("지은", 강남점) 기준 스킬 8종 × 5시프트 히스토리, Shift, 구
-  Quest/Checklist 목업.
-- `src/data/mvpData.ts` — v2 MVP용 데이터: 초기 Action 5개, Handover 2개, Announcement 2개
-  (리액션/댓글 포함).
-- `src/lib/aiEngine.ts` — **규칙 기반 mock AI**. 기존 `pickFocusSkill()` / `generateAiNudge()` /
-  `generateCoachingCard()` / `getNextBestAction()`에 더해, v2의 `generateQuickActions()`(자연어 →
-  체크리스트 제안)가 추가되었습니다. 반환 타입은 항상 구조화된 형태를 유지하므로, 구현부만 실제
-  Claude API 호출로 바꾸면 화면 쪽 코드는 손댈 필요가 없습니다.
-- `src/lib/store.tsx` — 세 페르소나(Employee/Manager/Executive)가 공유하는 `AppStateProvider`.
-  v2에서 `actions` / `handovers` / `announcements` / `actionEvents` 상태와 CRUD 함수가
-  추가되었습니다. 매니저가 배포한 공지/액션은 이 공유 상태를 통해 Employee App에 즉시 반영됩니다.
-- 음성 녹음·음성 캡처 기능은 어디에도 없습니다.
-
-## 다음으로 확장할 것
-
-- 실제 백엔드 연동 (Supabase/Postgres 등)
-- 실제 Claude API 연동 (`generateQuickActions()` 등 mock 함수 교체)
-- 인증/로그인, Role 기반 접근 제어를 실제로 강제하는 백엔드
-- Free → Team 전환 트리거 설계, 팀 생성/초대 UX (아직 미확정 — 전략 문서 §6 참고)
-- **근무 교대**를 실제 근무표(`shifts`)에 연결 — 구버전 교대 시트는 목업 로스터(지은·박준서…)를 쓰므로 플래그 OFF. 팀 근무표 보기 자체는 실제 데이터로 연결됨
-- 공지·인수인계를 구버전 `AppStateProvider`에서 Bellatrix repo/RLS로 이관 (지금은 온디바이스 목업 상태 공유)
-- 상위 티어 진입 시 숨겨진 기능(Stats/Coach/Progress/리더보드/Executive Dashboard)을 nav에
-  다시 연결
-- 리더보드 On/Off는 지금은 화면 내 로컬 토글(데모용) — 실제로는 기업/매장 단위 관리자 설정으로
-  이동
-- Executive Dashboard의 KPI Correlation은 지금 10개 매장 목업 — 실제 POS/behavior-event 데이터
-  연결 시 `execAnalytics.ts` 로직은 그대로 두고 `execData.ts`만 교체
-- Brand Alignment는 아직 개념 지표 — 고객사 브랜드 가이드라인 온보딩 후 정의 확정 필요
-
-## 기술 스택
-
-Vite + React 19 + TypeScript + Tailwind CSS v4 + Recharts + lucide-react
+v2 코드 일부는 기능 플래그 뒤에 남아 있습니다(위 "기능 플래그" 항목 참고).
 
 ---
 
