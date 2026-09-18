@@ -93,7 +93,7 @@ export function ActionDetailSheet({ assignmentId }: { assignmentId: string }) {
             <button
               disabled={busy || progress >= target}
               onClick={() => bump(1)}
-              className="w-12 h-12 rounded-full bg-brand-500 text-white flex items-center justify-center shadow-md shadow-brand-500/30 disabled:opacity-30 active:scale-95 transition"
+              className="w-12 h-12 rounded-full bg-brand-500 text-ink-950 flex items-center justify-center shadow-md shadow-brand-500/30 disabled:opacity-30 active:scale-95 transition"
               aria-label="하나 더 했어요"
             >
               <Plus size={18} />

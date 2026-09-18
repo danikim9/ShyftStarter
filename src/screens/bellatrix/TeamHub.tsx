@@ -17,7 +17,7 @@ export function TeamHub({ segment, onSegment, onNavigate }: { segment: TeamSegme
         <div className="flex items-start justify-between gap-3 mb-3">
           <h1 className="text-xl font-bold text-ink-950">팀</h1>
           {segment === 'roster' && (
-            <button onClick={() => openSheet({ kind: 'shiftComposer' })} className="shrink-0 w-10 h-10 rounded-full bg-brand-500 text-white flex items-center justify-center active:scale-95 transition" aria-label="근무 등록">
+            <button onClick={() => openSheet({ kind: 'shiftComposer' })} className="shrink-0 w-10 h-10 rounded-full bg-brand-500 text-ink-950 flex items-center justify-center active:scale-95 transition" aria-label="근무 등록">
               <CalendarPlus size={18} />
             </button>
           )}

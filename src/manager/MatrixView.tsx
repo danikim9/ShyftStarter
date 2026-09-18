@@ -52,24 +52,24 @@ export function MatrixView() {
                 dataKey="willScore"
                 name="Will"
                 domain={[0, 100]}
-                tick={{ fill: 'rgba(43,36,64,0.4)', fontSize: 11 }}
-                axisLine={{ stroke: 'rgba(43,36,64,0.15)' }}
+                tick={{ fill: 'rgba(28,58,61,0.4)', fontSize: 11 }}
+                axisLine={{ stroke: 'rgba(28,58,61,0.15)' }}
                 tickLine={false}
-                label={{ value: 'WILL (참여도) →', position: 'insideBottom', offset: -8, fill: 'rgba(43,36,64,0.35)', fontSize: 11 }}
+                label={{ value: 'WILL (참여도) →', position: 'insideBottom', offset: -8, fill: 'rgba(28,58,61,0.35)', fontSize: 11 }}
               />
               <YAxis
                 type="number"
                 dataKey="capabilityScore"
                 name="Capability"
                 domain={[0, 100]}
-                tick={{ fill: 'rgba(43,36,64,0.4)', fontSize: 11 }}
-                axisLine={{ stroke: 'rgba(43,36,64,0.15)' }}
+                tick={{ fill: 'rgba(28,58,61,0.4)', fontSize: 11 }}
+                axisLine={{ stroke: 'rgba(28,58,61,0.15)' }}
                 tickLine={false}
-                label={{ value: 'CAPABILITY (역량) →', angle: -90, position: 'insideLeft', fill: 'rgba(43,36,64,0.35)', fontSize: 11 }}
+                label={{ value: 'CAPABILITY (역량) →', angle: -90, position: 'insideLeft', fill: 'rgba(28,58,61,0.35)', fontSize: 11 }}
               />
               <ZAxis range={[180, 180]} />
-              <ReferenceLine x={THRESHOLD} stroke="rgba(43,36,64,0.15)" strokeDasharray="4 4" />
-              <ReferenceLine y={THRESHOLD} stroke="rgba(43,36,64,0.15)" strokeDasharray="4 4" />
+              <ReferenceLine x={THRESHOLD} stroke="rgba(28,58,61,0.15)" strokeDasharray="4 4" />
+              <ReferenceLine y={THRESHOLD} stroke="rgba(28,58,61,0.15)" strokeDasharray="4 4" />
               <Tooltip
                 cursor={{ strokeDasharray: '3 3' }}
                 content={({ active, payload }) => {

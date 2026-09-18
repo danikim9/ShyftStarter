@@ -26,7 +26,7 @@ export function ChoiceChips<T extends string>({
             type="button"
             onClick={() => onChange(o.value)}
             className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition active:scale-[0.97] ${
-              active ? 'bg-brand-500 border-brand-500 text-white shadow-sm' : 'bg-white border-ink-950/10 text-ink-950/75'
+              active ? 'bg-brand-500 border-brand-500 text-ink-950 shadow-sm' : 'bg-white border-ink-950/10 text-ink-950/75'
             }`}
           >
             {o.label}

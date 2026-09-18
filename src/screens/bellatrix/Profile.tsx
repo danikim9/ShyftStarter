@@ -20,7 +20,7 @@ export function Profile() {
   return (
     <div className="px-4 pt-4 pb-8 space-y-6">
       <div className="flex items-center gap-3">
-        <span className="w-12 h-12 rounded-2xl bg-brand-500 flex items-center justify-center text-lg font-bold text-white">{user.name[0]}</span>
+        <span className="w-12 h-12 rounded-2xl bg-brand-500 flex items-center justify-center text-lg font-bold text-ink-950">{user.name[0]}</span>
         <div className="min-w-0">
           <h1 className="text-lg font-bold text-ink-950 leading-tight">{user.name}</h1>
           <div className="text-xs text-ink-950/45 truncate">{user.email}</div>

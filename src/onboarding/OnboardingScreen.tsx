@@ -18,7 +18,7 @@ interface Slide {
 const SLIDES: Slide[] = [
   {
     icon: Sun,
-    tint: 'from-brand-400 to-brand-700',
+    tint: 'from-brand-600 to-brand-800',
     title: '근무 전 30초, 오늘 해볼 행동 하나',
     body: '킬러 질문 · 제품 포인트 · 반론 대응 · 한 번 더 제안. 딱 필요한 것만 보고 매장에 들어가요.',
   },
@@ -43,8 +43,8 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
   const Icon = slide.icon
 
   return (
-    <div className="min-h-screen w-full bg-[radial-gradient(circle_at_top,_#f3edff_0%,_#ffffff_55%)] flex items-center justify-center py-0 sm:py-8 px-0 sm:px-4">
-      <div className="relative w-full max-w-[430px] h-[100dvh] sm:h-[880px] sm:rounded-[2.75rem] sm:border sm:border-ink-950/8 overflow-hidden flex flex-col bg-paper sm:shadow-[0_30px_80px_-20px_rgba(139,92,246,0.25)] px-7">
+    <div className="min-h-screen w-full bg-[radial-gradient(circle_at_top,_#e3faf5_0%,_#ffffff_55%)] flex items-center justify-center py-0 sm:py-8 px-0 sm:px-4">
+      <div className="relative w-full max-w-[430px] h-[100dvh] sm:h-[880px] sm:rounded-[2.75rem] sm:border sm:border-ink-950/8 overflow-hidden flex flex-col bg-paper sm:shadow-[0_30px_80px_-20px_rgba(13,133,120,0.18)] px-7">
         {/* 28차 — 실기기(노치/다이나믹 아일랜드)에서 실제 상태 표시줄과 겹치는
             문제 수정 — App.tsx StatusBar와 동일하게 안전 영역만큼 위쪽 여백을
             확보한다(프리뷰에서는 기존 pt-6 그대로, 안전 영역이 더 크면 그만큼). */}
@@ -78,7 +78,7 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
           </div>
           <button
             onClick={() => (isLast ? onDone() : setIdx((v) => v + 1))}
-            className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-semibold py-3.5 text-sm shadow-sm shadow-brand-500/25 active:scale-[0.98] transition"
+            className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-brand-500 hover:bg-brand-400 text-ink-950 font-semibold py-3.5 text-sm shadow-sm shadow-brand-500/25 active:scale-[0.98] transition"
           >
             {isLast ? '시작하기' : '다음'}
             {!isLast && <ChevronRight size={16} />}

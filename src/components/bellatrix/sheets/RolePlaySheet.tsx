@@ -64,7 +64,7 @@ export function RolePlaySheet({ cardId, goalId }: { cardId: string; goalId?: str
               <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-ink-950/6 px-3.5 py-2.5 text-sm text-ink-950/85">🧑 {l.customer}</div>
             </div>
             <div className="flex justify-end">
-              <div className="max-w-[85%] rounded-2xl rounded-tr-sm bg-brand-500 text-white px-3.5 py-2.5 text-sm">{l.reply}</div>
+              <div className="max-w-[85%] rounded-2xl rounded-tr-sm bg-brand-500 text-ink-950 px-3.5 py-2.5 text-sm">{l.reply}</div>
             </div>
             <div className="rounded-xl border border-ink-950/8 bg-white px-3.5 py-3 space-y-1.5 text-xs">
               <div className="flex items-start gap-1.5 text-emerald-700">

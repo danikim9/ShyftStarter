@@ -1,17 +1,17 @@
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts'
 import type { SkillScorePoint } from '../types'
 
-export function TrendLine({ points, color = '#5b5ff2' }: { points: SkillScorePoint[]; color?: string }) {
+export function TrendLine({ points, color = '#14b8a6' }: { points: SkillScorePoint[]; color?: string }) {
   const data = points.map((p) => ({ name: `S${p.shiftIndex}`, score: p.score }))
   return (
     <div className="h-40 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 12, right: 12, left: -20, bottom: 0 }}>
-          <CartesianGrid stroke="rgba(43,36,64,0.06)" vertical={false} />
-          <XAxis dataKey="name" tick={{ fill: 'rgba(43,36,64,0.4)', fontSize: 11 }} axisLine={false} tickLine={false} />
-          <YAxis domain={['dataMin - 8', 'dataMax + 8']} tick={{ fill: 'rgba(43,36,64,0.4)', fontSize: 11 }} axisLine={false} tickLine={false} width={28} />
+          <CartesianGrid stroke="rgba(28,58,61,0.06)" vertical={false} />
+          <XAxis dataKey="name" tick={{ fill: 'rgba(28,58,61,0.4)', fontSize: 11 }} axisLine={false} tickLine={false} />
+          <YAxis domain={['dataMin - 8', 'dataMax + 8']} tick={{ fill: 'rgba(28,58,61,0.4)', fontSize: 11 }} axisLine={false} tickLine={false} width={28} />
           <Tooltip
-            contentStyle={{ background: '#ffffff', border: '1px solid rgba(43,36,64,0.1)', borderRadius: 12, fontSize: 12 }}
+            contentStyle={{ background: '#ffffff', border: '1px solid rgba(28,58,61,0.1)', borderRadius: 12, fontSize: 12 }}
             labelStyle={{ color: '#2b2440' }}
           />
           <Line

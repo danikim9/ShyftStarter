@@ -43,7 +43,7 @@ export function MoodCheckIn() {
             <p className="text-ink-950 text-sm font-medium leading-relaxed mb-5">{moodInsightMessage}</p>
             <button
               onClick={continueAfterMoodInsight}
-              className="w-full rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-semibold py-2.5 text-sm active:scale-[0.98] transition"
+              className="w-full rounded-xl bg-brand-500 hover:bg-brand-400 text-ink-950 font-semibold py-2.5 text-sm active:scale-[0.98] transition"
             >
               확인
             </button>

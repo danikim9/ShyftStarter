@@ -41,7 +41,7 @@ export function Home({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
       {/* Today's Mission */}
       <button
         onClick={() => openSheet({ kind: 'shiftDetail', shiftId: todayShift.id })}
-        className="w-full text-left rounded-2xl bg-gradient-to-br from-brand-500 to-brand-800 p-5 shadow-lg shadow-brand-900/40 active:scale-[0.99] transition"
+        className="w-full text-left rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-5 shadow-lg shadow-brand-900/40 active:scale-[0.99] transition"
       >
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-semibold text-white/80 tracking-wide">TODAY'S MISSION</span>

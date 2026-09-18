@@ -77,7 +77,7 @@ export function ShiftComposerSheet({ presetDate, editShiftId, onDone }: { preset
           {!editing && (
             <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
               {dates.map((d) => (
-                <button key={d} type="button" onClick={() => setDate(d)} className={`shrink-0 rounded-xl border px-3 py-2 text-sm font-medium ${date === d ? 'bg-brand-500 border-brand-500 text-white' : 'bg-white border-ink-950/10 text-ink-950/75'}`}>
+                <button key={d} type="button" onClick={() => setDate(d)} className={`shrink-0 rounded-xl border px-3 py-2 text-sm font-medium ${date === d ? 'bg-brand-500 border-brand-500 text-ink-950' : 'bg-white border-ink-950/10 text-ink-950/75'}`}>
                   {d === today ? '오늘' : fmtShortDate(d)}
                 </button>
               ))}
@@ -95,7 +95,7 @@ export function ShiftComposerSheet({ presetDate, editShiftId, onDone }: { preset
               {DOW.map((label, i) => {
                 const on = weekdays.includes(i)
                 return (
-                  <button key={i} type="button" onClick={() => setWeekdays((w) => (on ? w.filter((x) => x !== i) : [...w, i].sort()))} className={`h-11 rounded-xl border text-sm font-semibold ${on ? 'bg-brand-500 border-brand-500 text-white' : 'bg-white border-ink-950/10 text-ink-950/60'}`}>
+                  <button key={i} type="button" onClick={() => setWeekdays((w) => (on ? w.filter((x) => x !== i) : [...w, i].sort()))} className={`h-11 rounded-xl border text-sm font-semibold ${on ? 'bg-brand-500 border-brand-500 text-ink-950' : 'bg-white border-ink-950/10 text-ink-950/60'}`}>
                     {label}
                   </button>
                 )

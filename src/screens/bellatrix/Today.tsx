@@ -176,14 +176,14 @@ export function Today({ onNavigate }: { onNavigate: (t: TabId) => void }) {
             </div>
           )}
         </div>
-        <button onClick={() => onNavigate('profile')} className="w-10 h-10 rounded-full bg-brand-500 text-white font-bold flex items-center justify-center shrink-0" aria-label="프로필">
+        <button onClick={() => onNavigate('profile')} className="w-10 h-10 rounded-full bg-brand-500 text-ink-950 font-bold flex items-center justify-center shrink-0" aria-label="프로필">
           {user.name[0]}
         </button>
       </div>
 
       {/* Hero: the shift and its one mission, by phase */}
       {focusShift ? (
-        <div className="rounded-2xl bg-gradient-to-br from-brand-500 to-brand-800 p-5 shadow-lg shadow-brand-900/30 text-white space-y-4">
+        <div className="rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-5 shadow-lg shadow-brand-900/30 text-white space-y-4">
           <div>
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold text-white/75 tracking-wide">{heroLabel}</span>

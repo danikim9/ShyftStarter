@@ -73,7 +73,7 @@ export function Progress() {
           <RangeToggle range={range} onChange={setRange} />
         </div>
         <Card>
-          <ProgressChart points={trend} color="#5b5ff2" />
+          <ProgressChart points={trend} color="#14b8a6" />
           <div className="mt-3 pt-3 border-t border-ink-950/8 flex items-start gap-2">
             <span className="text-sm leading-none mt-0.5">🤖</span>
             <p className="text-xs text-ink-950/70 leading-relaxed">{insight}</p>

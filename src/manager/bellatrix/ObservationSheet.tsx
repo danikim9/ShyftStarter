@@ -78,7 +78,7 @@ export function ObservationSheet({ presetUserId }: { presetUserId?: string }) {
               key={e.id}
               type="button"
               onClick={() => setUserId(e.id)}
-              className={`rounded-xl border px-3 py-2 text-sm font-medium ${userId === e.id ? 'bg-brand-500 border-brand-500 text-white' : 'bg-white border-ink-950/10 text-ink-950/75'}`}
+              className={`rounded-xl border px-3 py-2 text-sm font-medium ${userId === e.id ? 'bg-brand-500 border-brand-500 text-ink-950' : 'bg-white border-ink-950/10 text-ink-950/75'}`}
             >
               {e.name}
               {e.working && <span className={`ml-1 text-[10px] ${userId === e.id ? 'text-white/70' : 'text-emerald-600'}`}>근무 중</span>}

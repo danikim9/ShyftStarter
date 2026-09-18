@@ -105,14 +105,14 @@ export function MyShift({ embedded = false }: { embedded?: boolean }) {
             <h1 className="text-xl font-bold text-ink-950 mb-1">근무표</h1>
             <p className="text-xs text-ink-950/40">내 근무와 팀 근무를 한눈에. 근무마다 준비와 회고가 붙어요.</p>
           </div>
-          <button onClick={() => openSheet({ kind: 'shiftComposer' })} className="shrink-0 w-11 h-11 rounded-full bg-brand-500 text-white flex items-center justify-center active:scale-95 transition" aria-label="근무 등록">
+          <button onClick={() => openSheet({ kind: 'shiftComposer' })} className="shrink-0 w-11 h-11 rounded-full bg-brand-500 text-ink-950 flex items-center justify-center active:scale-95 transition" aria-label="근무 등록">
             <CalendarPlus size={18} />
           </button>
         </div>
       )}
 
       {next ? (
-        <button onClick={() => openSheet({ kind: 'shiftDetail', shiftId: next.id })} className="w-full text-left rounded-2xl bg-gradient-to-br from-brand-500 to-brand-800 p-5 shadow-lg shadow-brand-900/30 text-white active:scale-[0.99] transition">
+        <button onClick={() => openSheet({ kind: 'shiftDetail', shiftId: next.id })} className="w-full text-left rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-5 shadow-lg shadow-brand-900/30 text-white active:scale-[0.99] transition">
           <div className="text-[11px] font-semibold text-white/75 tracking-wide">{dateOf(next.start_at) === today ? '오늘 근무' : '다음 근무'}</div>
           <div className="text-xl font-bold mt-1">{fmtDateKo(dateOf(next.start_at))}</div>
           <div className="text-white/85 text-sm mt-0.5 tabular-nums">

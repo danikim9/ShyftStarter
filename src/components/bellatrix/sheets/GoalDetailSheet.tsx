@@ -50,7 +50,7 @@ export function GoalDetailSheet({ goalId }: { goalId: string }) {
           <div className="text-3xl font-black text-ink-950 tabular-nums">{count}</div>
           <div className="text-[10px] text-ink-950/40">오늘{goal.target_count ? ` / ${goal.target_count}` : ''}</div>
         </div>
-        <button disabled={busy || !goal.active} onClick={() => bump(1)} className="w-12 h-12 rounded-full bg-brand-500 text-white flex items-center justify-center shadow-md shadow-brand-500/30 disabled:opacity-30 active:scale-95 transition" aria-label="한 번 더 시도">
+        <button disabled={busy || !goal.active} onClick={() => bump(1)} className="w-12 h-12 rounded-full bg-brand-500 text-ink-950 flex items-center justify-center shadow-md shadow-brand-500/30 disabled:opacity-30 active:scale-95 transition" aria-label="한 번 더 시도">
           <Plus size={18} />
         </button>
       </div>

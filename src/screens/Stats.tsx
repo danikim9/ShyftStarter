@@ -31,7 +31,7 @@ export function Stats() {
               {employee.xp.toLocaleString()} / {employee.xpToNextLevel.toLocaleString()} XP
             </span>
           </div>
-          <ProgressBar value={employee.xp} max={employee.xpToNextLevel} colorClass="bg-gradient-to-r from-brand-400 to-brand-600" />
+          <ProgressBar value={employee.xp} max={employee.xpToNextLevel} colorClass="bg-gradient-to-r from-brand-300 to-brand-500" />
         </Card>
       </div>
 
@@ -96,7 +96,7 @@ export function Stats() {
             >
               <span
                 className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
-                  lv === employee.level ? 'bg-brand-500 text-white' : 'bg-ink-950/8 text-ink-950/40'
+                  lv === employee.level ? 'bg-brand-500 text-ink-950' : 'bg-ink-950/8 text-ink-950/40'
                 }`}
               >
                 {lv}

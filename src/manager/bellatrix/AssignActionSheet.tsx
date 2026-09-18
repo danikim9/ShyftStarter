@@ -114,7 +114,7 @@ export function AssignActionSheet({ presetUserId }: { presetUserId?: string }) {
                 key={e.id}
                 type="button"
                 onClick={() => toggle(e.id)}
-                className={`rounded-xl border px-3 py-2 text-sm font-medium ${on ? 'bg-brand-500 border-brand-500 text-white' : 'bg-white border-ink-950/10 text-ink-950/75'}`}
+                className={`rounded-xl border px-3 py-2 text-sm font-medium ${on ? 'bg-brand-500 border-brand-500 text-ink-950' : 'bg-white border-ink-950/10 text-ink-950/75'}`}
               >
                 {e.name}
                 {workingIds.has(e.id) && <span className={`ml-1 text-[10px] ${on ? 'text-white/70' : 'text-emerald-600'}`}>근무</span>}
