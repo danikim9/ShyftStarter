@@ -84,7 +84,7 @@ export function MyShift({ onNavigate }: { onNavigate: (t: TabId) => void }) {
       {/* Today's shift card */}
       <button
         onClick={() => openSheet({ kind: 'shiftDetail', shiftId: todayShift.id })}
-        className="w-full text-left rounded-2xl bg-gradient-to-br from-brand-500 to-brand-800 p-5 shadow-lg shadow-brand-900/40 active:scale-[0.99] transition"
+        className="w-full text-left rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-5 shadow-lg shadow-brand-900/40 active:scale-[0.99] transition"
       >
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-semibold text-white/80 tracking-wide">
@@ -127,7 +127,7 @@ export function MyShift({ onNavigate }: { onNavigate: (t: TabId) => void }) {
                 <div key={h.id} className="flex items-start gap-2.5">
                   <span
                     className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0"
-                    style={{ background: '#5b5ff2' }}
+                    style={{ background: '#14b8a6' }}
                   >
                     {h.fromEmployeeName[0]}
                   </span>

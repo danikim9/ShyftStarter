@@ -38,8 +38,8 @@ export function SignUpScreen({ onBack }: { onBack: () => void }) {
   }
 
   return (
-    <div className="min-h-screen w-full bg-[radial-gradient(circle_at_top,_#f3edff_0%,_#ffffff_55%)] flex items-center justify-center py-0 sm:py-8 px-0 sm:px-4">
-      <div className="relative w-full max-w-[430px] h-[100dvh] sm:h-[880px] sm:rounded-[2.75rem] sm:border sm:border-ink-950/8 overflow-hidden flex flex-col bg-paper sm:shadow-[0_30px_80px_-20px_rgba(139,92,246,0.25)]">
+    <div className="min-h-screen w-full bg-[radial-gradient(circle_at_top,_#e3faf5_0%,_#ffffff_55%)] flex items-center justify-center py-0 sm:py-8 px-0 sm:px-4">
+      <div className="relative w-full max-w-[430px] h-[100dvh] sm:h-[880px] sm:rounded-[2.75rem] sm:border sm:border-ink-950/8 overflow-hidden flex flex-col bg-paper sm:shadow-[0_30px_80px_-20px_rgba(13,133,120,0.18)]">
         <div className="shrink-0 px-5 flex items-center" style={{ paddingTop: 'max(1rem, var(--safe-top))' }}>
           <button onClick={onBack} className="inline-flex items-center gap-1 text-xs text-ink-950/50 py-2 -ml-1">
             <ArrowLeft size={14} /> 로그인으로
@@ -75,7 +75,7 @@ export function SignUpScreen({ onBack }: { onBack: () => void }) {
               {INTERESTS.map((b) => {
                 const on = interests.includes(b)
                 return (
-                  <button key={b} type="button" onClick={() => toggle(b)} className={`rounded-xl border px-3 py-2 text-sm font-medium ${on ? 'bg-brand-500 border-brand-500 text-white' : 'bg-white border-ink-950/10 text-ink-950/75'}`}>
+                  <button key={b} type="button" onClick={() => toggle(b)} className={`rounded-xl border px-3 py-2 text-sm font-medium ${on ? 'bg-brand-500 border-brand-500 text-ink-950' : 'bg-white border-ink-950/10 text-ink-950/75'}`}>
                     {BEHAVIOUR_LABEL[b]}
                   </button>
                 )

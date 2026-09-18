@@ -90,7 +90,7 @@ function ManagerIdentity({ storeName }: { storeName: string }) {
   const name = ready?.user.name ?? 'Manager'
   return (
     <>
-      <span className="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-xs font-bold text-white">{name[0]}</span>
+      <span className="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-xs font-bold text-ink-950">{name[0]}</span>
       <div>
         <div className="text-xs font-medium text-ink-950/85">{name}</div>
         <div className="text-[10px] text-ink-950/35">Store Manager · {ready?.data.store?.name ?? storeName}</div>
@@ -150,7 +150,7 @@ function Sidebar() {
 // 내려가도록 했다(App.tsx의 StatusBar/LogoutButton과 동일한 패턴).
 function ManagerAvatar() {
   const ready = useReadyData()
-  return <span className="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-xs font-bold text-white shrink-0">{ready?.user.name[0] ?? 'M'}</span>
+  return <span className="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-xs font-bold text-ink-950 shrink-0">{ready?.user.name[0] ?? 'M'}</span>
 }
 
 function MobileTopBar() {

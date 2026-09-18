@@ -158,10 +158,10 @@ export const QUADRANT_META: Record<
   WillCapabilityQuadrant,
   { label: string; short: string; color: string; action: string }
 > = {
-  star: { label: '스타 플레이어', short: 'High Will · High Capability', color: '#22c55e', action: '인정 + 리더십 기회 부여' },
-  grower: { label: '성장형 인재', short: 'High Will · Growing Capability', color: '#5b5ff2', action: '집중 코칭 + 연습 기회 확대' },
-  disengaged: { label: '몰입 저하', short: 'Low Will · High Capability', color: '#f5a524', action: '1:1 면담으로 동기 원인 파악' },
-  atRisk: { label: '즉각 개입 필요', short: 'Low Will · Low Capability', color: '#ef4444', action: '명확한 기대치 설정 + 밀착 관리' },
+  star: { label: '스타 플레이어', short: 'High Will · High Capability', color: '#3fbf74', action: '인정 + 리더십 기회 부여' },
+  grower: { label: '성장형 인재', short: 'High Will · Growing Capability', color: '#0d8578', action: '집중 코칭 + 연습 기회 확대' },
+  disengaged: { label: '몰입 저하', short: 'Low Will · High Capability', color: '#f4b04a', action: '1:1 면담으로 동기 원인 파악' },
+  atRisk: { label: '즉각 개입 필요', short: 'Low Will · Low Capability', color: '#f26d6d', action: '명확한 기대치 설정 + 밀착 관리' },
 }
 
 export interface ManagerActionSummary {

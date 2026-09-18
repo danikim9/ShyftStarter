@@ -207,7 +207,7 @@ export function MyActions() {
         </div>
         <button
           onClick={() => openSheet({ kind: 'actionCompose' })}
-          className="shrink-0 w-11 h-11 rounded-full bg-brand-500 hover:bg-brand-600 text-white flex items-center justify-center active:scale-95 transition"
+          className="shrink-0 w-11 h-11 rounded-full bg-brand-500 hover:bg-brand-400 text-ink-950 flex items-center justify-center active:scale-95 transition"
           aria-label="할 일 추가"
         >
           <Plus size={18} />

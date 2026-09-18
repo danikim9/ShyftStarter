@@ -17,7 +17,7 @@ export const team: TeamMember[] = [
     role: jieun.role,
     store: jieun.store,
     tenure: jieun.experienceLevel,
-    avatarColor: '#5b5ff2',
+    avatarColor: '#14b8a6',
     skills: jieun.skills,
     capabilityScore: jieunCapability,
     willScore: 84,
@@ -39,7 +39,7 @@ export const team: TeamMember[] = [
     role: 'Sales Associate',
     store: 'Gangnam',
     tenure: '3년차',
-    avatarColor: '#22c55e',
+    avatarColor: '#3fbf74',
     skills: [
       buildSkillScore('discovery', [84, 86, 88, 89, 90], 0.9, 24),
       buildSkillScore('empathy', [86, 88, 90, 91, 92], 0.91, 23),
@@ -70,7 +70,7 @@ export const team: TeamMember[] = [
     role: 'Senior Sales Associate',
     store: 'Gangnam',
     tenure: '4년차',
-    avatarColor: '#f5a524',
+    avatarColor: '#f4b04a',
     skills: [
       buildSkillScore('discovery', [88, 87, 86, 85, 85], 0.86, 20),
       buildSkillScore('empathy', [82, 81, 81, 80, 80], 0.82, 18),
@@ -101,7 +101,7 @@ export const team: TeamMember[] = [
     role: 'Sales Associate',
     store: 'Gangnam',
     tenure: '2개월차',
-    avatarColor: '#ef4444',
+    avatarColor: '#f26d6d',
     skills: [
       buildSkillScore('discovery', [45, 47, 49, 51, 52], 0.6, 8),
       buildSkillScore('empathy', [48, 50, 52, 54, 55], 0.62, 8),
@@ -132,7 +132,7 @@ export const team: TeamMember[] = [
     role: 'Sales Associate',
     store: 'Gangnam',
     tenure: '2년차',
-    avatarColor: '#22c55e',
+    avatarColor: '#3fbf74',
     skills: [
       buildSkillScore('discovery', [78, 80, 82, 83, 84], 0.85, 19),
       buildSkillScore('empathy', [82, 84, 86, 87, 88], 0.88, 20),
@@ -163,7 +163,7 @@ export const team: TeamMember[] = [
     role: 'Sales Associate',
     store: 'Gangnam',
     tenure: '6개월차',
-    avatarColor: '#5b5ff2',
+    avatarColor: '#14b8a6',
     skills: [
       buildSkillScore('discovery', [58, 61, 64, 66, 68], 0.72, 12),
       buildSkillScore('empathy', [62, 65, 68, 70, 72], 0.74, 13),

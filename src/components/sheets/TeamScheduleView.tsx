@@ -168,7 +168,7 @@ export function TeamScheduleView({ onGoToTeam }: { onGoToTeam: () => void }) {
 
   const week = ROSTER_WEEKS[weekIndex]
   const myEntry = roster[CURRENT_EMPLOYEE_ID]?.[selectedDate] ?? 'off'
-  const myAvatarColor = ROSTER_MEMBERS.find((m) => m.id === CURRENT_EMPLOYEE_ID)?.avatarColor ?? '#5b5ff2'
+  const myAvatarColor = ROSTER_MEMBERS.find((m) => m.id === CURRENT_EMPLOYEE_ID)?.avatarColor ?? '#14b8a6'
   const canSwap = membership !== 'none' && myEntry !== 'off' && isUpcoming(selectedDate)
   const myRequests = swapRequests.filter((r) => r.requesterId === CURRENT_EMPLOYEE_ID)
   const mirrorDate = editingDate ? mirrorWeekDate(editingDate) : null
@@ -274,7 +274,7 @@ export function TeamScheduleView({ onGoToTeam }: { onGoToTeam: () => void }) {
               key={d}
               onClick={() => setSelectedDate(d)}
               className={`shrink-0 flex flex-col items-center gap-0.5 rounded-xl px-3 py-2 transition ${
-                active ? 'bg-brand-500 text-white' : d === TODAY ? 'bg-ink-950/10 text-ink-950/80' : 'bg-ink-950/5 text-ink-950/50'
+                active ? 'bg-brand-500 text-ink-950' : d === TODAY ? 'bg-ink-950/10 text-ink-950/80' : 'bg-ink-950/5 text-ink-950/50'
               }`}
             >
               <span className="text-[10px] font-medium">{dow}</span>

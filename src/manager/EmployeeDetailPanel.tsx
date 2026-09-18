@@ -148,7 +148,7 @@ export function EmployeeDetailPanel() {
             <div className="px-5 py-4 border-t border-ink-950/8 shrink-0 grid grid-cols-3 gap-2">
               <button
                 onClick={() => openQuestModal(member.id)}
-                className="rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-semibold py-2.5 text-xs active:scale-[0.98] transition"
+                className="rounded-xl bg-brand-500 hover:bg-brand-400 text-ink-950 font-semibold py-2.5 text-xs active:scale-[0.98] transition"
               >
                 ASSIGN QUEST
               </button>

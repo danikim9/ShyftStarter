@@ -39,10 +39,10 @@ export function LoginScreen({ onSignUp }: { onSignUp: () => void }) {
   }
 
   return (
-    <div className="min-h-screen w-full bg-[radial-gradient(circle_at_top,_#f3edff_0%,_#ffffff_55%)] flex items-center justify-center py-0 sm:py-8 px-0 sm:px-4">
-      <div className="relative w-full max-w-[430px] h-[100dvh] sm:h-[880px] sm:rounded-[2.75rem] sm:border sm:border-ink-950/8 overflow-hidden flex flex-col bg-paper sm:shadow-[0_30px_80px_-20px_rgba(139,92,246,0.25)] px-7">
+    <div className="min-h-screen w-full bg-[radial-gradient(circle_at_top,_#e3faf5_0%,_#ffffff_55%)] flex items-center justify-center py-0 sm:py-8 px-0 sm:px-4">
+      <div className="relative w-full max-w-[430px] h-[100dvh] sm:h-[880px] sm:rounded-[2.75rem] sm:border sm:border-ink-950/8 overflow-hidden flex flex-col bg-paper sm:shadow-[0_30px_80px_-20px_rgba(13,133,120,0.18)] px-7">
         <div className="flex-1 flex flex-col items-center justify-center min-h-0">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-2xl font-black text-white shadow-lg shadow-brand-500/30 mb-5">S</div>
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-300 to-brand-500 flex items-center justify-center text-2xl font-black text-ink-950 shadow-lg shadow-brand-500/30 mb-5">S</div>
           <h1 className="text-ink-950 text-xl font-bold mb-1.5">ShyftStarter</h1>
           <p className="text-ink-950/40 text-sm text-center leading-relaxed">
             오늘 하나의 행동에 집중하고,
@@ -64,7 +64,7 @@ export function LoginScreen({ onSignUp }: { onSignUp: () => void }) {
                     onClick={() => go(u.email)}
                     className="w-full flex items-center gap-3 rounded-xl bg-white border border-ink-950/10 px-4 py-3 text-left active:scale-[0.98] transition disabled:opacity-60"
                   >
-                    <span className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0 ${u.role === 'manager' ? 'bg-ink-950' : 'bg-brand-500'}`}>{u.name[0]}</span>
+                    <span className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${u.role === 'manager' ? 'bg-ink-950 text-white' : 'bg-brand-500 text-ink-950'}`}>{u.name[0]}</span>
                     <span className="min-w-0 flex-1">
                       <span className="flex items-center gap-1.5">
                         <span className="text-sm font-semibold text-ink-950">{u.name}</span>

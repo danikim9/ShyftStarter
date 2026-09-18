@@ -50,7 +50,7 @@ export function MemberDetailSheet({ userId }: { userId: string }) {
   return (
     <div className="space-y-5">
       <div className="flex items-start gap-3">
-        <span className="w-12 h-12 rounded-2xl bg-brand-500 text-white flex items-center justify-center text-lg font-bold shrink-0">{user.name[0]}</span>
+        <span className="w-12 h-12 rounded-2xl bg-brand-500 text-ink-950 flex items-center justify-center text-lg font-bold shrink-0">{user.name[0]}</span>
         <div className="min-w-0 flex-1">
           <div className="text-base font-bold text-ink-950">{user.name}</div>
           <div className="text-xs text-ink-950/50">{shift ? `오늘 ${fmtTimeHM(shift.start_at)}–${fmtTimeHM(shift.end_at)} 근무` : '오늘 근무 없음'}</div>
@@ -71,7 +71,7 @@ export function MemberDetailSheet({ userId }: { userId: string }) {
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        <button onClick={() => openSheet({ kind: 'observe', presetUserId: user.id })} className="rounded-xl bg-brand-500 text-white text-sm font-semibold py-3 inline-flex items-center justify-center gap-1.5">
+        <button onClick={() => openSheet({ kind: 'observe', presetUserId: user.id })} className="rounded-xl bg-brand-500 text-ink-950 text-sm font-semibold py-3 inline-flex items-center justify-center gap-1.5">
           <Eye size={14} /> 지금 관찰 기록
         </button>
         <button onClick={() => openSheet({ kind: 'assign', presetUserId: user.id })} className="rounded-xl bg-ink-950/6 text-ink-950 text-sm font-semibold py-3 inline-flex items-center justify-center gap-1.5">

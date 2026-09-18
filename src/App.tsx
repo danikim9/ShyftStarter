@@ -37,8 +37,8 @@ const setupKey = (userId: string) => `bellatrix.setupDone.${userId}`
 // ancestor, otherwise WKWebView positions it against the layout viewport
 // (see build log 32차). Keep this on every shell root.
 const FIXED_CONTAINMENT = { transform: 'translateZ(0)' } as const
-const APP_BACKDROP = 'bg-[radial-gradient(circle_at_top,_#f3edff_0%,_#ffffff_55%)]'
-const PHONE_SHADOW = 'sm:shadow-[0_30px_80px_-20px_rgba(139,92,246,0.25)]'
+const APP_BACKDROP = 'bg-[radial-gradient(circle_at_top,_#e3faf5_0%,_#ffffff_55%)]'
+const PHONE_SHADOW = 'sm:shadow-[0_30px_80px_-20px_rgba(13,133,120,0.18)]'
 
 function ManagerToggleButton({ view, onToggle }: { view: 'employee' | 'manager'; onToggle: () => void }) {
   return (
@@ -138,7 +138,7 @@ function ManagerAppShell() {
 function Splash() {
   return (
     <div className="min-h-screen w-full bg-paper flex items-center justify-center">
-      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-xl font-black text-white shadow-lg shadow-brand-500/30 animate-pulse">S</div>
+      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-300 to-brand-500 flex items-center justify-center text-xl font-black text-ink-950 shadow-lg shadow-brand-500/30 animate-pulse">S</div>
     </div>
   )
 }

@@ -37,7 +37,7 @@ function GoalRow({ goal, count }: { goal: PersonalGoal; count: number }) {
       {goal.active && (
         <button
           onClick={() => void logGoalAttempt(goal.id, 1)}
-          className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 active:scale-95 transition ${done ? 'bg-emerald-signal/15 text-emerald-600' : 'bg-brand-500 text-white'}`}
+          className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 active:scale-95 transition ${done ? 'bg-emerald-signal/15 text-emerald-600' : 'bg-brand-500 text-ink-950'}`}
           aria-label={`${goal.title} 한 번 더 시도`}
         >
           {done ? <Check size={16} strokeWidth={3} /> : <Plus size={16} />}

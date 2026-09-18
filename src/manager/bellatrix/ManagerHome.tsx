@@ -133,7 +133,7 @@ export function ManagerHome() {
         ) : (
           <button onClick={() => openSheet({ kind: 'kpi' })} className="w-full text-left">
             <Card className="flex items-center gap-3 border-brand-200 bg-brand-50 active:scale-[0.99] transition">
-              <div className="w-10 h-10 rounded-xl bg-brand-500 text-white flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-brand-500 text-ink-950 flex items-center justify-center shrink-0">
                 <BarChart3 size={18} />
               </div>
               <div className="min-w-0 flex-1">
@@ -168,7 +168,7 @@ export function ManagerHome() {
               <ChevronRight size={16} className="text-ink-950/25 shrink-0 mt-2" />
             </button>
             <div className="grid grid-cols-2 gap-2">
-              <button onClick={() => openSheet({ kind: 'member', userId: pick.user.id })} className="rounded-lg bg-brand-500 text-white text-xs font-semibold py-2.5 inline-flex items-center justify-center gap-1.5">
+              <button onClick={() => openSheet({ kind: 'member', userId: pick.user.id })} className="rounded-lg bg-brand-500 text-ink-950 text-xs font-semibold py-2.5 inline-flex items-center justify-center gap-1.5">
                 <MessageCircleHeart size={13} /> 코칭 가이드 · 카드 보내기
               </button>
               <button onClick={() => openSheet({ kind: 'observe', presetUserId: pick.user.id })} className="rounded-lg bg-ink-950/6 text-ink-950/75 text-xs font-semibold py-2.5 inline-flex items-center justify-center gap-1.5">

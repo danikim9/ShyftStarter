@@ -55,7 +55,7 @@ export function PrimaryButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`w-full rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-semibold py-3 text-sm shadow-sm shadow-brand-500/25 active:scale-[0.98] transition disabled:opacity-40 disabled:active:scale-100 ${className}`}
+      className={`w-full rounded-xl bg-brand-500 hover:bg-brand-400 text-ink-950 font-semibold py-3 text-sm shadow-sm shadow-brand-500/25 active:scale-[0.98] transition disabled:opacity-40 disabled:active:scale-100 ${className}`}
     >
       {children}
     </button>

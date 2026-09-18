@@ -34,8 +34,8 @@ export function SetupFlow({ onDone }: { onDone: () => void }) {
   }
 
   return (
-    <div className="min-h-screen w-full bg-[radial-gradient(circle_at_top,_#f3edff_0%,_#ffffff_55%)] flex items-center justify-center py-0 sm:py-8 px-0 sm:px-4">
-      <div className="relative w-full max-w-[430px] h-[100dvh] sm:h-[880px] sm:rounded-[2.75rem] sm:border sm:border-ink-950/8 overflow-hidden flex flex-col bg-paper sm:shadow-[0_30px_80px_-20px_rgba(139,92,246,0.25)]" style={{ transform: 'translateZ(0)' }}>
+    <div className="min-h-screen w-full bg-[radial-gradient(circle_at_top,_#e3faf5_0%,_#ffffff_55%)] flex items-center justify-center py-0 sm:py-8 px-0 sm:px-4">
+      <div className="relative w-full max-w-[430px] h-[100dvh] sm:h-[880px] sm:rounded-[2.75rem] sm:border sm:border-ink-950/8 overflow-hidden flex flex-col bg-paper sm:shadow-[0_30px_80px_-20px_rgba(13,133,120,0.18)]" style={{ transform: 'translateZ(0)' }}>
         <div className="shrink-0 px-6 flex items-center justify-between" style={{ paddingTop: 'max(1rem, var(--safe-top))' }}>
           <div className="flex items-center gap-1.5">
             {ORDER.map((s, i) => (
@@ -48,7 +48,7 @@ export function SetupFlow({ onDone }: { onDone: () => void }) {
         </div>
         <div className="flex-1 overflow-y-auto app-scroll px-6 pb-10 pt-4 space-y-5">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-700 flex items-center justify-center text-white shadow-md shadow-brand-500/25 shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-300 to-brand-500 flex items-center justify-center text-ink-950 shadow-md shadow-brand-500/25 shrink-0">
               <Icon size={22} strokeWidth={1.8} />
             </div>
             <div>

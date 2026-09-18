@@ -122,8 +122,8 @@ function AnnouncementCard({
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-center gap-2 min-w-0">
           <span
-            className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0 ${
-              isManager ? 'bg-amber-signal/80' : 'bg-brand-500'
+            className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
+              isManager ? 'bg-amber-signal/80 text-white' : 'bg-brand-500 text-ink-950'
             }`}
           >
             {isManager ? <Megaphone size={13} /> : a.authorName[0]}

@@ -127,7 +127,7 @@ export function WageCalculatorView() {
             />
             <button
               onClick={handleAddEntry}
-              className="shrink-0 w-8 h-8 rounded-lg bg-brand-500 hover:bg-brand-600 text-white flex items-center justify-center active:scale-90 transition"
+              className="shrink-0 w-8 h-8 rounded-lg bg-brand-500 hover:bg-brand-400 text-ink-950 flex items-center justify-center active:scale-90 transition"
               aria-label="추가 수당 기록"
             >
               <Plus size={14} />
